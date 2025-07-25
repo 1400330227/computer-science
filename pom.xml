@@ -12,6 +12,11 @@
     <name>computer-science</name>
     <description>computer-science</description>
 
+    <modules>
+        <module>file-system</module>
+        <module>hdfs-api</module>
+    </modules>
+
     <!-- 添加父级依赖管理 -->
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -26,10 +31,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
-    </dependencies>
 
-    <modules>
-        <module>file-system</module>
-        <module>hdfs-api</module>
-    </modules>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+    </dependencies>
 </project>
