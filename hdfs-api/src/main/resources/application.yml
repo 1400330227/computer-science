@@ -1,0 +1,26 @@
+# 全局配置文件
+spring:
+  application:
+    name: hdfs-api
+  server:
+    port: 8080
+  datasource:
+    url: jdbc:mysql://172.21.44.162:3306/HDFS?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: tangxw
+    password: Puersai.168
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+# Hadoop配置
+hadoop:
+  hdfs:
+    user: Administrator
+    namenode: 172.21.44.162:9000
+
+logging:
+  level:
+    root: INFO
+    com.computerscience.hdfsapi: DEBUG

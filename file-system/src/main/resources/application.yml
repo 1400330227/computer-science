@@ -1,8 +1,0 @@
-# application.yml 主配置文件
-spring:
-  application:
-    name: file-system  # 修正name值格式
-
-  # 激活开发环境配置 (必须放在顶层)
-  profiles:
-    active: dev

@@ -15,4 +15,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      '/hdfs': {
+        target: 'http://localhost:8080', // 后端服务端口
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/hdfs/, '/hdfs')
+      }
+    }
+  }
 })

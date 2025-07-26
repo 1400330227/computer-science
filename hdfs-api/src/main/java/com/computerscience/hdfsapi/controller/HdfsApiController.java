@@ -25,17 +25,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/appleyk/webhdfs/v1")
+@RequestMapping("/hdfs")
 public class HdfsApiController {
 
-    @Autowired
-    private Configuration conf;
-
-    @Value("${hadoop.hdfs.user}")
+    @Value("${hadoop.hdfs.user:hdfs}")
     private String user;
 
-    @Autowired
-    private HdfsApiService apiService;
+    @Value("${hadoop.hdfs.namenode:localhost:9000}")
+    private String namenode;
+
 
     /**
      * 上传文件
@@ -47,6 +45,12 @@ public class HdfsApiController {
     @PostMapping("/upload")
     public ResponseEntity<String> upLoadFile(@RequestParam(name = "file", required = true) MultipartFile file, @RequestParam(name = "destPath") String destPath)
             throws Exception {
+        System.out.println("你已经成功的调用到上传文件的后端服务了");
+        // 直接创建Configuration
+        Configuration conf = new Configuration();
+        conf.set("fs.defaultFS", "hdfs://" + namenode);
+        conf.set("hadoop.user.name", user);
+        
         HdfsApi api = new HdfsApi(conf, user);
         InputStream is = file.getInputStream();
         String name = file.getOriginalFilename();

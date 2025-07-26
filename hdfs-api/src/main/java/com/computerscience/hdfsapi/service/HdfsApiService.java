@@ -5,10 +5,12 @@ import com.computerscience.hdfsapi.model.HDFSFileStatus;
 import com.computerscience.hdfsapi.model.HDFSOp;
 import com.computerscience.hdfsapi.utils.DPage;
 import com.computerscience.hdfsapi.utils.ListFilter;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
 
 
+@Service
 public interface HdfsApiService {
 
 	/**
