@@ -1,76 +1,101 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <header>
-    <nav>
-      <div>
-        <RouterLink to="/">新增语料清单</RouterLink>
-        <RouterLink to="/about">查询语料清单</RouterLink>
+  <div class="app-container">
+    <el-menu :default-active="activeIndex" class="el-menu-demo" mode="horizontal" @select="handleSelect">
+      <el-menu-item index="1">Processing Center</el-menu-item>
+      <el-sub-menu index="2">
+        <template #title>Workspace</template>
+        <el-menu-item index="2-1">item one</el-menu-item>
+        <el-menu-item index="2-2">item two</el-menu-item>
+        <el-menu-item index="2-3">item three</el-menu-item>
+        <el-sub-menu index="2-4">
+          <template #title>item four</template>
+          <el-menu-item index="2-4-1">item one</el-menu-item>
+          <el-menu-item index="2-4-2">item two</el-menu-item>
+          <el-menu-item index="2-4-3">item three</el-menu-item>
+        </el-sub-menu>
+      </el-sub-menu>
+      <el-menu-item index="3" disabled>Info</el-menu-item>
+      <el-menu-item index="4">Orders</el-menu-item>
+    </el-menu>
+    <!-- <nav>
+      <div class="top-nav">
+        <div class="nav-links">
+          <a href="/" class="nav-link">首页</a>
+          <a href="/file-list" class="nav-link active">语料清单</a>
+          <a href="/settings" class="nav-link">用户</a>
+          <a href="/settings" class="nav-link">权限管理</a>
+        </div>
       </div>
-    </nav>
-  </header>
-  <main>
-    <RouterView />
-  </main>
+    </nav> -->
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb">
+      <span>文件管理</span> > <span class="active">语料集列表</span>
+    </div>
+    <main>
+      <RouterView />
+    </main>
+  </div>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.app-container {
+  background-color: #F8FAFD;
 }
 
-nav {
-  width: 100%;
+/* 顶部导航样式 */
+.top-nav {
+  background-color: #4169e1;
+  padding: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  color: white;
+  justify-content: center;
+}
+
+.nav-links {
+  display: flex;
+  width: 1200px;
+  padding: 0 20px;
+}
+
+.nav-link {
+  padding: 0 20px;
+  color: white;
+  text-decoration: none;
+  height: 60px;
+  line-height: 60px;
+  transition: background-color 0.2s;
+  font-size: 16px;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 面包屑导航样式 */
+.breadcrumb {
+  padding: 10px 0;
+  color: #666;
   font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+  display: flex;
+  justify-content: left;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.breadcrumb>div {
+  width: 1200px;
+  padding: 0 20px;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.breadcrumb .active {
+  color: #333;
+  font-weight: 500;
 }
 </style>
