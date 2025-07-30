@@ -23,7 +23,7 @@ public interface FileService extends IService<FileEntity> {
      * @param corpusId 语料库ID
      * @return 文件列表
      */
-    List<FileEntity> findByCorpusId(Long corpusId);
+    List<FileEntity> findByCorpusId(Integer corpusId);
     
     /**
      * 分页查询文件列表
@@ -33,7 +33,7 @@ public interface FileService extends IService<FileEntity> {
      * @param corpusId 语料库ID（可选）
      * @return 分页文件列表
      */
-    IPage<FileEntity> findFilePage(Integer page, Integer size, String fileType, Long corpusId);
+    IPage<FileEntity> findFilePage(Integer page, Integer size, String fileType, Integer corpusId);
     
     /**
      * 创建文件
@@ -54,5 +54,5 @@ public interface FileService extends IService<FileEntity> {
      * @param fileId 文件ID
      * @return 是否删除成功
      */
-    boolean deleteFile(Long fileId);
+    boolean deleteFile(Integer fileId);
 } 

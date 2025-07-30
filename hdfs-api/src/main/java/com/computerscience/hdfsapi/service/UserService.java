@@ -44,5 +44,5 @@ public interface UserService extends IService<User> {
      * @param userId 用户ID
      * @return 是否删除成功
      */
-    boolean deleteUser(Long userId);
+    boolean deleteUser(Integer userId);
 } 

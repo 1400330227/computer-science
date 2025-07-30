@@ -1,8 +1,6 @@
 package com.computerscience.hdfsapi.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,14 +9,13 @@ import java.time.LocalDateTime;
 @Data
 @TableName("corpus")
 public class Corpus implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键ID
+     * 语料ID (主键)
      */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    @TableId(value = "corpus_id", type = IdType.AUTO)
+    private Integer corpusId;
 
     /**
      * 国家
@@ -28,12 +25,13 @@ public class Corpus implements Serializable {
     /**
      * 语料集名称
      */
-    private String name;
+    @TableField("collection_name")
+    private String collectionName;
 
     /**
-     * 明暗领域
+     * 所属领域
      */
-    private String domainType;
+    private String domain;
 
     /**
      * 语种
@@ -43,52 +41,60 @@ public class Corpus implements Serializable {
     /**
      * 数据形式
      */
-    private String dataForm;
+    @TableField("data_format")
+    private String dataFormat;
 
     /**
      * 数据分类
      */
-    private String dataCategory;
+    private String classification;
 
     /**
      * 数据量
      */
-    private String dataVolume;
+    @TableField("data_volume")
+    private Double dataVolume;
 
     /**
-     * 数据量单位
+     * 数据单位
      */
-    private String dataVolumeUnit;
+    @TableField("volume_unit")
+    private String volumeUnit;
 
     /**
-     * 容量估算(GB)
+     * 容量估算（GB）
      */
-    private Double estimatedCapacityGB;
+    @TableField("estimated_capacity_gb")
+    private Double estimatedCapacityGb;
 
     /**
      * 数据年份
      */
+    @TableField("data_year")
     private String dataYear;
 
     /**
-     * 采集归属期
+     * 来源归属地
      */
-    private String collectionPeriod;
+    @TableField("source_location")
+    private String sourceLocation;
 
     /**
      * 数据来源
      */
+    @TableField("data_source")
     private String dataSource;
 
     /**
      * 数据提供方
      */
-    private String dataProvider;
+    private String provider;
 
     /**
      * 数据提供方联系方式
      */
-    private String dataProviderContact;
+    @TableField("provider_contact")
+    private String providerContact;
 
     /**
      * 备注说明
@@ -96,22 +102,14 @@ public class Corpus implements Serializable {
     private String remarks;
 
     /**
-     * 创建者ID
+     * 创建者ID (外键关联users表)
      */
-    private Long creatorId;
+    @TableField("creator_id")
+    private Integer creatorId;
 
     /**
-     * 创建时间
+     * 创建时间 (默认当前时间)
      */
-    private LocalDateTime createTime;
-
-    /**
-     * 更新者ID
-     */
-    private Long updaterId;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
+    private LocalDateTime createdAt;
 }

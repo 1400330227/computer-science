@@ -20,30 +20,30 @@ import java.time.LocalDateTime;
 public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> implements CorpusService {
 
     @Override
-    public Corpus findByName(String name) {
-        if (!StringUtils.hasText(name)) {
+    public Corpus findByName(String collectionName) {
+        if (!StringUtils.hasText(collectionName)) {
             return null;
         }
         
         LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Corpus::getName, name);
+        queryWrapper.eq(Corpus::getCollectionName, collectionName);
         
         return getOne(queryWrapper);
     }
 
     @Override
-    public IPage<Corpus> findCorpusPage(Integer page, Integer size, String language, String dataCategory) {
+    public IPage<Corpus> findCorpusPage(Integer page, Integer size, String language, String classification) {
         LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
         
         if (StringUtils.hasText(language)) {
             queryWrapper.eq(Corpus::getLanguage, language);
         }
         
-        if (StringUtils.hasText(dataCategory)) {
-            queryWrapper.eq(Corpus::getDataCategory, dataCategory);
+        if (StringUtils.hasText(classification)) {
+            queryWrapper.eq(Corpus::getClassification, classification);
         }
         
-        queryWrapper.orderByDesc(Corpus::getCreateTime);
+        queryWrapper.orderByDesc(Corpus::getCreatedAt);
         
         return page(new Page<>(page, size), queryWrapper);
     }
@@ -52,16 +52,13 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     @Transactional
     public boolean createCorpus(Corpus corpus) {
         // 检查语料库名称是否已存在
-        Corpus existingCorpus = findByName(corpus.getName());
+        Corpus existingCorpus = findByName(corpus.getCollectionName());
         if (existingCorpus != null) {
             return false;
         }
         
         // 设置创建时间
-        corpus.setCreateTime(LocalDateTime.now());
-        if (corpus.getUpdateTime() == null) {
-            corpus.setUpdateTime(LocalDateTime.now());
-        }
+        corpus.setCreatedAt(LocalDateTime.now());
         
         return save(corpus);
     }
@@ -69,25 +66,22 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     @Override
     @Transactional
     public boolean updateCorpus(Corpus corpus) {
-        if (corpus == null || corpus.getId() == null) {
+        if (corpus == null || corpus.getCorpusId() == null) {
             return false;
         }
         
         // 检查语料库是否存在
-        Corpus existingCorpus = getById(corpus.getId());
+        Corpus existingCorpus = getById(corpus.getCorpusId());
         if (existingCorpus == null) {
             return false;
         }
-        
-        // 设置更新时间
-        corpus.setUpdateTime(LocalDateTime.now());
         
         return updateById(corpus);
     }
 
     @Override
     @Transactional
-    public boolean deleteCorpus(Long corpusId) {
+    public boolean deleteCorpus(Integer corpusId) {
         if (corpusId == null) {
             return false;
         }

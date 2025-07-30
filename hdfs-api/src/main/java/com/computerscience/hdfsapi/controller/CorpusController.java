@@ -22,7 +22,7 @@ public class CorpusController {
      * 根据ID查询语料库
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Corpus> getCorpusById(@PathVariable Long id) {
+    public ResponseEntity<Corpus> getCorpusById(@PathVariable Integer id) {
         Corpus corpus = corpusService.getById(id);
         if (corpus == null) {
             return ResponseEntity.notFound().build();
@@ -50,8 +50,8 @@ public class CorpusController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String language,
-            @RequestParam(required = false) String dataCategory) {
-        return ResponseEntity.ok(corpusService.findCorpusPage(page, size, language, dataCategory));
+            @RequestParam(required = false) String classification) {
+        return ResponseEntity.ok(corpusService.findCorpusPage(page, size, language, classification));
     }
 
     /**
@@ -70,8 +70,8 @@ public class CorpusController {
      * 更新语料库信息
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateCorpus(@PathVariable Long id, @RequestBody Corpus corpus) {
-        corpus.setId(id);
+    public ResponseEntity<?> updateCorpus(@PathVariable Integer id, @RequestBody Corpus corpus) {
+        corpus.setCorpusId(id);
         if (corpusService.updateCorpus(corpus)) {
             return ResponseEntity.ok(corpus);
         } else {
@@ -83,7 +83,7 @@ public class CorpusController {
      * 删除语料库
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteCorpus(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCorpus(@PathVariable Integer id) {
         if (corpusService.deleteCorpus(id)) {
             return ResponseEntity.ok().build();
         } else {

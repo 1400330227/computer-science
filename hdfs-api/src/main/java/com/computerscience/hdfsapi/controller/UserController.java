@@ -22,7 +22,7 @@ public class UserController {
      * 根据ID查询用户
      */
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         User user = userService.getById(id);
         if (user == null) {
             return ResponseEntity.notFound().build();
@@ -69,8 +69,8 @@ public class UserController {
      * 更新用户信息
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User user) {
-        user.setId(id);
+    public ResponseEntity<?> updateUser(@PathVariable Integer id, @RequestBody User user) {
+        user.setUserId(id);
         if (userService.updateUser(user)) {
             return ResponseEntity.ok(user);
         } else {
@@ -82,7 +82,7 @@ public class UserController {
      * 删除用户
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
         if (userService.deleteUser(id)) {
             return ResponseEntity.ok().build();
         } else {

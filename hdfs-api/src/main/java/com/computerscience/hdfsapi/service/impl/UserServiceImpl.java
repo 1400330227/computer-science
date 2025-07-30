@@ -39,7 +39,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             queryWrapper.eq(User::getUserType, userType);
         }
         
-        queryWrapper.orderByDesc(User::getCreateTime);
+        queryWrapper.orderByDesc(User::getCreatedAt);
         
         return page(new Page<>(page, size), queryWrapper);
     }
@@ -54,10 +54,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
         
         // 设置创建时间
-        user.setCreateTime(LocalDateTime.now());
-        if (user.getUpdateTime() == null) {
-            user.setUpdateTime(LocalDateTime.now());
-        }
+        user.setCreatedAt(LocalDateTime.now());
         
         return save(user);
     }
@@ -65,25 +62,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional
     public boolean updateUser(User user) {
-        if (user == null || user.getId() == null) {
+        if (user == null || user.getUserId() == null) {
             return false;
         }
         
         // 检查用户是否存在
-        User existingUser = getById(user.getId());
+        User existingUser = getById(user.getUserId());
         if (existingUser == null) {
             return false;
         }
         
         // 设置更新时间
-        user.setUpdateTime(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
         
         return updateById(user);
     }
 
     @Override
     @Transactional
-    public boolean deleteUser(Long userId) {
+    public boolean deleteUser(Integer userId) {
         if (userId == null) {
             return false;
         }

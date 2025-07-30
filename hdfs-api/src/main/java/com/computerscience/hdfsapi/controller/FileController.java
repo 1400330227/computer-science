@@ -24,7 +24,7 @@ public class FileController {
      * 根据ID查询文件
      */
     @GetMapping("/{id}")
-    public ResponseEntity<FileEntity> getFileById(@PathVariable Long id) {
+    public ResponseEntity<FileEntity> getFileById(@PathVariable Integer id) {
         FileEntity file = fileService.getById(id);
         if (file == null) {
             return ResponseEntity.notFound().build();
@@ -36,7 +36,7 @@ public class FileController {
      * 根据语料库ID查询文件列表
      */
     @GetMapping("/corpus/{corpusId}")
-    public ResponseEntity<List<FileEntity>> getFilesByCorpusId(@PathVariable Long corpusId) {
+    public ResponseEntity<List<FileEntity>> getFilesByCorpusId(@PathVariable Integer corpusId) {
         List<FileEntity> files = fileService.findByCorpusId(corpusId);
         if (files == null || files.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -52,7 +52,7 @@ public class FileController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String fileType,
-            @RequestParam(required = false) Long corpusId) {
+            @RequestParam(required = false) Integer corpusId) {
         return ResponseEntity.ok(fileService.findFilePage(page, size, fileType, corpusId));
     }
 
@@ -72,8 +72,8 @@ public class FileController {
      * 更新文件信息
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateFile(@PathVariable Long id, @RequestBody FileEntity fileEntity) {
-        fileEntity.setId(id);
+    public ResponseEntity<?> updateFile(@PathVariable Integer id, @RequestBody FileEntity fileEntity) {
+        fileEntity.setFileId(id);
         if (fileService.updateFile(fileEntity)) {
             return ResponseEntity.ok(fileEntity);
         } else {
@@ -85,7 +85,7 @@ public class FileController {
      * 删除文件
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteFile(@PathVariable Long id) {
+    public ResponseEntity<?> deleteFile(@PathVariable Integer id) {
         if (fileService.deleteFile(id)) {
             return ResponseEntity.ok().build();
         } else {

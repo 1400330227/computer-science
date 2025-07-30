@@ -33,20 +33,20 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
     }
 
     @Override
-    public List<FileEntity> findByCorpusId(Long corpusId) {
+    public List<FileEntity> findByCorpusId(Integer corpusId) {
         if (corpusId == null) {
             return null;
         }
         
         LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(FileEntity::getCorpusId, corpusId);
-        queryWrapper.orderByDesc(FileEntity::getCreateTime);
+        queryWrapper.orderByDesc(FileEntity::getCreatedAt);
         
         return list(queryWrapper);
     }
 
     @Override
-    public IPage<FileEntity> findFilePage(Integer page, Integer size, String fileType, Long corpusId) {
+    public IPage<FileEntity> findFilePage(Integer page, Integer size, String fileType, Integer corpusId) {
         LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
         
         if (StringUtils.hasText(fileType)) {
@@ -57,7 +57,7 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
             queryWrapper.eq(FileEntity::getCorpusId, corpusId);
         }
         
-        queryWrapper.orderByDesc(FileEntity::getCreateTime);
+        queryWrapper.orderByDesc(FileEntity::getCreatedAt);
         
         return page(new Page<>(page, size), queryWrapper);
     }
@@ -70,9 +70,9 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
         }
         
         // 设置创建时间
-        fileEntity.setCreateTime(LocalDateTime.now());
-        if (fileEntity.getUpdateTime() == null) {
-            fileEntity.setUpdateTime(LocalDateTime.now());
+        fileEntity.setCreatedAt(LocalDateTime.now());
+        if (fileEntity.getUpdatedAt() == null) {
+            fileEntity.setUpdatedAt(LocalDateTime.now());
         }
         
         return save(fileEntity);
@@ -81,25 +81,25 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
     @Override
     @Transactional
     public boolean updateFile(FileEntity fileEntity) {
-        if (fileEntity == null || fileEntity.getId() == null) {
+        if (fileEntity == null || fileEntity.getFileId() == null) {
             return false;
         }
         
         // 检查文件是否存在
-        FileEntity existingFile = getById(fileEntity.getId());
+        FileEntity existingFile = getById(fileEntity.getFileId());
         if (existingFile == null) {
             return false;
         }
         
         // 设置更新时间
-        fileEntity.setUpdateTime(LocalDateTime.now());
+        fileEntity.setUpdatedAt(LocalDateTime.now());
         
         return updateById(fileEntity);
     }
 
     @Override
     @Transactional
-    public boolean deleteFile(Long fileId) {
+    public boolean deleteFile(Integer fileId) {
         if (fileId == null) {
             return false;
         }

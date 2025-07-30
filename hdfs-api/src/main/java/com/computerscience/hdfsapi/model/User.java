@@ -1,13 +1,11 @@
 package com.computerscience.hdfsapi.model;
 
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -18,16 +16,13 @@ import java.time.LocalDateTime;
  * 用户实体类
  */
 @Data
-@TableName("user")
 public class User implements Serializable {
-
     private static final long serialVersionUID = 1L;
-
     /**
-     * 主键ID
+     * 用户ID (主键)
      */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    @TableId(value = "user_id", type = IdType.AUTO)
+    private Integer userId;
 
     /**
      * 账号
@@ -42,7 +37,7 @@ public class User implements Serializable {
     /**
      * 手机号码
      */
-    private String phoneNumber;
+    private String phone;
 
     /**
      * 用户性别
@@ -55,7 +50,7 @@ public class User implements Serializable {
     private String password;
 
     /**
-     * 账号状态
+     * 帐号状态 (默认 'active')
      */
     private String accountStatus;
 
@@ -65,19 +60,21 @@ public class User implements Serializable {
     private String creator;
 
     /**
-     * 文件创建时间
+     * 创建时间 (默认当前时间)
      */
-    private LocalDateTime createTime;
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
+    private LocalDateTime createdAt;
 
     /**
      * 用户信息更新者
      */
-    private String updater;
+    private String updatedBy;
 
     /**
-     * 用户信息更新时间
+     * 用户信息更新时间 (更新时自动设置为当前时间)
      */
-    private LocalDateTime updateTime;
+    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedAt;
 
     /**
      * 备注说明
@@ -85,7 +82,7 @@ public class User implements Serializable {
     private String remarks;
 
     /**
-     * 用户邮箱
+     * 地址
      */
-    private String email;
+    private String address;
 }

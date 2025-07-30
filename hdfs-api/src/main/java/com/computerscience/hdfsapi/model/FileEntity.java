@@ -1,8 +1,6 @@
 package com.computerscience.hdfsapi.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,64 +10,61 @@ import java.time.LocalDateTime;
  * 文件实体类
  */
 @Data
-@TableName("file")
+@TableName("files")
 public class FileEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键ID
+     * 文件ID (主键)
      */
-    @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    @TableId(value = "file_id", type = IdType.AUTO)
+    private Integer fileId;
 
     /**
      * 文件名
      */
+    @TableField("file_name")
     private String fileName;
 
     /**
      * 文件类型
      */
+    @TableField("file_type")
     private String fileType;
 
     /**
      * 文件地址
      */
-    private String fileLocation;
+    @TableField("file_path")
+    private String filePath;
 
     /**
-     * 文件创建者ID
+     * 文件创建者ID (外键关联users表)
      */
-    private Long creatorId;
+    @TableField("creator_id")
+    private Integer creatorId;
 
     /**
-     * 文件创建者名称
+     * 文件创建时间 (默认当前时间)
      */
-    private String creatorName;
+    @TableField(value = "created_at", fill = FieldFill.INSERT)
+    private LocalDateTime createdAt;
 
     /**
-     * 文件创建时间
+     * 文件更新者
      */
-    private LocalDateTime createTime;
+    @TableField("updated_by")
+    private String updatedBy;
 
     /**
-     * 文件更新者ID
+     * 文件更新时间 (更新时自动设置为当前时间)
      */
-    private Long updaterId;
+    @TableField(value = "updated_at", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedAt;
 
     /**
-     * 文件更新者名称
+     * 关联的语料ID (外键关联corpus表)
      */
-    private String updaterName;
-
-    /**
-     * 更新时间
-     */
-    private LocalDateTime updateTime;
-
-    /**
-     * 关联的语料库ID
-     */
-    private Long corpusId;
-
+    @TableField("corpus_id")
+    private Integer corpusId;
 }

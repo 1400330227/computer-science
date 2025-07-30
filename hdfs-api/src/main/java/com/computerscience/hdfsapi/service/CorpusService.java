@@ -11,20 +11,20 @@ public interface CorpusService extends IService<Corpus> {
     
     /**
      * 根据名称查询语料库
-     * @param name 语料库名称
+     * @param collectionName 语料库名称
      * @return 语料库信息
      */
-    Corpus findByName(String name);
+    Corpus findByName(String collectionName);
     
     /**
      * 分页查询语料库列表
      * @param page 页码
      * @param size 每页大小
      * @param language 语种（可选）
-     * @param dataCategory 数据分类（可选）
+     * @param classification 数据分类（可选）
      * @return 分页语料库列表
      */
-    IPage<Corpus> findCorpusPage(Integer page, Integer size, String language, String dataCategory);
+    IPage<Corpus> findCorpusPage(Integer page, Integer size, String language, String classification);
     
     /**
      * 创建语料库
@@ -45,5 +45,5 @@ public interface CorpusService extends IService<Corpus> {
      * @param corpusId 语料库ID
      * @return 是否删除成功
      */
-    boolean deleteCorpus(Long corpusId);
+    boolean deleteCorpus(Integer corpusId);
 } 
