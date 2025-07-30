@@ -8,17 +8,16 @@ const router = createRouter({
     //   name: 'login',
     //   component: () => import('../views/Login.vue')
     // },
-    // {
-    //   path: '/',
-    //   name: 'dashboard',
-    //   component: () => import('../views/Dashboard.vue'),
-    //   meta: { requiresAuth: true }
-    // },
     {
       path: '/',
+      name: 'dashboard',
+      component: () => import('../views/Dashboard.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/file-list',
       name: 'file-list',
       component: () => import('../views/FileList.vue'),
-      meta: { requiresAuth: true }
     },
     {
       path: '/upload',

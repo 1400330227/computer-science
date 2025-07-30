@@ -20,7 +20,7 @@
         <h1>语料详细信息</h1>
         <div class="divider"></div>
       </div>
-      
+
       <div class="form-container">
         <el-form ref="uploadForm" :model="formData" label-width="140px" class="upload-form">
           <div class="form-content">
@@ -29,85 +29,78 @@
               <el-form-item label="国家">
                 <el-input v-model="formData.country"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="语料集名称">
                 <el-input v-model="formData.datasetName"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="所属领域">
                 <el-input v-model="formData.domain"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="语种">
                 <el-input v-model="formData.language"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="数据形式">
                 <el-input v-model="formData.dataFormat"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="数据分类">
                 <el-input v-model="formData.dataCategory"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="数据量数据单位">
                 <el-input v-model="formData.dataUnit"></el-input>
               </el-form-item>
             </div>
-            
+
             <!-- 右侧表单 -->
             <div class="form-column">
               <el-form-item label="容量估算 (GB)">
                 <el-input v-model="formData.estimatedCapacity"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="数据年份">
                 <el-input v-model="formData.dataYear"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="来源归属地">
                 <el-input v-model="formData.sourceLocation"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="数据来源">
                 <el-input v-model="formData.dataSource"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="数据提供方">
                 <el-input v-model="formData.dataProvider"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="数据提供方联系方式">
                 <el-input v-model="formData.providerContact"></el-input>
               </el-form-item>
-              
+
               <el-form-item label="备注说明">
                 <el-input v-model="formData.remark"></el-input>
               </el-form-item>
             </div>
           </div>
-          
+
           <!-- 附件上传 -->
           <div class="attachment-section">
             <h3>附件</h3>
             <div class="divider"></div>
-            
+
             <div class="file-upload-container">
               <div class="upload-area">
-                <el-upload
-                  class="upload"
-                  action="#"
-                  :on-change="handleFileChange"
-                  :before-upload="beforeUpload"
-                  :file-list="fileList"
-                  :auto-upload="false"
-                  multiple
-                >
+                <el-upload class="upload" action="#" :on-change="handleFileChange" :before-upload="beforeUpload"
+                  :file-list="fileList" :auto-upload="false" multiple>
                   <el-button type="primary">选择文件</el-button>
                   <div class="upload-tip">可同时选择多个文件，上限 10.00GB</div>
                 </el-upload>
               </div>
-              
+
               <div class="file-list">
                 <div v-for="(file, index) in fileList" :key="index" class="file-item">
                   <div class="file-number">{{ index + 1 }}.</div>
@@ -117,7 +110,7 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 操作按钮 -->
           <div class="actions">
             <el-button type="primary" @click="saveForm">保存</el-button>
@@ -131,11 +124,23 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, inject, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
+// 获取全局面包屑管理工具
+const breadcrumb = inject('breadcrumb')
+
+onMounted(() => {
+  // 设置当前页面的面包屑
+  breadcrumb.setBreadcrumb([
+    { title: '首页', path: '/' },
+    { title: '语料清单', path: '/file-list' },
+    { title: '语料详细信息', path: '/upload' }
+  ])
+})
 
 const formData = reactive({
   country: '',

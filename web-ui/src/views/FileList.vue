@@ -29,18 +29,18 @@
             <el-button link type="primary" @click="viewDetails(row)">详情</el-button>
           </template>
         </el-table-column>
-      </el-table>
 
-      <!-- 无数据提示 -->
-      <div v-if="fileList.length === 0" class="no-data">
-        暂无数据
-      </div>
+        <template #empty>
+          <el-empty description="暂无数据" />
+          <el-button type="primary" @click="downloadFile(row)">上传文件</el-button>
+        </template>
+      </el-table>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject } from 'vue'
 import axios from 'axios'
 import { useRouter } from 'vue-router'
 
@@ -48,35 +48,37 @@ const router = useRouter()
 const fileList = ref([])
 const loading = ref(false)
 
+// 获取全局面包屑管理工具
+const breadcrumb = inject('breadcrumb')
+
 // 模拟数据
 const mockFileList = [
 ]
 
 onMounted(() => {
+  // 设置当前页面的面包屑
+  breadcrumb.setBreadcrumb([
+    { title: '首页', path: '/' },
+    { title: '语料清单', path: '/file-list' }
+  ])
   loadFileList()
 })
 
 // 加载文件列表
 function loadFileList() {
   loading.value = true
+  axios.get('/api/corpus')
+    .then(response => {
+      fileList.value = response.data.records
+      loading.value = false
+    })
+    .catch(error => {
+      console.error('获取文件列表失败:', error)
+      alert('获取文件列表失败')
+      loading.value = false
+    })
 
-  // 实际项目中应调用后端接口，这里使用模拟数据
-  // axios.get('/hdfs/getFiles')
-  //   .then(response => {
-  //     fileList.value = response.data
-  //     loading.value = false
-  //   })
-  //   .catch(error => {
-  //     console.error('获取文件列表失败:', error)
-  //     alert('获取文件列表失败')
-  //     loading.value = false
-  //   })
 
-  // 模拟API请求延迟
-  setTimeout(() => {
-    fileList.value = mockFileList
-    loading.value = false
-  }, 500)
 }
 
 // 下载文件
@@ -99,20 +101,11 @@ function viewDetails(file) {
 </script>
 
 <style scoped>
-.file-list-page {
-  min-height: 100vh;
-  background-color: #f5f7fa;
-}
-
-
-
 .file-list-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   background-color: #fff;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* 提示信息区域 */
@@ -129,29 +122,5 @@ function viewDetails(file) {
   font-size: 14px;
   color: #333;
   line-height: 1.5;
-}
-
-.highlight {
-  color: #ff6b6b;
-  font-weight: 500;
-}
-
-.no-data {
-  text-align: center;
-  padding: 30px;
-  color: #999;
-  background-color: #fff;
-  border: 1px solid #ddd;
-}
-
-/* Element Plus table styling overrides */
-:deep(.el-table) {
-  margin-top: 15px;
-}
-
-:deep(.el-table th) {
-  background-color: #f5f7fa;
-  color: #333;
-  font-weight: 500;
 }
 </style>

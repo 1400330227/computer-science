@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @CrossOrigin
 @RestController
-@RequestMapping("/api/corpus")
+@RequestMapping("/hdfs/corpus")
 public class CorpusController {
 
     @Autowired
