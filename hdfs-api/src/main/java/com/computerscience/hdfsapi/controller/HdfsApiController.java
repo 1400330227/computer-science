@@ -5,19 +5,13 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import com.computerscience.hdfsapi.HdfsApi;
-import com.computerscience.hdfsapi.HdfsApiException;
-import com.computerscience.hdfsapi.OP;
-import com.computerscience.hdfsapi.model.HDFSOp;
-import com.computerscience.hdfsapi.service.HdfsApiService;
+import com.computerscience.hdfsapi.api.HdfsApi;
 import org.apache.hadoop.conf.Configuration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;

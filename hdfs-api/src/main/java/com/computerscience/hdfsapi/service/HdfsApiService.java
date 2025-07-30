@@ -1,6 +1,6 @@
 package com.computerscience.hdfsapi.service;
 
-import com.computerscience.hdfsapi.HdfsApi;
+import com.computerscience.hdfsapi.api.HdfsApi;
 import com.computerscience.hdfsapi.model.HDFSFileStatus;
 import com.computerscience.hdfsapi.model.HDFSOp;
 import com.computerscience.hdfsapi.utils.DPage;

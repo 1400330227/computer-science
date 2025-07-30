@@ -1,4 +1,4 @@
-package com.computerscience.hdfsapi;
+package com.computerscience.hdfsapi.api;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import com.computerscience.hdfsapi.HdfsApiException;
 import com.computerscience.hdfsapi.model.HDFSFileStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
