@@ -14,7 +14,7 @@ import java.util.List;
  */
 @CrossOrigin
 @RestController
-@RequestMapping("/hdfs/files")
+@RequestMapping("/api/files")
 public class FileController {
 
     @Autowired

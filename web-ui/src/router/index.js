@@ -3,11 +3,11 @@ import { createRouter, createWebHistory } from 'vue-router'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    // {
-    //   path: '/login',
-    //   name: 'login',
-    //   component: () => import('../views/Login.vue')
-    // },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/Login.vue')
+    },
     {
       path: '/',
       name: 'dashboard',
@@ -42,11 +42,17 @@ router.beforeEach((to, from, next) => {
   // 如果路由需要认证且用户未登录，重定向到登录页面
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'login' })
-  } else if (to.path === '/' && to.name !== 'login' && !isAuthenticated) {
-    next({ name: 'login' })
-  } else {
-    next()
+    return
   }
+  
+  // 如果用户未登录且访问根路径，重定向到登录页面
+  if (!isAuthenticated && to.path === '/') {
+    next({ name: 'login' })
+    return
+  }
+  
+  // 其他情况正常通过
+  next()
 })
 
 export default router
