@@ -1,255 +1,286 @@
 <template>
-  <div class="login-container">
-    <div class="login-box">
-      <div class="login-header">
-        <h1>HDFS 文件管理系统</h1>
-      </div>
-      <div class="login-form">
-        <h2>用户登录</h2>
-        <form @submit.prevent="handleLogin">
-          <div class="form-item">
-            <div class="input-wrapper">
-              <input 
-                v-model="loginForm.username"
-                type="text"
-                placeholder="请输入用户名"
-                class="login-input"
-                autofocus
-              />
-            </div>
-            <div class="error-message" v-if="errors.username">{{ errors.username }}</div>
-          </div>
-          
-          <div class="form-item">
-            <div class="input-wrapper">
-              <input 
-                v-model="loginForm.password"
-                :type="passwordVisible ? 'text' : 'password'"
-                placeholder="请输入密码"
-                class="login-input password-input"
-                @keyup.enter="handleLogin"
-              />
-              <span class="password-toggle" @click="togglePasswordVisibility">
-                {{ passwordVisible ? '👁️' : '👁️‍🗨️' }}
-              </span>
-            </div>
-            <div class="error-message" v-if="errors.password">{{ errors.password }}</div>
-          </div>
-          
-          <div class="form-item remember">
-            <label class="checkbox-label">
-              <input type="checkbox" v-model="rememberMe" />
-              <span class="checkbox-text">记住密码</span>
-            </label>
-            <div class="forget-link">
-              <a href="javascript:;">忘记密码？</a>
-            </div>
-          </div>
-          
-          <div class="form-item">
-            <button type="submit" class="login-button" :disabled="loading">
-              {{ loading ? '登录中...' : '登录' }}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+  <!-- 登录页面的最外层容器 -->
+  <div class="login-page">
+    
+    <!-- Element Plus 卡片组件，用来包装登录表单 -->
+    <el-card class="login-card" shadow="always">
+      
+      <!-- 登录表单的标题 -->
+      <template #header>
+        <div class="card-header">
+          <h1>HDFS 文件管理系统</h1>
+          <p>请输入您的账号信息登录</p>
+        </div>
+      </template>
+
+      <!-- Element Plus 表单组件 
+           :model="loginForm" 绑定表单数据
+           :rules="formRules" 绑定验证规则
+           ref="loginFormRef" 创建表单引用，用于调用表单方法
+      -->
+      <el-form 
+        :model="loginForm" 
+        :rules="formRules" 
+        ref="loginFormRef"
+        label-width="0px"
+        size="large"
+      >
+        
+        <!-- 用户名输入框 -->
+        <el-form-item prop="username">
+          <!-- Element Plus 输入框组件
+               v-model="loginForm.username" 双向绑定用户名数据
+               placeholder="请输入用户名" 输入框提示文字
+               prefix-icon="User" 输入框前面的用户图标
+          -->
+          <el-input 
+            v-model="loginForm.username"
+            placeholder="请输入用户名"
+            prefix-icon="User"
+            clearable
+          />
+        </el-form-item>
+
+        <!-- 密码输入框 -->
+        <el-form-item prop="password">
+          <!-- Element Plus 密码输入框
+               type="password" 表示这是密码输入框，会显示为黑点
+               show-password 显示密码可见性切换按钮（小眼睛图标）
+               @keyup.enter="handleLogin" 按回车键时触发登录
+          -->
+          <el-input 
+            v-model="loginForm.password"
+            type="password"
+            placeholder="请输入密码"
+            prefix-icon="Lock"
+            show-password
+            clearable
+            @keyup.enter="handleLogin"
+          />
+        </el-form-item>
+
+        <!-- 记住用户名选项 -->
+        <el-form-item>
+          <!-- Element Plus 复选框
+               v-model="rememberMe" 双向绑定记住密码的状态
+          -->
+          <el-checkbox v-model="rememberMe">记住用户名</el-checkbox>
+        </el-form-item>
+
+        <!-- 登录按钮 -->
+        <el-form-item>
+          <!-- Element Plus 按钮组件
+               type="primary" 主要按钮样式（蓝色）
+               :loading="loading" 根据loading状态显示加载动画
+               @click="handleLogin" 点击时触发登录函数
+          -->
+          <el-button 
+            type="primary" 
+            :loading="loading" 
+            @click="handleLogin"
+            style="width: 100%"
+          >
+            {{ loading ? '登录中...' : '登录' }}
+          </el-button>
+        </el-form-item>
+
+      </el-form>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+// 这里导入Vue 3的核心功能
+import { ref, reactive, onMounted } from 'vue'
+// ref: 创建响应式的单个数据
+// reactive: 创建响应式的对象
+// onMounted: 页面加载完成后执行的钩子函数
 
-const router = useRouter()
-const loading = ref(false)
-const rememberMe = ref(false)
-const passwordVisible = ref(false)
-const errors = reactive({
-  username: '',
-  password: ''
-})
+import { useRouter } from 'vue-router'  // 路由跳转功能
+import axios from 'axios'  // HTTP请求库（已在main.js中全局配置）
+import { ElMessage } from 'element-plus'  // Element Plus 的消息提示组件
 
+// ======= 响应式数据定义 =======
+const router = useRouter()  // 创建路由对象，用于页面跳转
+
+// 创建响应式的单个数据
+const loading = ref(false)     // 控制登录按钮的加载状态
+const rememberMe = ref(false)  // 控制是否记住用户名的复选框状态
+
+// 创建表单引用，用于调用表单的验证方法
+const loginFormRef = ref()
+
+// 创建响应式的表单数据对象
 const loginForm = reactive({
-  username: '',
-  password: ''
+  username: '',  // 用户名输入框的值
+  password: ''   // 密码输入框的值
 })
 
-const togglePasswordVisibility = () => {
-  passwordVisible.value = !passwordVisible.value
-}
+// ======= 表单验证规则 =======
+const formRules = reactive({
+  // 用户名验证规则
+  username: [
+    { 
+      required: true,           // 必填字段
+      message: '请输入用户名',   // 错误提示信息
+      trigger: 'blur'          // 触发验证的时机（失去焦点时）
+    }
+  ],
+  // 密码验证规则
+  password: [
+    { 
+      required: true, 
+      message: '请输入密码', 
+      trigger: 'blur' 
+    },
+    { 
+      min: 1,                  // 最少1个字符
+      message: '密码不能为空', 
+      trigger: 'blur' 
+    }
+  ]
+})
 
-const validateForm = () => {
-  let valid = true
-  errors.username = ''
-  errors.password = ''
+// ======= 页面加载时执行的函数 =======
+onMounted(() => {
+  // 检查本地存储中是否有记住的用户名
+  const rememberedUsername = localStorage.getItem('rememberedUsername')
   
-  if (!loginForm.username) {
-    errors.username = '请输入用户名'
-    valid = false
+  if (rememberedUsername) {
+    // 如果有记住的用户名，自动填入表单
+    loginForm.username = rememberedUsername
+    rememberMe.value = true  // 勾选"记住用户名"复选框
   }
-  
-  if (!loginForm.password) {
-    errors.password = '请输入密码'
-    valid = false
-  }
-  
-  return valid
-}
+})
 
-const handleLogin = () => {
-  if (!validateForm()) return
+// ======= 登录处理函数 =======
+const handleLogin = async () => {
+  // async 表示这是一个异步函数，可以使用 await 等待网络请求
   
+  // 首先验证表单是否填写正确
+  if (!loginFormRef.value) return  // 如果表单引用不存在，直接返回
+  
+  try {
+    // 调用Element Plus表单的validate方法进行验证
+    await loginFormRef.value.validate()
+  } catch (error) {
+    // 如果验证失败，显示错误信息并停止执行
+    ElMessage.error('请填写完整的登录信息')
+    return
+  }
+
+  // 设置加载状态为true，按钮会显示"登录中..."
   loading.value = true
-  
-  // 设置登录状态
-  localStorage.setItem('isLoggedIn', 'true')
-  localStorage.setItem('username', loginForm.username)
-  
-  // 显示成功消息
-  alert('登录成功')
-  
-  // 跳转到主页(Dashboard)
-  router.push('/')
 
-  // 模拟延迟，实际应用中应该调用API
-  setTimeout(() => {
+  try {
+    // 向后端发送登录请求
+    console.log("正在向后端发送登录请求:", loginForm)
+    
+    const response = await axios.post('http://localhost:8080/api/users/login', {
+      username: loginForm.username,  // 发送用户名
+      password: loginForm.password   // 发送密码
+    })
+    
+    console.log("后端响应:", response.data)
+
+    // 如果请求成功，response.data 包含后端返回的用户信息
+    const userData = response.data
+
+    // 将用户信息保存到浏览器的本地存储中
+    localStorage.setItem('isLoggedIn', 'true')              // 登录状态 ✅ 修复
+    localStorage.setItem('username', userData.account)      // 用户账号
+    localStorage.setItem('userId', userData.userId)         // 用户ID
+    localStorage.setItem('userType', userData.userType)     // 用户类型
+    localStorage.setItem('phone', userData.phone || '')     // 用户手机号
+
+    // 如果用户勾选了"记住用户名"
+    if (rememberMe.value) {
+      localStorage.setItem('rememberedUsername', loginForm.username)
+    } else {
+      // 如果没有勾选，删除之前记住的用户名
+      localStorage.removeItem('rememberedUsername')
+    }
+
+    // 显示登录成功的消息
+    ElMessage.success(`登录成功！欢迎您，${userData.account}`)
+
+    // 跳转到Dashboard页面
+    router.push({ name: 'dashboard' })
+
+  } catch (error) {
+    // 如果登录失败，处理错误信息
+    const errorMessage = error.response?.data || '登录失败，请检查网络连接'
+    
+    // 根据不同的错误信息显示相应的提示
+    if (typeof errorMessage === 'string') {
+      if (errorMessage.includes('用户不存在')) {
+        ElMessage.error('用户不存在，请检查用户名')
+      } else if (errorMessage.includes('密码错误')) {
+        ElMessage.error('密码错误，请重新输入')
+      } else if (errorMessage.includes('账号已被禁用')) {
+        ElMessage.error('账号已被禁用，请联系管理员')
+      } else {
+        ElMessage.error(errorMessage)
+      }
+    } else {
+      ElMessage.error('登录失败，请稍后重试')
+    }
+  } finally {
+    // 无论成功还是失败，都要取消加载状态
     loading.value = false
-  }, 1000)
+  }
 }
 </script>
 
 <style scoped>
-.login-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  background: linear-gradient(120deg, #5a8de1, #497ccf);
+/* scoped 表示这些样式只在当前组件中生效，不会影响其他页面 */
+
+.login-page {
+  /* 设置登录页面为全屏居中布局 */
+  display: flex;              /* 弹性布局 */
+  justify-content: center;    /* 水平居中 */
+  align-items: center;        /* 垂直居中 */
+  min-height: 100vh;          /* 最小高度为视窗高度 */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  /* 渐变背景 */
+  padding: 20px;              /* 内边距 */
 }
 
-.login-box {
-  width: 380px;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  padding: 30px;
+.login-card {
+  /* 登录卡片的样式 */
+  width: 100%;               /* 宽度100% */
+  max-width: 400px;          /* 最大宽度400px */
+  border-radius: 12px;       /* 圆角 */
 }
 
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
+.card-header {
+  /* 卡片头部（标题区域）的样式 */
+  text-align: center;        /* 文字居中 */
+  padding: 20px 0;           /* 上下内边距 */
 }
 
-.login-header h1 {
-  color: #4B70BD;
-  font-size: 24px;
-  font-weight: 500;
+.card-header h1 {
+  /* 主标题样式 */
+  color: #303133;            /* 深灰色 */
+  font-size: 24px;           /* 字体大小 */
+  font-weight: 600;          /* 字体粗细 */
+  margin-bottom: 8px;        /* 下边距 */
 }
 
-.login-form h2 {
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 25px;
-  font-weight: 500;
-  text-align: center;
+.card-header p {
+  /* 副标题样式 */
+  color: #909399;            /* 浅灰色 */
+  font-size: 14px;           /* 字体大小 */
+  margin: 0;                 /* 清除默认边距 */
 }
 
-.form-item {
-  margin-bottom: 20px;
-}
-
-.input-wrapper {
-  position: relative;
-}
-
-.login-input {
-  width: 100%;
-  height: 40px;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  padding: 0 15px;
-  font-size: 14px;
-  color: #606266;
-  transition: border-color 0.2s;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.password-input {
-  padding-right: 40px;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  user-select: none;
-  color: #909399;
-}
-
-.login-input:focus {
-  border-color: #409eff;
-}
-
-.login-input::placeholder {
-  color: #c0c4cc;
-}
-
-.login-button {
-  width: 100%;
-  height: 40px;
-  background-color: #409eff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.login-button:hover {
-  background-color: #66b1ff;
-}
-
-.login-button:disabled {
-  background-color: #a0cfff;
-  cursor: not-allowed;
-}
-
-.remember {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.checkbox-text {
-  margin-left: 5px;
-  color: #606266;
-  font-size: 14px;
-}
-
-.forget-link a {
-  color: #5a8de1;
-  text-decoration: none;
-  font-size: 14px;
-}
-
-.forget-link a:hover {
-  text-decoration: underline;
-}
-
-.error-message {
-  font-size: 12px;
-  color: #f56c6c;
-  margin-top: 5px;
+/* 响应式设计：在小屏幕上调整样式 */
+@media (max-width: 480px) {
+  .login-page {
+    padding: 10px;           /* 减少内边距 */
+  }
+  
+  .login-card {
+    max-width: 100%;         /* 小屏幕上占满宽度 */
+  }
 }
 </style>

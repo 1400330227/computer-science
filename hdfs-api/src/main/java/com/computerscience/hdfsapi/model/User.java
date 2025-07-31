@@ -3,12 +3,6 @@ package com.computerscience.hdfsapi.model;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-
-
-import com.baomidou.mybatisplus.annotation.TableName;
-import lombok.Data;
-
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
@@ -16,6 +10,7 @@ import java.time.LocalDateTime;
  * 用户实体类
  */
 @Data
+@TableName("users")  // 指定数据库表名为 users（复数形式）
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
     /**
