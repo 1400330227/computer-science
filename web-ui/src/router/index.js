@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import Dashboard from '@/views/Dashboard.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,6 +12,12 @@ const router = createRouter({
       meta: { requiresGuest: true }
     },
     {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/Register.vue'),
+      meta: { requiresGuest: true }
+    },
+    {
       path: '/',
       name: 'home',
       component: () => import('@/views/home.vue'),
@@ -19,29 +26,27 @@ const router = createRouter({
         {
           path: '',
           name: 'dashboard',
-          component: () => import('../views/Dashboard.vue'),
+          component: Dashboard,
         },
         {
-          path: '/file-list',
+          path: 'file-list',
           name: 'file-list',
           component: () => import('../views/FileList.vue'),
           meta: { requiresAuth: true }
         },
         {
-          path: '/file-details',
+          path: 'upload',
           name: 'upload',
           component: () => import('../views/UploadForm.vue'),
           meta: { requiresAuth: true }
         },
+        {
+          path: 'about',
+          name: 'about',
+          component: () => import('../views/AboutView.vue'),
+          meta: { requiresAuth: true }
+        }
       ]
-    },
-    
-    
-    {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-      meta: { requiresAuth: true }
     }
   ],
 })

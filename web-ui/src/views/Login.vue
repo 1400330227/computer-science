@@ -78,9 +78,18 @@
             type="primary" 
             :loading="loading" 
             @click="handleLogin"
-            style="width: 100%"
+            style="width: 100%; margin-bottom: 10px;"
           >
             {{ loading ? '登录中...' : '登录' }}
+          </el-button>
+          
+          <!-- 注册按钮 -->
+          <el-button 
+            type="text" 
+            @click="goToRegister"
+            style="width: 100%;"
+          >
+            没有账号？立即注册
           </el-button>
         </el-form-item>
 
@@ -155,6 +164,11 @@ onMounted(() => {
   }
 })
 
+// ======= 跳转到注册页面 =======
+const goToRegister = () => {
+  router.push({ name: 'register' })
+}
+
 // ======= 登录处理函数 =======
 const handleLogin = async () => {
   // async 表示这是一个异步函数，可以使用 await 等待网络请求
@@ -202,8 +216,8 @@ const handleLogin = async () => {
     // 显示登录成功的消息
     ElMessage.success(`登录成功！欢迎您，${userData.account}`)
 
-    // 跳转到首页
-    router.push({ name: 'home' })
+    // 跳转到首页Dashboard
+    router.push({ name: 'dashboard' })
 
   } catch (error) {
     // 如果登录失败，处理错误信息
