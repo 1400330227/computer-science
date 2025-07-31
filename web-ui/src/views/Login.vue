@@ -99,9 +99,11 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'  // 路由跳转功能
 import axios from 'axios'  // HTTP请求库（已在main.js中全局配置）
 import { ElMessage } from 'element-plus'  // Element Plus 的消息提示组件
+import { useUserStore } from '@/stores/user'  // 用户状态管理
 
 // ======= 响应式数据定义 =======
 const router = useRouter()  // 创建路由对象，用于页面跳转
+const userStore = useUserStore()  // 创建用户状态管理对象
 
 // 创建响应式的单个数据
 const loading = ref(false)     // 控制登录按钮的加载状态
@@ -186,12 +188,8 @@ const handleLogin = async () => {
     // 如果请求成功，response.data 包含后端返回的用户信息
     const userData = response.data
 
-    // 将用户信息保存到浏览器的本地存储中
-    localStorage.setItem('isLoggedIn', 'true')              // 登录状态 ✅ 修复
-    localStorage.setItem('username', userData.account)      // 用户账号
-    localStorage.setItem('userId', userData.userId)         // 用户ID
-    localStorage.setItem('userType', userData.userType)     // 用户类型
-    localStorage.setItem('phone', userData.phone || '')     // 用户手机号
+    // 使用 store 保存用户信息
+    userStore.login(userData)
 
     // 如果用户勾选了"记住用户名"
     if (rememberMe.value) {
@@ -204,8 +202,8 @@ const handleLogin = async () => {
     // 显示登录成功的消息
     ElMessage.success(`登录成功！欢迎您，${userData.account}`)
 
-    // 跳转到Dashboard页面
-    router.push({ name: 'dashboard' })
+    // 跳转到首页
+    router.push({ name: 'home' })
 
   } catch (error) {
     // 如果登录失败，处理错误信息
