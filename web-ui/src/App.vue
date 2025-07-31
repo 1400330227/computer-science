@@ -68,8 +68,8 @@ import { ArrowRight } from '@element-plus/icons-vue'
 </script>
 
 <template>
-  <div class="app-container">
-    <!-- 只在非登录页面显示导航栏 -->
+  <!-- <div class="app-container">
+    
     <template v-if="!isLoginPage">
       <el-menu :default-active="activeIndex" class="el-menu-demo top-nav" mode="horizontal" @select="handleSelect" router>
         <el-menu-item index="/" class="nav-item">首页</el-menu-item>
@@ -81,20 +81,21 @@ import { ArrowRight } from '@element-plus/icons-vue'
         <el-menu-item index="3" class="nav-item">用户</el-menu-item>
         <el-menu-item index="4" class="nav-item">权限管理</el-menu-item>
         
-        <!-- 右侧用户信息和登出按钮 -->
+        
         <div class="nav-right">
           <span class="user-info">欢迎，{{ username }}</span>
           <el-button type="danger" size="small" @click="handleLogout">登出</el-button>
         </div>
       </el-menu>
-      <!-- 使用全局面包屑组件 -->
+      
       <BreadcrumbNav />
     </template>
     
     <main class="main-container" :class="{ 'login-container': isLoginPage }">
       <RouterView />
     </main>
-  </div>
+  </div> -->
+  <RouterView />
 </template>
 
 <style scoped lang="scss">

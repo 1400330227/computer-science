@@ -1,19 +1,9 @@
 <template>
   <div class="upload-form-page">
     <!-- 顶部导航栏 -->
-    <div class="top-nav">
-      <div class="nav-links">
-        <a href="/" class="nav-link">首页</a>
-        <a href="/file-list" class="nav-link active">语料清单</a>
-        <a href="/settings" class="nav-link">用户</a>
-        <a href="/settings" class="nav-link">权限管理</a>
-      </div>
-    </div>
 
-    <!-- 路径导航 -->
-    <div class="breadcrumb">
-      <span>文件管理</span> > <span class="active">语料集详情</span>
-    </div>
+
+    
 
     <div class="upload-form">
       <div class="page-header">
