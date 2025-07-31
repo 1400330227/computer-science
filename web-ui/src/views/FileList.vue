@@ -23,7 +23,7 @@
         <el-table-column prop="sourceLocation" label="来源归属地" />
         <el-table-column prop="dataSource" label="数据来源" />
         <el-table-column prop="remark" label="备注说明" />
-        <el-table-column label="操作" width="150">
+        <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="downloadFile(row)">下载</el-button>
             <el-button link type="primary" @click="viewDetails(row)">详情</el-button>
@@ -31,29 +31,38 @@
         </el-table-column>
 
         <template #empty>
-          <el-empty description="暂无数据" />
-          <el-button type="primary" @click="downloadFile(row)">上传文件</el-button>
+          <el-empty description="暂无数据">
+            <el-button type="primary" @click="goToUpload">上传文件</el-button>
+          </el-empty>
         </template>
       </el-table>
+
+      <!-- 分页组件 -->
+      <div class="pagination-container" v-if="total > 0">
+        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+          layout="total, sizes, prev, pager, next, jumper" :total="total" @size-change="handleSizeChange"
+          @current-change="handleCurrentChange" />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import axios from 'axios'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { Refresh, Plus } from '@element-plus/icons-vue'
+import api from '../services/api'
 
 const router = useRouter()
 const fileList = ref([])
 const loading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 
 // 获取全局面包屑管理工具
 const breadcrumb = inject('breadcrumb')
-
-// 模拟数据
-const mockFileList = [
-]
 
 onMounted(() => {
   // 设置当前页面的面包屑
@@ -67,36 +76,81 @@ onMounted(() => {
 // 加载文件列表
 function loadFileList() {
   loading.value = true
-  axios.get('/api/corpus')
+  const params = {
+    current: currentPage.value,
+    size: pageSize.value
+  }
+
+  api.get('/hdfs/corpus', { params })
     .then(response => {
-      fileList.value = response.data.records
-      loading.value = false
+      if (response.data && response.data.records) {
+        fileList.value = response.data.records
+        total.value = response.data.total || response.data.records.length
+      } else {
+        fileList.value = []
+        total.value = 0
+        ElMessage.warning('返回数据格式不正确')
+      }
     })
     .catch(error => {
       console.error('获取文件列表失败:', error)
-      alert('获取文件列表失败')
+      ElMessage.error('获取文件列表失败，请稍后重试')
+      fileList.value = []
+      total.value = 0
+    })
+    .finally(() => {
       loading.value = false
     })
+}
 
+// 处理页面大小变化
+function handleSizeChange(newSize) {
+  pageSize.value = newSize
+  currentPage.value = 1 // 重置到第一页
+  loadFileList()
+}
 
+// 处理页码变化
+function handleCurrentChange(newPage) {
+  currentPage.value = newPage
+  loadFileList()
 }
 
 // 下载文件
 function downloadFile(file) {
-  alert(`开始下载文件: ${file.datasetName}`)
+  ElMessage.info(`开始下载文件: ${file.datasetName}`)
 
-  // 实际项目中应调用后端下载接口
-  // axios.get(`/hdfs/download?fileName=${encodeURIComponent(file.datasetName)}`, {
-  //   responseType: 'blob'
-  // })
-  // .then(...)
+  api({
+    url: `/hdfs/corpus/download/${file.id}`,
+    method: 'GET',
+    responseType: 'blob'
+  })
+    .then(response => {
+      // 创建下载链接
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', file.datasetName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      ElMessage.success('下载完成')
+    })
+    .catch(error => {
+      console.error('下载文件失败:', error)
+      ElMessage.error('下载文件失败，请稍后重试')
+    })
 }
 
 // 查看详情
 function viewDetails(file) {
-  alert(`查看文件详情: ${file.datasetName}`)
-  // 实际项目中可以跳转到详情页或打开详情对话框
-  // router.push(`/file-details/${file.id}`)
+  // 跳转到详情页面，传递文件ID作为参数
+  router.push(`/corpus-details/${file.id || '1'}`) // 假设文件对象中有id字段，如果没有，临时使用'1'
+}
+
+// 跳转到上传页面
+function goToUpload() {
+  router.push('/upload')
 }
 </script>
 
@@ -122,5 +176,25 @@ function viewDetails(file) {
   font-size: 14px;
   color: #333;
   line-height: 1.5;
+}
+
+.highlight {
+  color: #409eff;
+  font-weight: bold;
+}
+
+/* 操作栏 */
+.action-bar {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* 分页容器 */
+.pagination-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
 }
 </style>

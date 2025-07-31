@@ -27,7 +27,7 @@ import { ArrowRight } from '@element-plus/icons-vue'
       <el-sub-menu index="2" class="nav-item">
         <template #title>语料清单</template>
         <el-menu-item index="file-list">语料集列表</el-menu-item>
-        <el-menu-item index="file-details">语料集详情</el-menu-item>
+        <el-menu-item index="upload">上传语料集</el-menu-item>
       </el-sub-menu>
       <el-menu-item index="3" class="nav-item">用户</el-menu-item>
       <el-menu-item index="4" class="nav-item">权限管理</el-menu-item>

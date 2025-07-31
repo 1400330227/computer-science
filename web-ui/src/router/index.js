@@ -20,8 +20,13 @@ const router = createRouter({
       component: () => import('../views/FileList.vue'),
     },
     {
+      path: '/corpus-details/:id',
+      name: 'corpus-details',
+      component: () => import('../views/corpusFileDetails.vue'),
+    },
+    {
       path: '/upload',
-      name: 'upload',
+      name: 'file-upload',
       component: () => import('../views/UploadForm.vue'),
       meta: { requiresAuth: true }
     },

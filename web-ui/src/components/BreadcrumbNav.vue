@@ -50,8 +50,8 @@ const breadcrumbItems = computed(() => {
     font-size: 12px;
     display: flex;
     justify-content: left;
-    max-width: 1200px;
-    margin: 0 auto;
+    max-width: 1240px;
+    margin: 10px auto;
 }
 
 .breadcrumb .el-breadcrumb {

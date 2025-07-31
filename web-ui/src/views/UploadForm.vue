@@ -1,88 +1,112 @@
 <template>
   <div class="upload-form-page">
-    <!-- 顶部导航栏 -->
-    <div class="top-nav">
-      <div class="nav-links">
-        <a href="/" class="nav-link">首页</a>
-        <a href="/file-list" class="nav-link active">语料清单</a>
-        <a href="/settings" class="nav-link">用户</a>
-        <a href="/settings" class="nav-link">权限管理</a>
-      </div>
-    </div>
-
-    <!-- 路径导航 -->
-    <div class="breadcrumb">
-      <span>文件管理</span> > <span class="active">语料集详情</span>
-    </div>
-
     <div class="upload-form">
-      <div class="page-header">
-        <h1>语料详细信息</h1>
-        <div class="divider"></div>
-      </div>
-
       <div class="form-container">
-        <el-form ref="uploadForm" :model="formData" label-width="140px" class="upload-form">
+        <el-form ref="uploadForm" :model="formData" :rules="rules" label-width="140px" class="upload-form">
+          <h3>语料集信息</h3>
+          <div class="divider"></div>
+
+          <div class="info-box">
+            <p class="info-text">
+              <strong>国家：</strong>填写相关国家，如老挝、泰国
+            </p>
+            <p class="info-text">
+              <strong>语料集名称：</strong>需要能间接明了反映出语料集的关键信息，如：老挝国家图书馆书籍电子文本语料
+            </p>
+            <p class="info-text">
+              <strong>所属领域：</strong>如：医疗、教育、民生、经济、环境、社会和政府政策、法律等
+            </p>
+            <p class="info-text">
+              <strong>语种：</strong>填写语料对应语言：如老挝语、泰国语、印尼语等东南亚国家语言
+            </p>
+            <p class="info-text">
+              <strong>数据分类：</strong>包括：基础语料、预训练语料、SFT语料、强化学习语料、平行语料、价值观语料、ASR语料、TTS语料，其中除原始语料之外的都属于加工语料。
+            </p>
+            <p class="info-text">
+              <strong>数据量：</strong>对应的数据量数字表述
+            </p>
+            <p class="info-text">
+              <strong>数据量单位：</strong>对应的数据量表述单位，如GB、条、份、本、小时、篇等
+            </p>
+            <p class="info-text">
+              <strong>容量估算（GB）：</strong>按电子格式存储的数据容量估算，此处按GB计算
+            </p>
+            <p class="info-text">
+              <strong>数据年份：</strong>数据归属的年份范围，如2000年以后
+            </p>
+            <p class="info-text">
+              <strong>来源归属地：</strong>注明数据来源地区，如广西xxx、老挝xx部、xx学院
+            </p>
+            <p class="info-text">
+              <strong>数据来源：</strong>说明数据的来源，如文本的，老挝公开网站，语音的应注明是什么地方什么类型人士录制
+            </p>
+            <p class="info-text">
+              <strong>数据提供方：</strong>填写本条数据集的提供单位名称，如广西民族大学
+            </p>
+            <p class="info-text">
+              <strong>数据提供方联系方式：</strong>联系人（联系电话）
+            </p>
+          </div>
           <div class="form-content">
             <!-- 左侧表单 -->
             <div class="form-column">
-              <el-form-item label="国家">
-                <el-input v-model="formData.country"></el-input>
+              <el-form-item label="国家" prop="country">
+                <el-input v-model="formData.country" placeholder="请填写国家"></el-input>
               </el-form-item>
 
-              <el-form-item label="语料集名称">
-                <el-input v-model="formData.datasetName"></el-input>
+              <el-form-item label="语料集名称" prop="datasetName">
+                <el-input v-model="formData.datasetName" placeholder="请填写语料集名称"></el-input>
               </el-form-item>
 
-              <el-form-item label="所属领域">
-                <el-input v-model="formData.domain"></el-input>
+              <el-form-item label="所属领域" prop="domain">
+                <el-input v-model="formData.domain" placeholder="请填写所属领域"></el-input>
               </el-form-item>
 
-              <el-form-item label="语种">
-                <el-input v-model="formData.language"></el-input>
+              <el-form-item label="语种" prop="language">
+                <el-input v-model="formData.language" placeholder="请填写语种"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据形式">
-                <el-input v-model="formData.dataFormat"></el-input>
+              <el-form-item label="数据形式" prop="dataFormat">
+                <el-input v-model="formData.dataFormat" placeholder="请填写数据形式"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据分类">
-                <el-input v-model="formData.dataCategory"></el-input>
+              <el-form-item label="数据分类" prop="dataCategory">
+                <el-input v-model="formData.dataCategory" placeholder="请填写数据分类"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据量数据单位">
-                <el-input v-model="formData.dataUnit"></el-input>
+              <el-form-item label="数据量数据单位" prop="dataUnit">
+                <el-input v-model="formData.dataUnit" placeholder="请填写数据量单位"></el-input>
               </el-form-item>
             </div>
 
             <!-- 右侧表单 -->
             <div class="form-column">
-              <el-form-item label="容量估算 (GB)">
-                <el-input v-model="formData.estimatedCapacity"></el-input>
+              <el-form-item label="容量估算 (GB)" prop="estimatedCapacity">
+                <el-input v-model="formData.estimatedCapacity" placeholder="请填写容量估算"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据年份">
-                <el-input v-model="formData.dataYear"></el-input>
+              <el-form-item label="数据年份" prop="dataYear">
+                <el-input v-model="formData.dataYear" placeholder="请填写数据年份"></el-input>
               </el-form-item>
 
-              <el-form-item label="来源归属地">
-                <el-input v-model="formData.sourceLocation"></el-input>
+              <el-form-item label="来源归属地" prop="sourceLocation">
+                <el-input v-model="formData.sourceLocation" placeholder="请填写来源归属地"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据来源">
-                <el-input v-model="formData.dataSource"></el-input>
+              <el-form-item label="数据来源" prop="dataSource">
+                <el-input v-model="formData.dataSource" placeholder="请填写数据来源"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据提供方">
-                <el-input v-model="formData.dataProvider"></el-input>
+              <el-form-item label="数据提供方" prop="dataProvider">
+                <el-input v-model="formData.dataProvider" placeholder="请填写数据提供方"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据提供方联系方式">
-                <el-input v-model="formData.providerContact"></el-input>
+              <el-form-item label="数据提供方联系方式" prop="providerContact">
+                <el-input v-model="formData.providerContact" placeholder="请填写联系方式"></el-input>
               </el-form-item>
 
               <el-form-item label="备注说明">
-                <el-input v-model="formData.remark"></el-input>
+                <el-input v-model="formData.remark" placeholder="请填写备注说明（选填）"></el-input>
               </el-form-item>
             </div>
           </div>
@@ -94,10 +118,13 @@
 
             <div class="file-upload-container">
               <div class="upload-area">
-                <el-upload class="upload" action="#" :on-change="handleFileChange" :before-upload="beforeUpload"
-                  :file-list="fileList" :auto-upload="false" multiple>
-                  <el-button type="primary">选择文件</el-button>
-                  <div class="upload-tip">可同时选择多个文件，上限 10.00GB</div>
+                <el-upload class="upload-demo" drag action="/hdfs/corpus/upload" :before-upload="beforeUpload"
+                  :on-success="handleUploadSuccess" :on-error="handleUploadError" :on-change="handleFileChange"
+                  :file-list="fileList" multiple>
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">
+                    可同时选择多个文件，上限 10.00GB
+                  </div>
                 </el-upload>
               </div>
 
@@ -113,9 +140,8 @@
 
           <!-- 操作按钮 -->
           <div class="actions">
-            <el-button type="primary" @click="saveForm">保存</el-button>
-            <el-button @click="saveAndCreate">再新增</el-button>
-            <el-button @click="goBack">返回</el-button>
+            <el-button type="primary" @click="saveForm" :loading="isSubmitting">保存</el-button>
+            <el-button @click="saveAndCreate" :loading="isSubmitting">再新增</el-button>
           </div>
         </el-form>
       </div>
@@ -127,8 +153,12 @@
 import { ref, reactive, inject, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
+import { UploadFilled } from '@element-plus/icons-vue'
+import api from '../services/api'
 
 const router = useRouter()
+const uploadForm = ref(null)
+const isSubmitting = ref(false)
 
 // 获取全局面包屑管理工具
 const breadcrumb = inject('breadcrumb')
@@ -141,6 +171,37 @@ onMounted(() => {
     { title: '语料详细信息', path: '/upload' }
   ])
 })
+
+// 表单验证规则
+const rules = {
+  country: [
+    { required: true, message: '请输入国家', trigger: 'blur' }
+  ],
+  datasetName: [
+    { required: true, message: '请输入语料集名称', trigger: 'blur' }
+  ],
+  domain: [
+    { required: true, message: '请输入所属领域', trigger: 'blur' }
+  ],
+  language: [
+    { required: true, message: '请输入语种', trigger: 'blur' }
+  ],
+  dataFormat: [
+    { required: true, message: '请输入数据形式', trigger: 'blur' }
+  ],
+  dataCategory: [
+    { required: true, message: '请输入数据分类', trigger: 'blur' }
+  ],
+  dataYear: [
+    { required: true, message: '请输入数据年份', trigger: 'blur' }
+  ],
+  sourceLocation: [
+    { required: true, message: '请输入来源归属地', trigger: 'blur' }
+  ],
+  dataSource: [
+    { required: true, message: '请输入数据来源', trigger: 'blur' }
+  ]
+}
 
 const formData = reactive({
   country: '',
@@ -177,6 +238,16 @@ const handleFileChange = (file, fileList) => {
   // 更新文件列表
 }
 
+// 文件上传成功处理
+const handleUploadSuccess = (response, file, fileList) => {
+  ElMessage.success('文件上传成功')
+}
+
+// 文件上传失败处理
+const handleUploadError = (error, file, fileList) => {
+  ElMessage.error('文件上传失败，请重试')
+}
+
 // 移除文件
 const removeFile = (file) => {
   const index = fileList.value.indexOf(file)
@@ -186,19 +257,65 @@ const removeFile = (file) => {
 }
 
 // 保存表单
-const saveForm = () => {
-  // 在这里处理表单提交
-  ElMessage.success('保存成功')
+const saveForm = async () => {
+  if (isSubmitting.value) return
+
+  isSubmitting.value = true
+
+  try {
+    // 表单验证
+    await uploadForm.value.validate()
+
+    // 提交表单数据
+    const response = await api.post('/hdfs/corpus', formData)
+
+    if (response.data && response.data.success) {
+      ElMessage.success('保存成功')
+      router.push('/file-list')
+    } else {
+      ElMessage.warning(response.data?.message || '保存失败，请重试')
+    }
+  } catch (error) {
+    console.error('提交表单失败:', error)
+    ElMessage.error(error.response?.data?.message || '提交表单失败，请稍后重试')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 // 保存并创建新表单
-const saveAndCreate = () => {
-  saveForm()
-  // 重置表单
-  Object.keys(formData).forEach(key => {
-    formData[key] = ''
-  })
-  fileList.value = []
+const saveAndCreate = async () => {
+  if (isSubmitting.value) return
+
+  isSubmitting.value = true
+
+  try {
+    // 表单验证
+    await uploadForm.value.validate()
+
+    // 提交表单数据
+    const response = await api.post('/hdfs/corpus', formData)
+
+    if (response.data && response.data.success) {
+      ElMessage.success('保存成功')
+
+      // 重置表单
+      Object.keys(formData).forEach(key => {
+        formData[key] = ''
+      })
+      fileList.value = []
+
+      // 重置表单校验状态
+      uploadForm.value.resetFields()
+    } else {
+      ElMessage.warning(response.data?.message || '保存失败，请重试')
+    }
+  } catch (error) {
+    console.error('提交表单失败:', error)
+    ElMessage.error(error.response?.data?.message || '提交表单失败，请稍后重试')
+  } finally {
+    isSubmitting.value = false
+  }
 }
 
 // 返回上一页
@@ -209,77 +326,32 @@ const goBack = () => {
 
 <style scoped>
 .upload-form-page {
-  min-height: 100vh;
-  background-color: #f5f7fa;
-}
-
-/* 顶部导航样式 */
-.top-nav {
-  background-color: #5a8de1;
-  padding: 0 20px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  color: white;
-}
-
-.nav-links {
-  display: flex;
-}
-
-.nav-link {
-  padding: 0 20px;
-  color: white;
-  text-decoration: none;
-  height: 50px;
-  line-height: 50px;
-  transition: background-color 0.2s;
-}
-
-.nav-link:hover,
-.nav-link.active {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-/* 面包屑导航样式 */
-.breadcrumb {
-  padding: 10px 20px;
-  color: #666;
-  background-color: white;
-  font-size: 12px;
-}
-
-.breadcrumb .active {
-  color: #333;
-  font-weight: 500;
-}
-
-.upload-form {
+  width: 1200px;
+  margin: 0 auto;
+  background-color: #ffffff;
   padding: 20px;
 }
 
-.page-header {
+/* 提示信息区域 */
+.info-box {
+  background-color: #f9f9f9;
+  border: 1px solid #eaeaea;
+  padding: 15px;
   margin-bottom: 20px;
+  border-radius: 4px;
 }
 
-.page-header h1 {
-  font-size: 18px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 10px;
+.info-text {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #8e8e8e;
+  line-height: 1.5;
 }
 
 .divider {
   height: 1px;
   background-color: #ddd;
   margin: 10px 0;
-}
-
-.form-container {
-  background-color: white;
-  border-radius: 4px;
-  padding: 20px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
 }
 
 .form-content {
@@ -303,12 +375,12 @@ const goBack = () => {
   color: #333;
 }
 
-.file-upload-container {
+/* .file-upload-container {
   margin-top: 20px;
   border: 1px dashed #ccc;
   padding: 20px;
   border-radius: 4px;
-}
+} */
 
 .upload-area {
   text-align: center;
