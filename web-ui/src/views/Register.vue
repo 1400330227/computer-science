@@ -106,10 +106,10 @@
           >
             {{ loading ? '注册中...' : '注册' }}
           </el-button>
-          
-          <!-- 返回登录按钮 -->
+
+        <!-- 返回登录按钮 -->
           <el-button 
-            type="text" 
+            type="text"
             @click="goToLogin"
             style="width: 100%;"
           >
@@ -242,9 +242,9 @@ const handleRegister = async () => {
 
     // 如果请求成功，显示成功消息
     ElMessage.success('注册成功！请使用您的账号登录')
-
+    
     // 跳转到登录页面
-    router.push({ name: 'login' })
+      router.push({ name: 'login' })
 
   } catch (error) {
     // 如果注册失败，处理错误信息
@@ -303,21 +303,21 @@ const goToLogin = () => {
   text-align: center;
   padding: 20px 0;
 }
-
+  
 .card-header h1 {
   /* 主标题样式 */
-  color: #303133;
+    color: #303133;
   font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
 .card-header p {
   /* 副标题样式 */
-  color: #909399;
-  font-size: 14px;
-  margin: 0;
-}
+    color: #909399;
+    font-size: 14px;
+    margin: 0;
+  }
 
 /* 响应式设计：在小屏幕上调整样式 */
 @media (max-width: 480px) {

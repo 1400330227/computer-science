@@ -1,10 +1,10 @@
 <template>
   <!-- 登录页面的最外层容器 -->
   <div class="login-page">
-    
+
     <!-- Element Plus 卡片组件，用来包装登录表单 -->
     <el-card class="login-card" shadow="always">
-      
+
       <!-- 登录表单的标题 -->
       <template #header>
         <div class="card-header">
@@ -18,14 +18,8 @@
            :rules="formRules" 绑定验证规则
            ref="loginFormRef" 创建表单引用，用于调用表单方法
       -->
-      <el-form 
-        :model="loginForm" 
-        :rules="formRules" 
-        ref="loginFormRef"
-        label-width="0px"
-        size="large"
-      >
-        
+      <el-form :model="loginForm" :rules="formRules" ref="loginFormRef" label-width="0px" size="large">
+
         <!-- 用户名输入框 -->
         <el-form-item prop="username">
           <!-- Element Plus 输入框组件
@@ -33,12 +27,7 @@
                placeholder="请输入用户名" 输入框提示文字
                prefix-icon="User" 输入框前面的用户图标
           -->
-          <el-input 
-            v-model="loginForm.username"
-            placeholder="请输入用户名"
-            prefix-icon="User"
-            clearable
-          />
+          <el-input v-model="loginForm.username" placeholder="请输入用户名" prefix-icon="User" clearable />
         </el-form-item>
 
         <!-- 密码输入框 -->
@@ -48,15 +37,8 @@
                show-password 显示密码可见性切换按钮（小眼睛图标）
                @keyup.enter="handleLogin" 按回车键时触发登录
           -->
-          <el-input 
-            v-model="loginForm.password"
-            type="password"
-            placeholder="请输入密码"
-            prefix-icon="Lock"
-            show-password
-            clearable
-            @keyup.enter="handleLogin"
-          />
+          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock" show-password
+            clearable @keyup.enter="handleLogin" />
         </el-form-item>
 
         <!-- 记住用户名选项 -->
@@ -74,22 +56,8 @@
                :loading="loading" 根据loading状态显示加载动画
                @click="handleLogin" 点击时触发登录函数
           -->
-          <el-button 
-            type="primary" 
-            :loading="loading" 
-            @click="handleLogin"
-            style="width: 100%; margin-bottom: 10px;"
-          >
+          <el-button type="primary" :loading="loading" @click="handleLogin" style="width: 100%">
             {{ loading ? '登录中...' : '登录' }}
-          </el-button>
-          
-          <!-- 注册按钮 -->
-          <el-button 
-            type="text" 
-            @click="goToRegister"
-            style="width: 100%;"
-          >
-            没有账号？立即注册
           </el-button>
         </el-form-item>
 
@@ -131,7 +99,7 @@ const loginForm = reactive({
 const formRules = reactive({
   // 用户名验证规则
   username: [
-    { 
+    {
       required: true,           // 必填字段
       message: '请输入用户名',   // 错误提示信息
       trigger: 'blur'          // 触发验证的时机（失去焦点时）
@@ -139,15 +107,15 @@ const formRules = reactive({
   ],
   // 密码验证规则
   password: [
-    { 
-      required: true, 
-      message: '请输入密码', 
-      trigger: 'blur' 
+    {
+      required: true,
+      message: '请输入密码',
+      trigger: 'blur'
     },
-    { 
+    {
       min: 1,                  // 最少1个字符
-      message: '密码不能为空', 
-      trigger: 'blur' 
+      message: '密码不能为空',
+      trigger: 'blur'
     }
   ]
 })
@@ -156,7 +124,7 @@ const formRules = reactive({
 onMounted(() => {
   // 检查本地存储中是否有记住的用户名
   const rememberedUsername = localStorage.getItem('rememberedUsername')
-  
+
   if (rememberedUsername) {
     // 如果有记住的用户名，自动填入表单
     loginForm.username = rememberedUsername
@@ -164,18 +132,13 @@ onMounted(() => {
   }
 })
 
-// ======= 跳转到注册页面 =======
-const goToRegister = () => {
-  router.push({ name: 'register' })
-}
-
 // ======= 登录处理函数 =======
 const handleLogin = async () => {
   // async 表示这是一个异步函数，可以使用 await 等待网络请求
-  
+
   // 首先验证表单是否填写正确
   if (!loginFormRef.value) return  // 如果表单引用不存在，直接返回
-  
+
   try {
     // 调用Element Plus表单的validate方法进行验证
     await loginFormRef.value.validate()
@@ -191,18 +154,18 @@ const handleLogin = async () => {
   try {
     // 向后端发送登录请求
     console.log("正在向后端发送登录请求:", loginForm)
-    
-    const response = await axios.post('http://localhost:8080/api/users/login', {
+
+    const response = await axios.post('/api/users/login', {
       username: loginForm.username,  // 发送用户名
       password: loginForm.password   // 发送密码
     })
-    
+
     console.log("后端响应:", response.data)
 
-    // 如果请求成功，response.data 包含后端返回的用户信息（现在包含token）
+    // 如果请求成功，response.data 包含后端返回的用户信息
     const userData = response.data
 
-    // 使用 store 保存用户信息（包含token）
+    // 使用 store 保存用户信息
     userStore.login(userData)
 
     // 如果用户勾选了"记住用户名"
@@ -216,13 +179,13 @@ const handleLogin = async () => {
     // 显示登录成功的消息
     ElMessage.success(`登录成功！欢迎您，${userData.account}`)
 
-    // 跳转到首页Dashboard
+    // 跳转到首页
     router.push({ name: 'dashboard' })
 
   } catch (error) {
     // 如果登录失败，处理错误信息
     const errorMessage = error.response?.data || '登录失败，请检查网络连接'
-    
+
     // 根据不同的错误信息显示相应的提示
     if (typeof errorMessage === 'string') {
       if (errorMessage.includes('用户不存在')) {
@@ -249,50 +212,70 @@ const handleLogin = async () => {
 
 .login-page {
   /* 设置登录页面为全屏居中布局 */
-  display: flex;              /* 弹性布局 */
-  justify-content: center;    /* 水平居中 */
-  align-items: center;        /* 垂直居中 */
-  min-height: 100vh;          /* 最小高度为视窗高度 */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  /* 渐变背景 */
-  padding: 20px;              /* 内边距 */
+  display: flex;
+  /* 弹性布局 */
+  justify-content: center;
+  /* 水平居中 */
+  align-items: center;
+  /* 垂直居中 */
+  min-height: 100vh;
+  /* 最小高度为视窗高度 */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 渐变背景 */
+  padding: 20px;
+  /* 内边距 */
 }
 
 .login-card {
   /* 登录卡片的样式 */
-  width: 100%;               /* 宽度100% */
-  max-width: 400px;          /* 最大宽度400px */
-  border-radius: 12px;       /* 圆角 */
+  width: 100%;
+  /* 宽度100% */
+  max-width: 400px;
+  /* 最大宽度400px */
+  border-radius: 12px;
+  /* 圆角 */
 }
 
 .card-header {
   /* 卡片头部（标题区域）的样式 */
-  text-align: center;        /* 文字居中 */
-  padding: 20px 0;           /* 上下内边距 */
+  text-align: center;
+  /* 文字居中 */
+  padding: 20px 0;
+  /* 上下内边距 */
 }
 
 .card-header h1 {
   /* 主标题样式 */
-  color: #303133;            /* 深灰色 */
-  font-size: 24px;           /* 字体大小 */
-  font-weight: 600;          /* 字体粗细 */
-  margin-bottom: 8px;        /* 下边距 */
+  color: #303133;
+  /* 深灰色 */
+  font-size: 24px;
+  /* 字体大小 */
+  font-weight: 600;
+  /* 字体粗细 */
+  margin-bottom: 8px;
+  /* 下边距 */
 }
 
 .card-header p {
   /* 副标题样式 */
-  color: #909399;            /* 浅灰色 */
-  font-size: 14px;           /* 字体大小 */
-  margin: 0;                 /* 清除默认边距 */
+  color: #909399;
+  /* 浅灰色 */
+  font-size: 14px;
+  /* 字体大小 */
+  margin: 0;
+  /* 清除默认边距 */
 }
 
 /* 响应式设计：在小屏幕上调整样式 */
 @media (max-width: 480px) {
   .login-page {
-    padding: 10px;           /* 减少内边距 */
+    padding: 10px;
+    /* 减少内边距 */
   }
-  
+
   .login-card {
-    max-width: 100%;         /* 小屏幕上占满宽度 */
+    max-width: 100%;
+    /* 小屏幕上占满宽度 */
   }
 }
 </style>

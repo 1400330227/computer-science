@@ -25,14 +25,15 @@ const router = createRouter({
       children: [
         {
           path: '',
-      name: 'dashboard',
+          name: 'dashboard',
           component: Dashboard,
-    },
+          meta: { requiresAuth: true }
+        },
     {
           path: 'file-list',
       name: 'file-list',
       component: () => import('../views/FileList.vue'),
-          meta: { requiresAuth: true }
+      meta: { requiresAuth: true }
     },
     {
           path: 'upload',
@@ -55,9 +56,6 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
   
-  // 尝试从 localStorage 恢复用户状态
-  userStore.restoreFromStorage()
-
   // 如果路由需要认证且用户未登录，重定向到登录页面
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
     next({ name: 'login' })
