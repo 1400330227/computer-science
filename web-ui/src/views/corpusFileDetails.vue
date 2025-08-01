@@ -37,7 +37,8 @@
                         </tr>
                         <tr>
                             <td class="info-label">数据量</td>
-                            <td class="info-value">{{ formatDataVolume(corpusData.dataVolume, corpusData.volumeUnit) }}</td>
+                            <td class="info-value">{{ formatDataVolume(corpusData.dataVolume, corpusData.volumeUnit) }}
+                            </td>
                             <td class="info-label">容量估算（GB）</td>
                             <td class="info-value">{{ corpusData.estimatedCapacityGb || '-' }}</td>
                         </tr>
@@ -141,7 +142,7 @@ function formatFileSize(size) {
 // 加载语料详情
 function loadCorpusDetails() {
     loading.value = true
-    api.get(`/hdfs/corpus/user/${corpusId.value}`)
+    api.get(`/corpus/user/${corpusId.value}`)
         .then(response => {
             corpusData.value = response.data
             loading.value = false

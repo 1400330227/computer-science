@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
+import Cookies from 'js-cookie';
 
 // Create an axios instance with default config
 const api = axios.create({
@@ -14,6 +15,12 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   config => {
+    const xsrfToken = Cookies.get('XSRF-TOKEN')
+    debugger
+    if (xsrfToken) {
+      // 默认头名称是X-XSRF-TOKEN，与后端Spring Security默认期望的一致
+      config.headers['X-XSRF-TOKEN'] = xsrfToken
+    }
     // 在发送请求之前做些什么
     // 注意：我们使用Session认证，不需要在这里添加Token
     // Session会自动通过Cookie传递

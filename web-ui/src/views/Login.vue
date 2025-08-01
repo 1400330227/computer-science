@@ -72,9 +72,8 @@ import { ref, reactive, onMounted } from 'vue'
 // ref: 创建响应式的单个数据
 // reactive: 创建响应式的对象
 // onMounted: 页面加载完成后执行的钩子函数
-
+import api from '@/services/api'
 import { useRouter } from 'vue-router'  // 路由跳转功能
-import axios from 'axios'  // HTTP请求库（已在main.js中全局配置）
 import { ElMessage } from 'element-plus'  // Element Plus 的消息提示组件
 import { useUserStore } from '@/stores/user'  // 用户状态管理
 
@@ -155,7 +154,7 @@ const handleLogin = async () => {
     // 向后端发送登录请求
     console.log("正在向后端发送登录请求:", loginForm)
 
-    const response = await axios.post('/api/users/login', {
+    const response = await api.post('/users/login', {
       username: loginForm.username,  // 发送用户名
       password: loginForm.password   // 发送密码
     })

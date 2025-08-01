@@ -14,11 +14,7 @@
               <span>总进度: {{ uploadProgress.currentFile }}/{{ uploadProgress.totalFiles }}</span>
               <span>{{ uploadProgress.overallPercent }}%</span>
             </div>
-            <el-progress
-              :percentage="uploadProgress.overallPercent"
-              :stroke-width="8"
-              :show-text="false"
-            />
+            <el-progress :percentage="uploadProgress.overallPercent" :stroke-width="8" :show-text="false" />
           </div>
 
           <div v-if="uploadProgress.currentFileName" class="current-file">
@@ -26,11 +22,7 @@
               <span>当前文件: {{ uploadProgress.currentFileName }}</span>
               <span>{{ uploadProgress.currentPercent }}%</span>
             </div>
-            <el-progress
-              :percentage="uploadProgress.currentPercent"
-              :stroke-width="6"
-              :show-text="false"
-            />
+            <el-progress :percentage="uploadProgress.currentPercent" :stroke-width="6" :show-text="false" />
           </div>
 
           <div class="status-text">{{ uploadProgress.status }}</div>
@@ -361,7 +353,7 @@ const saveForm = async () => {
     uploadProgress.completed = false
 
     // 第一步：创建语料记录
-    const corpusResponse = await api.post('/hdfs/corpus', formData)
+    const corpusResponse = await api.post('/corpus', formData)
 
     if (!corpusResponse.data) {
       throw new Error('创建语料失败')
@@ -391,7 +383,7 @@ const saveForm = async () => {
           uploadFormData.append('file', file.raw)
           uploadFormData.append('corpusId', corpusId)
 
-          await api.post('/hdfs/corpus/upload', uploadFormData, {
+          await api.post('/corpus/upload', uploadFormData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             },
@@ -738,7 +730,8 @@ const goBack = () => {
   margin-bottom: 16px;
 }
 
-.progress-info, .file-info {
+.progress-info,
+.file-info {
   display: flex;
   justify-content: space-between;
   align-items: center;

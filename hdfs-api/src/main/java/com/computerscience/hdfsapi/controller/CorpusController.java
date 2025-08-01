@@ -135,12 +135,7 @@ public class CorpusController {
             @RequestParam(required = false) String language,
             @RequestParam(required = false) String classification) {
         try {
-            // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
-            if (currentUser == null) {
-                return ResponseEntity.status(401).body("用户未登录");
-            }
-
             return ResponseEntity.ok(corpusService.findUserCorpusPage(currentUser.getUserId(), page, size, language, classification));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("获取语料列表失败: " + e.getMessage());
@@ -238,7 +233,7 @@ public class CorpusController {
 
             // 生成HDFS存储路径
             String fileName = file.getOriginalFilename();
-            String hdfsPath = "/corpus/" + corpusId + "/" + fileName;
+            String hdfsPath = "/corpus/" + currentUser.getAccount() + corpusId + "/" + fileName;
 
             System.out.println("=== 文件上传开始 ===");
             System.out.println("文件名: " + fileName);
