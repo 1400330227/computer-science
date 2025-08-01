@@ -14,6 +14,9 @@ export const useUserStore = defineStore('user', () => {
   // 登录状态
   const isLoggedIn = ref(false)
   
+  // JWT Token
+  const token = ref('')
+  
   // 计算属性：是否已认证
   const isAuthenticated = computed(() => isLoggedIn.value)
   
@@ -31,7 +34,13 @@ export const useUserStore = defineStore('user', () => {
     }
     isLoggedIn.value = true
     
-    // 同步到 localStorage
+    // 存储JWT Token
+    if (userData.token) {
+      token.value = userData.token
+      localStorage.setItem('token', userData.token)
+    }
+    
+    // 同步到 localStorage（保持原有逻辑）
     localStorage.setItem('isLoggedIn', 'true')
     localStorage.setItem('username', userData.account || userData.username || '')
     localStorage.setItem('userId', userData.userId || '')
@@ -49,18 +58,22 @@ export const useUserStore = defineStore('user', () => {
       phone: ''
     }
     isLoggedIn.value = false
+    token.value = ''
     
-    // 清除 localStorage
+    // 清除 localStorage（保持原有逻辑 + token）
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('username')
     localStorage.removeItem('userId')
     localStorage.removeItem('userType')
     localStorage.removeItem('phone')
+    localStorage.removeItem('token')
   }
   
   // 从 localStorage 恢复用户状态
   const restoreFromStorage = () => {
     const storedLoginStatus = localStorage.getItem('isLoggedIn')
+    const storedToken = localStorage.getItem('token')
+    
     if (storedLoginStatus === 'true') {
       isLoggedIn.value = true
       userInfo.value = {
@@ -70,6 +83,11 @@ export const useUserStore = defineStore('user', () => {
         userType: localStorage.getItem('userType') || '',
         phone: localStorage.getItem('phone') || ''
       }
+      
+      // 恢复token
+      if (storedToken) {
+        token.value = storedToken
+      }
     }
   }
   
@@ -78,6 +96,7 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     isAuthenticated,
     displayName,
+    token,
     login,
     logout,
     restoreFromStorage

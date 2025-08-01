@@ -199,10 +199,10 @@ const handleLogin = async () => {
     
     console.log("后端响应:", response.data)
 
-    // 如果请求成功，response.data 包含后端返回的用户信息
+    // 如果请求成功，response.data 包含后端返回的用户信息（现在包含token）
     const userData = response.data
 
-    // 使用 store 保存用户信息
+    // 使用 store 保存用户信息（包含token）
     userStore.login(userData)
 
     // 如果用户勾选了"记住用户名"

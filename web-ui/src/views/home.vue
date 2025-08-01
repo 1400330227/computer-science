@@ -45,15 +45,15 @@ const handleLogout = async () => {
         type: 'warning',
       }
     )
-    
+
     // 使用 store 清除用户信息
     userStore.logout()
-    
+
     ElMessage.success('已成功退出登录')
-    
+
     // 跳转到登录页面
     router.push({ name: 'login' })
-    
+
   } catch {
     // 用户点击了取消，不做任何操作
   }
@@ -65,16 +65,16 @@ import { ArrowRight } from '@element-plus/icons-vue'
 <template>
   <div class="app-container">
     <!-- 只在非登录页面显示导航栏 -->
-    <el-menu :default-active="activeIndex" class="el-menu-demo top-nav" mode="horizontal" @select="handleSelect" router>
-      <el-menu-item index="/" class="nav-item">首页</el-menu-item>
-      <el-sub-menu index="2" class="nav-item">
-        <template #title>语料清单</template>
-        <el-menu-item index="/file-list">语料集列表</el-menu-item>
+          <el-menu :default-active="activeIndex" class="el-menu-demo top-nav" mode="horizontal" @select="handleSelect" router>
+        <el-menu-item index="/" class="nav-item">首页</el-menu-item>
+        <el-sub-menu index="2" class="nav-item">
+          <template #title>语料清单</template>
+          <el-menu-item index="/file-list">语料集列表</el-menu-item>
         <el-menu-item index="file-details">语料集详情</el-menu-item>
-      </el-sub-menu>
+        </el-sub-menu>
       <el-menu-item index="3" class="nav-item">用户</el-menu-item>
-      <el-menu-item index="4" class="nav-item">权限管理</el-menu-item>
-      
+        <el-menu-item index="4" class="nav-item">权限管理</el-menu-item>
+
       <!-- 右侧用户信息和登出按钮 -->
       <div class="nav-right">
         <span class="user-info">欢迎：{{ userStore.displayName }}</span>
