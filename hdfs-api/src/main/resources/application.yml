@@ -23,9 +23,17 @@ spring:
 hadoop:
   hdfs:
     user: Administrator
-    namenode: 172.21.44.162:9000
+    uri: hdfs://172.21.44.162:9000
 
 logging:
   level:
     root: INFO
     com.computerscience.hdfsapi: DEBUG
+
+
+server:
+  # 服务器的HTTP端口，默认为8080
+  port: 8080
+  servlet:
+    # 应用的访问路径
+    context-path: /api

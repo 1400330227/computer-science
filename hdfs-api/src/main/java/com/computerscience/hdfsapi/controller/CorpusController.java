@@ -2,7 +2,9 @@ package com.computerscience.hdfsapi.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.computerscience.hdfsapi.model.Corpus;
+import com.computerscience.hdfsapi.model.User;
 import com.computerscience.hdfsapi.service.CorpusService;
+import com.computerscience.hdfsapi.utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -46,11 +48,17 @@ public class CorpusController {
      * 分页查询语料库列表
      */
     @GetMapping
-    public ResponseEntity<IPage<Corpus>> listCorpus(
+    public ResponseEntity<?> listCorpus(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String language,
             @RequestParam(required = false) String classification) {
+        if (!UserContext.isUserLoggedIn()) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
+
+        // 获取当前登录用户
+        User currentUser = UserContext.getCurrentUser();
         return ResponseEntity.ok(corpusService.findCorpusPage(page, size, language, classification));
     }
 

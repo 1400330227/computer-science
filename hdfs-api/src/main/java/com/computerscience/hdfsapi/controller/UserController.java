@@ -9,13 +9,17 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
 
 /**
  * 用户控制器
  */
 @CrossOrigin
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController {
 
     @Autowired
@@ -43,6 +47,41 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(user);
+    }
+
+    /**
+     * 获取当前登录用户信息
+     */
+    @GetMapping("/current")
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
+        // 从 Session 中获取当前登录用户信息
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("currentUser") == null) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
+        
+        // 获取 Session 中存储的用户 ID
+        Integer userId = (Integer) session.getAttribute("currentUser");
+        
+        // 根据用户 ID 查询最新的用户信息
+        User user = userService.getById(userId);
+        if (user == null) {
+            // 如果用户不存在，清除 Session
+            session.invalidate();
+            return ResponseEntity.status(401).body("用户不存在，请重新登录");
+        }
+        
+        // 组装返回数据，不包含敏感信息
+        Map<String, Object> response = new HashMap<>();
+        response.put("userId", user.getUserId());
+        response.put("account", user.getAccount());
+        response.put("userType", user.getUserType());
+        response.put("phone", user.getPhone());
+        response.put("gender", user.getGender());
+        response.put("accountStatus", user.getAccountStatus());
+        response.put("address", user.getAddress());
+        
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -98,7 +137,8 @@ public class UserController {
      * 这个接口用来验证用户的用户名和密码是否正确
      */
     @PostMapping("/login")  // 告诉Spring这是一个POST请求，访问地址是 /api/users/login
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpServletRequest request,
+                                 HttpServletResponse response) {
         // 从请求体中提取用户名和密码
         String account = loginRequest.get("username");
         String password = loginRequest.get("password");
@@ -139,20 +179,41 @@ public class UserController {
             // 如果账号状态不是active或正常，不允许登录
             return ResponseEntity.badRequest().body("账号已被禁用");
         }
-        
+
+        // 登录成功，将用户ID存储到Session中
+        HttpSession session = request.getSession(true);
+        session.setAttribute("currentUser", user.getUserId());
+
         // 如果所有验证都通过，准备返回给前端的用户信息
         // 使用Map来组织返回的数据，就像一个信息盒子
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);                // 告诉前端登录成功了
-        response.put("message", "登录成功");           // 成功消息
-        response.put("userId", user.getUserId());     // 用户ID
-        response.put("account", user.getAccount());   // 用户账号
-        response.put("userType", user.getUserType()); // 用户类型（如：管理员、普通用户）
-        response.put("phone", user.getPhone());       // 用户手机号
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);                // 告诉前端登录成功了
+        responseMap.put("message", "登录成功");           // 成功消息
+        responseMap.put("userId", user.getUserId());     // 用户ID
+        responseMap.put("account", user.getAccount());   // 用户账号
+        responseMap.put("userType", user.getUserType()); // 用户类型（如：管理员、普通用户）
+        responseMap.put("phone", user.getPhone());       // 用户手机号
         // 注意：这里故意不返回密码，保护用户隐私安全
         
         // 返回200成功状态码和用户信息
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(responseMap);
+    }
+    
+    /**
+     * 用户登出接口
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);
+        responseMap.put("message", "已成功登出");
+        
+        return ResponseEntity.ok(responseMap);
     }
     
     /**
