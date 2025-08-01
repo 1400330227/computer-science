@@ -17,6 +17,7 @@ import com.computerscience.hdfsapi.utils.ListFilter;
 import com.computerscience.hdfsapi.utils.UserContext;
 import com.computerscience.hdfsapi.model.User;
 import org.apache.hadoop.conf.Configuration;
+import org.eclipse.jetty.util.ajax.JSON;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,10 @@ public class HdfsApiController {
 
     @Value("${hadoop.hdfs.user}")
     private String user;
+
+
+    @Value("${hadoop.hdfs.root-path}")
+    private String rootPath;
 
     @Autowired
     private Configuration conf;
@@ -86,13 +91,11 @@ public class HdfsApiController {
      * @throws Exception
      */
     @PostMapping("/upload")
-    public ResponseEntity<String> upLoadFile(@RequestParam(name = "file", required = true) MultipartFile file, @RequestParam(name = "destPath") String destPath)
+    public ResponseEntity<?> upLoadFile(@RequestParam(name = "file", required = true) MultipartFile file, @RequestParam(name = "destPath") String destPath)
             throws Exception {
-        // 检查用户是否已登录
-        if (!UserContext.isUserLoggedIn()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户未登录");
-        }
-        
+        User currentUser = UserContext.getCurrentUser();
+        destPath = rootPath + currentUser.getAccount();
+
         HdfsApi api = new HdfsApi(conf, user);
         InputStream is = file.getInputStream();
         String name = file.getOriginalFilename();
@@ -103,7 +106,7 @@ public class HdfsApiController {
 
     @GetMapping("/file")
     public void downLoadFile(@RequestParam(name = "filePath") String filePath,
-            HttpServletResponse response, @RequestParam(name = "flag") boolean flag) throws Exception {
+                             HttpServletResponse response, @RequestParam(name = "flag") boolean flag) throws Exception {
         if (!UserContext.isUserLoggedIn()) {
             response.setStatus(401);
             response.getWriter().write("用户未登录");
@@ -163,18 +166,18 @@ public class HdfsApiController {
     public ResponseEntity<?> exampleWithUserInfo() {
         // 获取当前登录用户信息
         User currentUser = UserContext.getCurrentUser();
-        
+
         // 判断用户是否已登录
         if (currentUser == null) {
             return ResponseEntity.status(401).body("用户未登录");
         }
-        
+
         // 使用用户信息进行业务处理
         Map<String, Object> response = new HashMap<>();
         response.put("message", "操作成功");
         response.put("userName", currentUser.getAccount());
         response.put("userType", currentUser.getUserType());
-        
+
         return ResponseEntity.ok(response);
     }
 }

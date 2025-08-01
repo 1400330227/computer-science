@@ -14,7 +14,7 @@
         </div>
       </div>
 
-      <div class="card" @click="navigateTo('/upload')">
+      <div class="card" @click="navigateTo('/file-upload')">
         <div class="card-icon">⬆️</div>
         <div class="card-content">
           <h2>上传文件</h2>

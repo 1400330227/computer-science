@@ -81,7 +81,7 @@ function loadFileList() {
     size: pageSize.value
   }
 
-  api.get('/hdfs/corpus', { params })
+  api.get('/corpus', { params })
     .then(response => {
       if (response.data && response.data.records) {
         fileList.value = response.data.records

@@ -118,10 +118,12 @@
 
             <div class="file-upload-container">
               <div class="upload-area">
-                <el-upload class="upload-demo" drag action="/api/hdfs/upload" :before-upload="beforeUpload"
-                  :data="uploadData" :headers="uploadHeaders" :on-success="handleUploadSuccess"
-                  :on-error="handleUploadError" :on-change="handleFileChange" :file-list="fileList" multiple>
-                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                <el-upload class="upload-demo" drag action="#" :before-upload="beforeUpload"
+                  :http-request="customUpload" :on-success="handleUploadSuccess" :on-error="handleUploadError"
+                  :on-change="handleFileChange" :file-list="fileList" multiple>
+                  <el-icon class="el-icon--upload">
+                    <upload-filled />
+                  </el-icon>
                   <div class="el-upload__text">
                     可同时选择多个文件，上限 10.00GB
                   </div>
@@ -150,8 +152,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, inject, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, reactive, inject, onMounted } from 'vue'
+import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
 import api from '../services/api'
@@ -225,13 +227,33 @@ const uploadData = reactive({
   destPath: '/corpus' // 设置默认的目标路径
 })
 
-const uploadHeaders = computed(() => {
-  // 从localStorage获取token
-  const token = localStorage.getItem('token')
-  return token ? {
-    'Authorization': 'Bearer ' + token
-  } : {}
-})
+
+const customUpload = async (options) => {
+  try {
+    const formData = new FormData();
+    formData.append('file', options.file);  // 文件字段
+
+    // 添加额外参数
+    Object.entries(uploadData).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    // Axios 上传
+    const response = await api.post('/hdfs/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total > 0) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          options.onProgress({ percent });  // 更新进度条
+        }
+      }
+    });
+  } catch (error) {
+    options.onError(error);
+  }
+};
 
 // 文件上传前的验证
 const beforeUpload = async (file) => {
