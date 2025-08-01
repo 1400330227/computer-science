@@ -53,9 +53,9 @@ public class CorpusController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String language,
             @RequestParam(required = false) String classification) {
-        if (!UserContext.isUserLoggedIn()) {
-            return ResponseEntity.status(401).body("用户未登录");
-        }
+//        if (!UserContext.isUserLoggedIn()) {
+//            return ResponseEntity.status(401).body("用户未登录");
+//        }
 
         // 获取当前登录用户
         User currentUser = UserContext.getCurrentUser();
