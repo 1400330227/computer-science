@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 30000, // 30 seconds timeout
+  withCredentials: true, // 重要：允许跨域请求携带cookies（Session需要）
   headers: {
     'Content-Type': 'application/json',
   }
@@ -14,10 +15,8 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     // 在发送请求之前做些什么
-    const token = localStorage.getItem('userToken')
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
-    }
+    // 注意：我们使用Session认证，不需要在这里添加Token
+    // Session会自动通过Cookie传递
     return config
   },
   error => {
@@ -39,9 +38,16 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           ElMessage.error('未授权，请重新登录')
-          localStorage.removeItem('userToken')
+          // 清除登录状态
           localStorage.removeItem('isLoggedIn')
-          window.location.href = '/login'
+          localStorage.removeItem('username')
+          localStorage.removeItem('userId') 
+          localStorage.removeItem('userType')
+          localStorage.removeItem('phone')
+          // 使用Vue Router进行跳转，而不是直接修改location
+          setTimeout(() => {
+            window.location.reload()
+          }, 1000)
           break
         case 403:
           ElMessage.error('没有权限访问此资源')

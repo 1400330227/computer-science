@@ -19,63 +19,49 @@
                     <table class="info-table">
                         <tr>
                             <td class="info-label">国家</td>
-                            <td class="info-value">{{ corpusData.country }}</td>
-                            <td class="info-label">国家</td>
-                            <td class="info-value">{{ corpusData.country }}</td>
-                        </tr>
-                        <tr>
+                            <td class="info-value">{{ corpusData.country || '-' }}</td>
                             <td class="info-label">语料集名称</td>
-                            <td class="info-value">{{ corpusData.datasetName }}</td>
-                            <td class="info-label">语料集名称</td>
-                            <td class="info-value">{{ corpusData.datasetName }}</td>
+                            <td class="info-value">{{ corpusData.collectionName || '-' }}</td>
                         </tr>
                         <tr>
                             <td class="info-label">所属领域</td>
-                            <td class="info-value">{{ corpusData.domain }}</td>
-                            <td class="info-label">所属领域</td>
-                            <td class="info-value">{{ corpusData.domain }}</td>
-                        </tr>
-                        <tr>
+                            <td class="info-value">{{ corpusData.domain || '-' }}</td>
                             <td class="info-label">语种</td>
-                            <td class="info-value">{{ corpusData.language }}</td>
-                            <td class="info-label">容量估算（GB）</td>
-                            <td class="info-value">{{ corpusData.estimatedCapacity }}</td>
+                            <td class="info-value">{{ corpusData.language || '-' }}</td>
                         </tr>
                         <tr>
                             <td class="info-label">数据形式</td>
-                            <td class="info-value">{{ corpusData.dataFormat }}</td>
-                            <td class="info-label">数据年份</td>
-                            <td class="info-value">{{ corpusData.dataYear }}</td>
-                        </tr>
-                        <tr>
+                            <td class="info-value">{{ corpusData.dataFormat || '-' }}</td>
                             <td class="info-label">数据分类</td>
-                            <td class="info-value">{{ corpusData.dataCategory }}</td>
+                            <td class="info-value">{{ corpusData.classification || '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">数据量</td>
+                            <td class="info-value">{{ formatDataVolume(corpusData.dataVolume, corpusData.volumeUnit) }}</td>
+                            <td class="info-label">容量估算（GB）</td>
+                            <td class="info-value">{{ corpusData.estimatedCapacityGb || '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="info-label">数据年份</td>
+                            <td class="info-value">{{ corpusData.dataYear || '-' }}</td>
                             <td class="info-label">来源归属地</td>
-                            <td class="info-value">{{ corpusData.sourceLocation }}</td>
+                            <td class="info-value">{{ corpusData.sourceLocation || '-' }}</td>
                         </tr>
                         <tr>
-                            <td class="info-label">数据量数据量单位</td>
-                            <td class="info-value">{{ corpusData.dataUnit }}</td>
                             <td class="info-label">数据来源</td>
-                            <td class="info-value">{{ corpusData.dataSource }}</td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td></td>
+                            <td class="info-value">{{ corpusData.dataSource || '-' }}</td>
                             <td class="info-label">数据提供方</td>
-                            <td class="info-value">{{ corpusData.dataProvider }}</td>
+                            <td class="info-value">{{ corpusData.provider || '-' }}</td>
                         </tr>
                         <tr>
-                            <td></td>
-                            <td></td>
-                            <td class="info-label">数据提供方联系方式</td>
-                            <td class="info-value">{{ corpusData.providerContact }}</td>
+                            <td class="info-label">提供方联系方式</td>
+                            <td class="info-value">{{ corpusData.providerContact || '-' }}</td>
+                            <td class="info-label">创建时间</td>
+                            <td class="info-value">{{ formatDateTime(corpusData.createdAt) }}</td>
                         </tr>
                         <tr>
-                            <td></td>
-                            <td></td>
                             <td class="info-label">备注说明</td>
-                            <td class="info-value">{{ corpusData.remark }}</td>
+                            <td class="info-value" colspan="3">{{ corpusData.remarks || '-' }}</td>
                         </tr>
                     </table>
                 </div>
@@ -155,7 +141,7 @@ function formatFileSize(size) {
 // 加载语料详情
 function loadCorpusDetails() {
     loading.value = true
-    api.get(`/hdfs/corpus/${corpusId.value}`)
+    api.get(`/hdfs/corpus/user/${corpusId.value}`)
         .then(response => {
             corpusData.value = response.data
             loading.value = false
@@ -164,15 +150,40 @@ function loadCorpusDetails() {
         })
         .catch(error => {
             console.error('获取语料详情失败:', error)
-            ElMessage.error('获取语料详情失败，请稍后重试')
+            if (error.response?.status === 403) {
+                ElMessage.error('无权限访问该语料信息')
+            } else if (error.response?.status === 401) {
+                ElMessage.error('请先登录')
+            } else {
+                ElMessage.error('获取语料详情失败，请稍后重试')
+            }
             loading.value = false
         })
+}
+
+// 格式化数据量显示
+function formatDataVolume(volume, unit) {
+    if (!volume) return '-'
+    return `${volume}${unit || ''}`
+}
+
+// 格式化日期时间显示
+function formatDateTime(dateTime) {
+    if (!dateTime) return '-'
+    const date = new Date(dateTime)
+    return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    })
 }
 
 // 加载文件列表
 function loadFileList() {
     filesLoading.value = true
-    api.get(`/hdfs/corpus/${corpusId.value}/files`)
+    api.get(`/files/corpus/${corpusId.value}`)
         .then(response => {
             // 为每个文件添加下载状态标志
             const files = response.data || []
@@ -194,7 +205,7 @@ function downloadFile(file) {
     if (file.downloading) return
 
     // 设置下载状态
-    const fileIndex = fileList.value.findIndex(f => f.id === file.id)
+    const fileIndex = fileList.value.findIndex(f => f.fileId === file.fileId)
     if (fileIndex !== -1) {
         fileList.value[fileIndex].downloading = true
     }
@@ -202,7 +213,7 @@ function downloadFile(file) {
     ElMessage.info(`开始下载文件: ${file.fileName}`)
 
     api({
-        url: `/hdfs/corpus/download/${corpusId.value}/${file.id}`,
+        url: `/files/${file.fileId}`,
         method: 'GET',
         responseType: 'blob'
     })
@@ -210,7 +221,7 @@ function downloadFile(file) {
             const url = window.URL.createObjectURL(new Blob([response.data]))
             const link = document.createElement('a')
             link.href = url
-            link.setAttribute('download', file.fileName)
+            link.setAttribute('download', file.fileName || file.name || 'download')
             document.body.appendChild(link)
             link.click()
             document.body.removeChild(link)

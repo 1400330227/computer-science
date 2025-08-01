@@ -11,18 +11,18 @@
         </p>
       </div>
 
-      <!-- 文件表格标题 -->
+      <!-- 语料表格 -->
       <el-table v-loading="loading" :data="fileList" style="width: 100%">
         <el-table-column prop="country" label="国家" />
-        <el-table-column prop="datasetName" label="语料集名称" />
+        <el-table-column prop="collectionName" label="语料集名称" />
         <el-table-column prop="domain" label="所属领域" />
         <el-table-column prop="language" label="语种" />
         <el-table-column prop="dataFormat" label="数据形式" />
-        <el-table-column prop="dataCategory" label="数据分类" />
+        <el-table-column prop="classification" label="数据分类" />
         <el-table-column prop="dataYear" label="数据年份" />
         <el-table-column prop="sourceLocation" label="来源归属地" />
         <el-table-column prop="dataSource" label="数据来源" />
-        <el-table-column prop="remark" label="备注说明" />
+        <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip />
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="downloadFile(row)">下载</el-button>
@@ -73,15 +73,15 @@ onMounted(() => {
   loadFileList()
 })
 
-// 加载文件列表
+// 加载语料列表
 function loadFileList() {
   loading.value = true
   const params = {
-    current: currentPage.value,
+    page: currentPage.value,
     size: pageSize.value
   }
 
-  api.get('/corpus', { params })
+  api.get('/hdfs/corpus/my-corpus', { params })
     .then(response => {
       if (response.data && response.data.records) {
         fileList.value = response.data.records
@@ -116,12 +116,12 @@ function handleCurrentChange(newPage) {
   loadFileList()
 }
 
-// 下载文件
-function downloadFile(file) {
-  ElMessage.info(`开始下载文件: ${file.datasetName}`)
+// 下载语料
+function downloadFile(corpus) {
+  ElMessage.info(`开始下载语料: ${corpus.collectionName}`)
 
   api({
-    url: `/hdfs/corpus/download/${file.id}`,
+    url: `/hdfs/corpus/download/${corpus.corpusId}`,
     method: 'GET',
     responseType: 'blob'
   })
@@ -130,22 +130,22 @@ function downloadFile(file) {
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', file.datasetName)
+      link.setAttribute('download', corpus.collectionName)
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       ElMessage.success('下载完成')
     })
     .catch(error => {
-      console.error('下载文件失败:', error)
-      ElMessage.error('下载文件失败，请稍后重试')
+      console.error('下载语料失败:', error)
+      ElMessage.error('下载语料失败，请稍后重试')
     })
 }
 
 // 查看详情
-function viewDetails(file) {
-  // 跳转到详情页面，传递文件ID作为参数
-  router.push(`/corpus-details/${file.id || '1'}`) // 假设文件对象中有id字段，如果没有，临时使用'1'
+function viewDetails(corpus) {
+  // 跳转到详情页面，传递语料ID作为参数
+  router.push(`/corpus-details/${corpus.corpusId}`)
 }
 
 // 跳转到上传页面

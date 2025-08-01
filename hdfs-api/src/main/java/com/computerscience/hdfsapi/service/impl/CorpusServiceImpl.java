@@ -49,6 +49,26 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     }
 
     @Override
+    public IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification) {
+        LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 筛选当前用户的语料
+        queryWrapper.eq(Corpus::getCreatorId, userId);
+        
+        if (StringUtils.hasText(language)) {
+            queryWrapper.eq(Corpus::getLanguage, language);
+        }
+        
+        if (StringUtils.hasText(classification)) {
+            queryWrapper.eq(Corpus::getClassification, classification);
+        }
+        
+        queryWrapper.orderByDesc(Corpus::getCreatedAt);
+        
+        return page(new Page<>(page, size), queryWrapper);
+    }
+
+    @Override
     @Transactional
     public boolean createCorpus(Corpus corpus) {
         // 检查语料库名称是否已存在
