@@ -26,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.computerscience.hdfsapi.model.HDFSFileStatus;
 
 
-@CrossOrigin
 @RestController
 @RequestMapping("/hdfs")
 public class HdfsApiController {
@@ -89,9 +88,11 @@ public class HdfsApiController {
     @PostMapping("/upload")
     public ResponseEntity<String> upLoadFile(@RequestParam(name = "file", required = true) MultipartFile file, @RequestParam(name = "destPath") String destPath)
             throws Exception {
+        // 检查用户是否已登录
         if (!UserContext.isUserLoggedIn()) {
-            return ResponseEntity.status(401).body("用户未登录");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("用户未登录");
         }
+        
         HdfsApi api = new HdfsApi(conf, user);
         InputStream is = file.getInputStream();
         String name = file.getOriginalFilename();

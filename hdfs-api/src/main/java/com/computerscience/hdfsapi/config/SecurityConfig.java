@@ -31,7 +31,7 @@ public class SecurityConfig {
                                 "/users/login",
                                 "/users/logout",
                                 "/users",
-                                "/api/hdfs/**"
+                                "/hdfs/**"
                         )
                 )
                 .headers(headers -> headers

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @CrossOrigin
 @RestController
-@RequestMapping("/hdfs/corpus")
+@RequestMapping("/corpus")
 public class CorpusController {
 
     @Autowired
