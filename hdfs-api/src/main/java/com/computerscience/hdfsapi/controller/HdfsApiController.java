@@ -2,19 +2,26 @@ package com.computerscience.hdfsapi.controller;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
+import com.computerscience.hdfsapi.OP;
 import com.computerscience.hdfsapi.api.HdfsApi;
+import com.computerscience.hdfsapi.exception.HdfsApiException;
+import com.computerscience.hdfsapi.model.HDFSOp;
+import com.computerscience.hdfsapi.service.HdfsApiService;
+import com.computerscience.hdfsapi.utils.DPage;
+import com.computerscience.hdfsapi.utils.ListFilter;
+import com.computerscience.hdfsapi.utils.UserContext;
+import com.computerscience.hdfsapi.model.User;
 import org.apache.hadoop.conf.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import com.computerscience.hdfsapi.model.HDFSFileStatus;
 
@@ -24,12 +31,53 @@ import com.computerscience.hdfsapi.model.HDFSFileStatus;
 @RequestMapping("/hdfs")
 public class HdfsApiController {
 
-    @Value("${hadoop.hdfs.user:hdfs}")
+    @Value("${hadoop.hdfs.user}")
     private String user;
 
-    @Value("${hadoop.hdfs.namenode:localhost:9000}")
-    private String namenode;
+    @Autowired
+    private Configuration conf;
 
+    @Autowired
+    private HdfsApiService apiService;
+
+    @PostMapping
+    public ResponseEntity<String> oPHdfs(@RequestBody HDFSOp hdfsOp, HttpServletResponse response) throws Exception {
+        /**
+         * 自定义扩展
+         */
+        boolean result = false;
+        HdfsApi api = new HdfsApi(conf, user);
+        OP op = hdfsOp.getOp();
+        if (op == null) {
+            throw new HdfsApiException("无法接收文件操作标识为空的请求");
+        }
+
+        if (op.equals(OP.CREATE)) {
+            result = apiService.create(api, hdfsOp);
+        } else if (op.equals(OP.DELETE)) {
+            result = apiService.delete(api, hdfsOp);
+        } else if (op.equals(OP.COPY)) {
+            result = apiService.copy(api, hdfsOp);
+        } else if (op.equals(OP.EMPTYTRASH)) {
+            result = apiService.emptyTrash(api);
+        } else if (op.equals(OP.MOVE)) {
+            result = apiService.move(api, hdfsOp);
+        } else if (op.equals(OP.RENAME)) {
+            result = apiService.rename(api, hdfsOp);
+        } else if (op.equals(OP.WRITE)) {
+            result = apiService.write(api, hdfsOp);
+        } else if (op.equals(OP.APPEND)) {
+            result = apiService.append(api, hdfsOp);
+        } else if (op.equals(OP.OPEN)) {
+            apiService.open(api, hdfsOp, response);
+        }
+        api.close();
+        if (result) {
+            return ResponseEntity.ok("成功");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("服务器异常");
+        }
+    }
 
     /**
      * 上传文件
@@ -41,46 +89,27 @@ public class HdfsApiController {
     @PostMapping("/upload")
     public ResponseEntity<String> upLoadFile(@RequestParam(name = "file", required = true) MultipartFile file, @RequestParam(name = "destPath") String destPath)
             throws Exception {
-        System.out.println("你已经成功的调用到上传文件的后端服务了");
-        // 直接创建Configuration
-        Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "hdfs://" + namenode);
-        conf.set("hadoop.user.name", user);
-        
+        if (!UserContext.isUserLoggedIn()) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
         HdfsApi api = new HdfsApi(conf, user);
         InputStream is = file.getInputStream();
         String name = file.getOriginalFilename();
         api.upLoadFile(is, destPath + "/" + name);
         api.close();
-        return ResponseEntity.ok("文件上传成功: " + destPath);
+        return ResponseEntity.ok("文件上传成功");
     }
 
-    @GetMapping("/download")
-    public void downloadFile(@RequestParam(name = "filePath") String filePath, HttpServletResponse response)
-            throws Exception {
-        System.out.println("你已经成功的调用到下载文件的后端服务了");
-        
-        // 直接创建Configuration
-        Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "hdfs://" + namenode);
-        conf.set("hadoop.user.name", user);
-        
-        HdfsApi api = new HdfsApi(conf, user);
-        
-        try {
-            // 检查文件是否存在
-            if (!api.existFile(filePath)) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                response.getWriter().write("文件不存在: " + filePath);
-                return;
-            }
-            
-            // 下载文件到响应流
-            api.downLoadFile(filePath, response, true);
-            
-        } finally {
-            api.close();
+    @GetMapping("/file")
+    public void downLoadFile(@RequestParam(name = "filePath") String filePath,
+            HttpServletResponse response, @RequestParam(name = "flag") boolean flag) throws Exception {
+        if (!UserContext.isUserLoggedIn()) {
+            response.setStatus(401);
+            response.getWriter().write("用户未登录");
+            return;
         }
+        HdfsApi api = new HdfsApi(conf, user);
+        api.downLoadFile(filePath, response, flag);
     }
 
     /**
@@ -93,28 +122,58 @@ public class HdfsApiController {
     @GetMapping("/files")
     public ResponseEntity<?> getFileList(@RequestParam(name = "path", defaultValue = "/") String path)
             throws Exception {
-        System.out.println("获取文件列表，路径: " + path);
-        
-        // 直接创建Configuration
-        Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "hdfs://" + namenode);
-        conf.set("hadoop.user.name", user);
-        
         HdfsApi api = new HdfsApi(conf, user);
-        
         try {
-            // 检查路径是否存在
             if (!api.exists(path)) {
                 return ResponseEntity.badRequest().body("路径不存在: " + path);
             }
-            
-            // 获取文件列表
             List<HDFSFileStatus> fileList = api.getFileList(path, null);
             return ResponseEntity.ok(fileList);
-            
         } finally {
             api.close();
         }
     }
 
+
+    @GetMapping
+    public ResponseEntity<?> getFileStatus(ListFilter listFilter) throws Exception {
+        HdfsApi api = new HdfsApi(conf, user);
+        OP op = OP.getEnum(listFilter.getOp());
+        if (op == null) {
+            throw new HdfsApiException("无法接收文件操作标识为空的请求");
+        }
+
+        DPage<HDFSFileStatus> dPage = null;
+        try {
+            if (op.equals(OP.FILElIST)) {
+                dPage = apiService.getFileListStatus(api, listFilter);
+            } else if (op.equals(OP.HOMELIST)) {
+                dPage = apiService.getHomeListStatus(api, listFilter);
+            } else if (op.equals(OP.TRASHLIST)) {
+                dPage = apiService.getTrashListStatus(api, listFilter);
+            }
+            return ResponseEntity.ok(dPage);
+        } finally {
+            api.close();
+        }
+    }
+
+    @GetMapping("/example")
+    public ResponseEntity<?> exampleWithUserInfo() {
+        // 获取当前登录用户信息
+        User currentUser = UserContext.getCurrentUser();
+        
+        // 判断用户是否已登录
+        if (currentUser == null) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
+        
+        // 使用用户信息进行业务处理
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "操作成功");
+        response.put("userName", currentUser.getAccount());
+        response.put("userType", currentUser.getUserType());
+        
+        return ResponseEntity.ok(response);
+    }
 }

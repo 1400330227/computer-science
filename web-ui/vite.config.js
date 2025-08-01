@@ -17,10 +17,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/hdfs': {
+      '/api': {
         target: 'http://localhost:8080', // 后端服务端口
         changeOrigin: true,
-        rewrite: path => path.replace(/^\/hdfs/, '/hdfs')
+        rewrite: path => path.replace(/^\/api/, '/api')
       }
     }
   }
