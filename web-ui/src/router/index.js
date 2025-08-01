@@ -46,6 +46,12 @@ const router = createRouter({
       name: 'about',
       component: () => import('../views/AboutView.vue'),
       meta: { requiresAuth: true }
+        },
+        {
+          path: 'corpus-details/:id',
+          name: 'corpus-details',
+          component: () => import('../views/corpusFileDetails.vue'),
+          meta: { requiresAuth: true }
         }
       ]
     }

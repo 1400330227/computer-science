@@ -47,26 +47,51 @@ public class UserContext {
      * @return 用户ID，如果未登录则返回null
      */
     public static Integer getCurrentUserId() {
+        // 调试信息
+        System.out.println("=== UserContext.getCurrentUserId() 调试 ===");
+        
         // 首先尝试从Session获取
+        HttpServletRequest request = getCurrentRequest();
         HttpSession session = getCurrentSession();
+        
+        System.out.println("HttpServletRequest: " + (request != null ? "存在" : "null"));
+        System.out.println("HttpSession: " + (session != null ? "存在" : "null"));
+        
+        if (session != null) {
+            System.out.println("Session ID: " + session.getId());
+            System.out.println("Session 属性数量: " + java.util.Collections.list(session.getAttributeNames()).size());
+            for (String attrName : java.util.Collections.list(session.getAttributeNames())) {
+                System.out.println("Session 属性: " + attrName + " = " + session.getAttribute(attrName));
+            }
+        }
+        
         Integer userId = session != null ? (Integer) session.getAttribute("currentUser") : null;
+        System.out.println("从Session获取的用户ID: " + userId);
         
         // 如果Session中没有，尝试从Cookie获取
         if (userId == null) {
-            HttpServletRequest request = getCurrentRequest();
+            System.out.println("Session中无用户ID，尝试从Cookie获取");
             if (request != null && request.getCookies() != null) {
+                System.out.println("Cookie数量: " + request.getCookies().length);
                 for (Cookie cookie : request.getCookies()) {
+                    System.out.println("Cookie: " + cookie.getName() + " = " + cookie.getValue());
                     if ("currentUser".equals(cookie.getName()) && cookie.getValue() != null) {
                         try {
                             userId = Integer.parseInt(cookie.getValue());
+                            System.out.println("从Cookie获取的用户ID: " + userId);
                             break;
                         } catch (NumberFormatException e) {
-                            // 忽略转换错误
+                            System.out.println("Cookie值转换失败: " + cookie.getValue());
                         }
                     }
                 }
+            } else {
+                System.out.println("无Cookie信息");
             }
         }
+        
+        System.out.println("最终用户ID: " + userId);
+        System.out.println("=======================================");
         
         return userId;
     }

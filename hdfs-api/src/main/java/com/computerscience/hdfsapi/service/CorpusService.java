@@ -27,6 +27,17 @@ public interface CorpusService extends IService<Corpus> {
     IPage<Corpus> findCorpusPage(Integer page, Integer size, String language, String classification);
     
     /**
+     * 分页查询指定用户的语料库列表
+     * @param userId 用户ID
+     * @param page 页码
+     * @param size 每页大小
+     * @param language 语种（可选）
+     * @param classification 数据分类（可选）
+     * @return 分页语料库列表
+     */
+    IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification);
+    
+    /**
      * 创建语料库
      * @param corpus 语料库信息
      * @return 是否创建成功

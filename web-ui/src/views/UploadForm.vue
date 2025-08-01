@@ -1,5 +1,43 @@
 <template>
   <div class="upload-form-page">
+    <!-- 上传进度条 -->
+    <div v-if="uploadProgress.show" class="upload-progress-overlay">
+      <div class="progress-container">
+        <div class="progress-header">
+          <h3>{{ uploadProgress.title }}</h3>
+          <el-button type="text" @click="cancelUpload" v-if="!uploadProgress.completed">取消</el-button>
+        </div>
+        
+        <div class="progress-content">
+          <div class="overall-progress">
+            <div class="progress-info">
+              <span>总进度: {{ uploadProgress.currentFile }}/{{ uploadProgress.totalFiles }}</span>
+              <span>{{ uploadProgress.overallPercent }}%</span>
+            </div>
+            <el-progress 
+              :percentage="uploadProgress.overallPercent" 
+              :stroke-width="8"
+              :show-text="false"
+            />
+          </div>
+          
+          <div v-if="uploadProgress.currentFileName" class="current-file">
+            <div class="file-info">
+              <span>当前文件: {{ uploadProgress.currentFileName }}</span>
+              <span>{{ uploadProgress.currentPercent }}%</span>
+            </div>
+            <el-progress 
+              :percentage="uploadProgress.currentPercent" 
+              :stroke-width="6"
+              :show-text="false"
+            />
+          </div>
+          
+          <div class="status-text">{{ uploadProgress.status }}</div>
+        </div>
+      </div>
+    </div>
+
     <div class="upload-form">
       <div class="form-container">
         <el-form ref="uploadForm" :model="formData" :rules="rules" label-width="140px" class="upload-form">
@@ -54,8 +92,8 @@
                 <el-input v-model="formData.country" placeholder="请填写国家"></el-input>
               </el-form-item>
 
-              <el-form-item label="语料集名称" prop="datasetName">
-                <el-input v-model="formData.datasetName" placeholder="请填写语料集名称"></el-input>
+              <el-form-item label="语料集名称" prop="collectionName">
+                <el-input v-model="formData.collectionName" placeholder="请填写语料集名称"></el-input>
               </el-form-item>
 
               <el-form-item label="所属领域" prop="domain">
@@ -70,19 +108,23 @@
                 <el-input v-model="formData.dataFormat" placeholder="请填写数据形式"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据分类" prop="dataCategory">
-                <el-input v-model="formData.dataCategory" placeholder="请填写数据分类"></el-input>
+              <el-form-item label="数据分类" prop="classification">
+                <el-input v-model="formData.classification" placeholder="请填写数据分类"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据量数据单位" prop="dataUnit">
-                <el-input v-model="formData.dataUnit" placeholder="请填写数据量单位"></el-input>
+              <el-form-item label="数据量" prop="dataVolume">
+                <el-input v-model="formData.dataVolume" type="number" placeholder="请填写数据量"></el-input>
+              </el-form-item>
+
+              <el-form-item label="数据量单位" prop="volumeUnit">
+                <el-input v-model="formData.volumeUnit" placeholder="请填写数据量单位"></el-input>
               </el-form-item>
             </div>
 
             <!-- 右侧表单 -->
             <div class="form-column">
-              <el-form-item label="容量估算 (GB)" prop="estimatedCapacity">
-                <el-input v-model="formData.estimatedCapacity" placeholder="请填写容量估算"></el-input>
+              <el-form-item label="容量估算 (GB)" prop="estimatedCapacityGb">
+                <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"></el-input>
               </el-form-item>
 
               <el-form-item label="数据年份" prop="dataYear">
@@ -97,8 +139,8 @@
                 <el-input v-model="formData.dataSource" placeholder="请填写数据来源"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据提供方" prop="dataProvider">
-                <el-input v-model="formData.dataProvider" placeholder="请填写数据提供方"></el-input>
+              <el-form-item label="数据提供方" prop="provider">
+                <el-input v-model="formData.provider" placeholder="请填写数据提供方"></el-input>
               </el-form-item>
 
               <el-form-item label="数据提供方联系方式" prop="providerContact">
@@ -106,7 +148,7 @@
               </el-form-item>
 
               <el-form-item label="备注说明">
-                <el-input v-model="formData.remark" placeholder="请填写备注说明（选填）"></el-input>
+                <el-input v-model="formData.remarks" placeholder="请填写备注说明（选填）"></el-input>
               </el-form-item>
             </div>
           </div>
@@ -118,9 +160,8 @@
 
             <div class="file-upload-container">
               <div class="upload-area">
-                <el-upload class="upload-demo" drag action="/hdfs/corpus/upload" :before-upload="beforeUpload"
-                  :on-success="handleUploadSuccess" :on-error="handleUploadError" :on-change="handleFileChange"
-                  :file-list="fileList" multiple>
+                <el-upload class="upload-demo" drag :auto-upload="false" :before-upload="beforeUpload"
+                  :on-change="handleFileChange" :file-list="fileList" multiple>
                   <el-icon class="el-icon--upload"><upload-filled /></el-icon>
                   <div class="el-upload__text">
                     可同时选择多个文件，上限 10.00GB
@@ -140,8 +181,8 @@
 
           <!-- 操作按钮 -->
           <div class="actions">
-            <el-button type="primary" @click="saveForm" :loading="isSubmitting">保存</el-button>
-            <el-button @click="saveAndCreate" :loading="isSubmitting">再新增</el-button>
+            <el-button type="primary" @click="saveForm" :loading="isSubmitting">上传</el-button>
+            <el-button @click="saveAndCreate" :loading="isSubmitting">上传并新增</el-button>
           </div>
         </el-form>
       </div>
@@ -154,11 +195,28 @@ import { ref, reactive, inject, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
+import axios from 'axios'
 import api from '../services/api'
 
 const router = useRouter()
 const uploadForm = ref(null)
 const isSubmitting = ref(false)
+
+// 上传进度状态
+const uploadProgress = reactive({
+  show: false,
+  title: '正在上传...',
+  currentFile: 0,
+  totalFiles: 0,
+  overallPercent: 0,
+  currentFileName: '',
+  currentPercent: 0,
+  status: '准备中...',
+  completed: false
+})
+
+// 取消上传的控制器
+let uploadCancelToken = null
 
 // 获取全局面包屑管理工具
 const breadcrumb = inject('breadcrumb')
@@ -177,7 +235,7 @@ const rules = {
   country: [
     { required: true, message: '请输入国家', trigger: 'blur' }
   ],
-  datasetName: [
+  collectionName: [
     { required: true, message: '请输入语料集名称', trigger: 'blur' }
   ],
   domain: [
@@ -189,7 +247,7 @@ const rules = {
   dataFormat: [
     { required: true, message: '请输入数据形式', trigger: 'blur' }
   ],
-  dataCategory: [
+  classification: [
     { required: true, message: '请输入数据分类', trigger: 'blur' }
   ],
   dataYear: [
@@ -205,19 +263,20 @@ const rules = {
 
 const formData = reactive({
   country: '',
-  datasetName: '',
+  collectionName: '',
   domain: '',
   language: '',
   dataFormat: '',
-  dataCategory: '',
-  dataUnit: '',
-  estimatedCapacity: '',
+  classification: '',
+  dataVolume: '',
+  volumeUnit: '',
+  estimatedCapacityGb: '',
   dataYear: '',
   sourceLocation: '',
   dataSource: '',
-  dataProvider: '',
+  provider: '',
   providerContact: '',
-  remark: ''
+  remarks: ''
 })
 
 const fileList = ref([])
@@ -234,18 +293,13 @@ const beforeUpload = (file) => {
 }
 
 // 处理文件变更
-const handleFileChange = (file, fileList) => {
-  // 更新文件列表
-}
-
-// 文件上传成功处理
-const handleUploadSuccess = (response, file, fileList) => {
-  ElMessage.success('文件上传成功')
-}
-
-// 文件上传失败处理
-const handleUploadError = (error, file, fileList) => {
-  ElMessage.error('文件上传失败，请重试')
+const handleFileChange = (file, uploadFileList) => {
+  // 更新文件列表，只保留文件信息，不进行上传
+  fileList.value = uploadFileList.map(uploadFile => ({
+    name: uploadFile.name,
+    size: uploadFile.size,
+    raw: uploadFile.raw  // 保存原始文件对象，用于后续上传
+  }))
 }
 
 // 移除文件
@@ -266,21 +320,118 @@ const saveForm = async () => {
     // 表单验证
     await uploadForm.value.validate()
 
-    // 提交表单数据
-    const response = await api.post('/hdfs/corpus', formData)
+    // 初始化进度条
+    const totalFiles = fileList.value.length
+    uploadProgress.show = true
+    uploadProgress.currentFile = 0
+    uploadProgress.totalFiles = totalFiles
+    uploadProgress.overallPercent = 0
+    uploadProgress.status = '正在创建语料记录...'
+    uploadProgress.completed = false
 
-    if (response.data && response.data.success) {
-      ElMessage.success('保存成功')
-      router.push('/file-list')
-    } else {
-      ElMessage.warning(response.data?.message || '保存失败，请重试')
+    // 第一步：创建语料记录
+    const corpusResponse = await api.post('/hdfs/corpus', formData)
+
+    if (!corpusResponse.data) {
+      throw new Error('创建语料失败')
     }
+
+    const corpusId = corpusResponse.data.corpusId
+    uploadProgress.status = '语料记录创建成功，开始上传文件...'
+
+    // 第二步：上传文件（如果有文件）
+    if (fileList.value.length > 0) {
+      
+      for (let i = 0; i < fileList.value.length; i++) {
+        const file = fileList.value[i]
+        if (file.raw) {
+          // 更新当前文件信息
+          uploadProgress.currentFile = i + 1
+          uploadProgress.currentFileName = file.name
+          uploadProgress.currentPercent = 0
+          uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
+          
+          // 创建取消token
+          const CancelToken = axios.CancelToken
+          const source = CancelToken.source()
+          uploadCancelToken = source
+          
+          const uploadFormData = new FormData()
+          uploadFormData.append('file', file.raw)
+          uploadFormData.append('corpusId', corpusId)
+          
+          await api.post('/hdfs/corpus/upload', uploadFormData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            cancelToken: source.token,
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.lengthComputable) {
+                // 更新当前文件进度
+                const currentPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+                uploadProgress.currentPercent = currentPercent
+                
+                // 计算总进度
+                const completedFiles = i
+                const currentFileProgress = currentPercent / 100
+                const overallPercent = Math.round(((completedFiles + currentFileProgress) / totalFiles) * 100)
+                uploadProgress.overallPercent = overallPercent
+              }
+            }
+          })
+          
+          // 文件上传完成
+          uploadProgress.currentPercent = 100
+          ElMessage.success(`文件 ${file.name} 上传成功`)
+        }
+      }
+      
+      // 所有文件上传完成
+      uploadProgress.overallPercent = 100
+      uploadProgress.status = '所有文件上传完成！'
+      uploadProgress.completed = true
+      
+      // 延迟2秒后隐藏进度条并跳转
+      setTimeout(() => {
+        uploadProgress.show = false
+        ElMessage.success('所有操作完成！')
+        router.push('/file-list')
+      }, 2000)
+    } else {
+      // 没有文件，直接完成
+      uploadProgress.overallPercent = 100
+      uploadProgress.status = '语料创建完成！'
+      uploadProgress.completed = true
+      
+      setTimeout(() => {
+        uploadProgress.show = false
+        ElMessage.success('语料创建完成！')
+        router.push('/file-list')
+      }, 1000)
+    }
+    
   } catch (error) {
-    console.error('提交表单失败:', error)
-    ElMessage.error(error.response?.data?.message || '提交表单失败，请稍后重试')
+    uploadProgress.show = false
+    console.error('上传失败:', error)
+    
+    if (error.name === 'CanceledError') {
+      ElMessage.info('上传已取消')
+    } else if (error.response?.status !== 401) {
+      ElMessage.error(error.response?.data || error.message || '上传失败，请稍后重试')
+    }
   } finally {
     isSubmitting.value = false
+    uploadCancelToken = null
   }
+}
+
+// 取消上传
+const cancelUpload = () => {
+  if (uploadCancelToken) {
+    uploadCancelToken.cancel('用户取消上传')
+  }
+  uploadProgress.show = false
+  isSubmitting.value = false
 }
 
 // 保存并创建新表单
@@ -293,28 +444,113 @@ const saveAndCreate = async () => {
     // 表单验证
     await uploadForm.value.validate()
 
-    // 提交表单数据
-    const response = await api.post('/hdfs/corpus', formData)
+    // 初始化进度条
+    const totalFiles = fileList.value.length
+    uploadProgress.show = true
+    uploadProgress.currentFile = 0
+    uploadProgress.totalFiles = totalFiles
+    uploadProgress.overallPercent = 0
+    uploadProgress.status = '正在创建语料记录...'
+    uploadProgress.completed = false
+    uploadProgress.title = '上传并新增...'
 
-    if (response.data && response.data.success) {
-      ElMessage.success('保存成功')
+    // 第一步：创建语料记录
+    const corpusResponse = await api.post('/hdfs/corpus', formData)
 
-      // 重置表单
-      Object.keys(formData).forEach(key => {
-        formData[key] = ''
-      })
-      fileList.value = []
-
-      // 重置表单校验状态
-      uploadForm.value.resetFields()
-    } else {
-      ElMessage.warning(response.data?.message || '保存失败，请重试')
+    if (!corpusResponse.data) {
+      throw new Error('创建语料失败')
     }
+
+    const corpusId = corpusResponse.data.corpusId
+    uploadProgress.status = '语料记录创建成功，开始上传文件...'
+
+    // 第二步：上传文件（如果有文件）
+    if (fileList.value.length > 0) {
+      
+      for (let i = 0; i < fileList.value.length; i++) {
+        const file = fileList.value[i]
+        if (file.raw) {
+          // 更新当前文件信息
+          uploadProgress.currentFile = i + 1
+          uploadProgress.currentFileName = file.name
+          uploadProgress.currentPercent = 0
+          uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
+          
+          // 创建取消token
+          const CancelToken = axios.CancelToken
+          const source = CancelToken.source()
+          uploadCancelToken = source
+          
+          const uploadFormData = new FormData()
+          uploadFormData.append('file', file.raw)
+          uploadFormData.append('corpusId', corpusId)
+          
+          await api.post('/hdfs/corpus/upload', uploadFormData, {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            },
+            cancelToken: source.token,
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.lengthComputable) {
+                // 更新当前文件进度
+                const currentPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+                uploadProgress.currentPercent = currentPercent
+                
+                // 计算总进度
+                const completedFiles = i
+                const currentFileProgress = currentPercent / 100
+                const overallPercent = Math.round(((completedFiles + currentFileProgress) / totalFiles) * 100)
+                uploadProgress.overallPercent = overallPercent
+              }
+            }
+          })
+          
+          // 文件上传完成
+          uploadProgress.currentPercent = 100
+          ElMessage.success(`文件 ${file.name} 上传成功`)
+        }
+      }
+      
+      // 所有文件上传完成
+      uploadProgress.overallPercent = 100
+      uploadProgress.status = '所有文件上传完成！正在重置表单...'
+      uploadProgress.completed = true
+    } else {
+      // 没有文件，直接完成
+      uploadProgress.overallPercent = 100
+      uploadProgress.status = '语料创建完成！正在重置表单...'
+      uploadProgress.completed = true
+    }
+
+    // 重置表单
+    Object.keys(formData).forEach(key => {
+      formData[key] = ''
+    })
+    fileList.value = []
+
+    // 重置表单校验状态
+    uploadForm.value.resetFields()
+    
+    // 延迟1秒后隐藏进度条
+    setTimeout(() => {
+      uploadProgress.show = false
+      uploadProgress.title = '正在上传...' // 重置标题
+      ElMessage.success('保存成功！可以继续新增')
+    }, 1000)
+    
   } catch (error) {
-    console.error('提交表单失败:', error)
-    ElMessage.error(error.response?.data?.message || '提交表单失败，请稍后重试')
+    uploadProgress.show = false
+    uploadProgress.title = '正在上传...' // 重置标题
+    console.error('上传失败:', error)
+    
+    if (error.name === 'CanceledError') {
+      ElMessage.info('上传已取消')
+    } else if (error.response?.status !== 401) {
+      ElMessage.error(error.response?.data || error.message || '上传失败，请稍后重试')
+    }
   } finally {
     isSubmitting.value = false
+    uploadCancelToken = null
   }
 }
 
@@ -421,5 +657,69 @@ const goBack = () => {
   display: flex;
   justify-content: center;
   gap: 20px;
+}
+
+/* 上传进度条样式 */
+.upload-progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.progress-container {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.progress-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.progress-content {
+  space-y: 16px;
+}
+
+.overall-progress {
+  margin-bottom: 16px;
+}
+
+.current-file {
+  margin-bottom: 16px;
+}
+
+.progress-info, .file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.status-text {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  margin-top: 12px;
 }
 </style>
