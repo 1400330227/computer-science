@@ -19,25 +19,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 禁用基本认证，因为我们使用自己的登录系统
-            .httpBasic(AbstractHttpConfigurer::disable)
-            // 禁用表单登录，因为我们使用自己的登录页面
-            .formLogin(AbstractHttpConfigurer::disable)
-            // 允许所有请求，认证由我们的拦截器处理
-            .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().permitAll()
-            )
-            // 配置CSRF保护
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .ignoringRequestMatchers("/users/login", "/users/logout", "/users")
-            )
-            // 配置响应头
-            .headers(headers -> headers
-                .xssProtection(Customizer.withDefaults())
-                .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"))
-                .frameOptions(frameOptions -> frameOptions.deny())
-            );
+                .cors(Customizer.withDefaults())
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authorize -> authorize
+                        .anyRequest().permitAll()
+                )
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers(
+                                "/users/login",
+                                "/users/logout",
+                                "/users",
+                                "/api/hdfs/**"
+                        )
+                )
+                .headers(headers -> headers
+                        .xssProtection(Customizer.withDefaults())
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"))
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                );
 
         return http.build();
     }

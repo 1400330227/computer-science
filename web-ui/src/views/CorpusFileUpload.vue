@@ -118,9 +118,9 @@
 
             <div class="file-upload-container">
               <div class="upload-area">
-                <el-upload class="upload-demo" drag action="/hdfs/corpus/upload" :before-upload="beforeUpload"
-                  :on-success="handleUploadSuccess" :on-error="handleUploadError" :on-change="handleFileChange"
-                  :file-list="fileList" multiple>
+                <el-upload class="upload-demo" drag action="/api/hdfs/upload" :before-upload="beforeUpload"
+                  :data="uploadData" :headers="uploadHeaders" :on-success="handleUploadSuccess"
+                  :on-error="handleUploadError" :on-change="handleFileChange" :file-list="fileList" multiple>
                   <el-icon class="el-icon--upload"><upload-filled /></el-icon>
                   <div class="el-upload__text">
                     可同时选择多个文件，上限 10.00GB
@@ -150,8 +150,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, inject, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, inject, onMounted, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
 import api from '../services/api'
@@ -167,8 +167,7 @@ onMounted(() => {
   // 设置当前页面的面包屑
   breadcrumb.setBreadcrumb([
     { title: '首页', path: '/' },
-    { title: '语料清单', path: '/file-list' },
-    { title: '语料详细信息', path: '/upload' }
+    { title: '上传语料信息', path: '/file-upload' }
   ])
 })
 
@@ -222,30 +221,62 @@ const formData = reactive({
 
 const fileList = ref([])
 
+const uploadData = reactive({
+  destPath: '/corpus' // 设置默认的目标路径
+})
+
+const uploadHeaders = computed(() => {
+  // 从localStorage获取token
+  const token = localStorage.getItem('token')
+  return token ? {
+    'Authorization': 'Bearer ' + token
+  } : {}
+})
+
 // 文件上传前的验证
-const beforeUpload = (file) => {
+const beforeUpload = async (file) => {
   // 检查文件大小
   const isLt10G = file.size / 1024 / 1024 / 1024 < 10
   if (!isLt10G) {
     ElMessage.error('文件大小超过10GB限制！')
     return false
   }
+
   return true
 }
 
 // 处理文件变更
 const handleFileChange = (file, fileList) => {
   // 更新文件列表
+  fileList.value = fileList
 }
 
 // 文件上传成功处理
 const handleUploadSuccess = (response, file, fileList) => {
   ElMessage.success('文件上传成功')
+  file.status = 'success'
+  file.url = uploadData.destPath + '/' + file.name
 }
 
 // 文件上传失败处理
 const handleUploadError = (error, file, fileList) => {
-  ElMessage.error('文件上传失败，请重试')
+  console.error('文件上传失败:', error)
+
+  // 处理不同类型的错误
+  if (error.status === 401) {
+    ElMessage.error('用户未登录，请先登录')
+    router.push('/login')
+    return
+  } else if (error.status === 403) {
+    ElMessage.error('无权限上传文件')
+    return
+  } else if (error.status === 500) {
+    ElMessage.error('服务器错误，请稍后重试')
+    return
+  }
+
+  ElMessage.error(error.message || '文件上传失败，请重试')
+  file.status = 'error'
 }
 
 // 移除文件
@@ -263,11 +294,58 @@ const saveForm = async () => {
   isSubmitting.value = true
 
   try {
+    // 检查是否有上传的文件
+    if (fileList.value.length === 0) {
+      ElMessageBox.confirm('当前没有上传文件，是否继续保存？', '提示', {
+        confirmButtonText: '继续',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        await submitForm()
+      }).catch(() => {
+        isSubmitting.value = false
+      })
+    } else {
+      // 检查是否有上传失败的文件
+      const hasFailedFiles = fileList.value.some(file => file.status === 'error')
+      if (hasFailedFiles) {
+        ElMessageBox.confirm('有部分文件上传失败，是否继续保存？', '提示', {
+          confirmButtonText: '继续',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(async () => {
+          await submitForm()
+        }).catch(() => {
+          isSubmitting.value = false
+        })
+      } else {
+        await submitForm()
+      }
+    }
+  } catch (error) {
+    console.error('保存表单失败:', error)
+    ElMessage.error(error.response?.data?.message || '提交表单失败，请稍后重试')
+    isSubmitting.value = false
+  }
+}
+
+// 提交表单逻辑
+const submitForm = async () => {
+  try {
     // 表单验证
     await uploadForm.value.validate()
 
+    // 准备提交数据，包含已上传文件的信息
+    const submitData = {
+      ...formData, files: fileList.value.map(file => ({
+        name: file.name,
+        path: uploadData.destPath + '/' + file.name,
+        status: file.status
+      }))
+    }
+
     // 提交表单数据
-    const response = await api.post('/hdfs/corpus', formData)
+    const response = await api.post('/hdfs/corpus', submitData)
 
     if (response.data && response.data.success) {
       ElMessage.success('保存成功')
@@ -290,11 +368,58 @@ const saveAndCreate = async () => {
   isSubmitting.value = true
 
   try {
+    // 检查是否有上传的文件
+    if (fileList.value.length === 0) {
+      ElMessageBox.confirm('当前没有上传文件，是否继续保存？', '提示', {
+        confirmButtonText: '继续',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        await submitAndCreate()
+      }).catch(() => {
+        isSubmitting.value = false
+      })
+    } else {
+      // 检查是否有上传失败的文件
+      const hasFailedFiles = fileList.value.some(file => file.status === 'error')
+      if (hasFailedFiles) {
+        ElMessageBox.confirm('有部分文件上传失败，是否继续保存？', '提示', {
+          confirmButtonText: '继续',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(async () => {
+          await submitAndCreate()
+        }).catch(() => {
+          isSubmitting.value = false
+        })
+      } else {
+        await submitAndCreate()
+      }
+    }
+  } catch (error) {
+    console.error('保存表单失败:', error)
+    ElMessage.error(error.response?.data?.message || '提交表单失败，请稍后重试')
+    isSubmitting.value = false
+  }
+}
+
+// 提交并创建新表单逻辑
+const submitAndCreate = async () => {
+  try {
     // 表单验证
     await uploadForm.value.validate()
 
+    // 准备提交数据，包含已上传文件的信息
+    const submitData = {
+      ...formData, files: fileList.value.map(file => ({
+        name: file.name,
+        path: uploadData.destPath + '/' + file.name,
+        status: file.status
+      }))
+    }
+
     // 提交表单数据
-    const response = await api.post('/hdfs/corpus', formData)
+    const response = await api.post('/hdfs/corpus', submitData)
 
     if (response.data && response.data.success) {
       ElMessage.success('保存成功')
@@ -304,6 +429,9 @@ const saveAndCreate = async () => {
         formData[key] = ''
       })
       fileList.value = []
+
+      // 目标路径保持不变，便于连续上传到同一目录
+      // uploadData.destPath = '/corpus'
 
       // 重置表单校验状态
       uploadForm.value.resetFields()

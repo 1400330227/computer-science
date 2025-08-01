@@ -4,7 +4,7 @@
       <h1>欢迎使用 HDFS 文件管理系统</h1>
       <p>请选择您需要的功能</p>
     </div>
-    
+
     <div class="function-cards">
       <div class="card" @click="navigateTo('/file-list')">
         <div class="card-icon">📁</div>
@@ -13,7 +13,7 @@
           <p>浏览、上传、下载和管理您的文件</p>
         </div>
       </div>
-      
+
       <div class="card" @click="navigateTo('/upload')">
         <div class="card-icon">⬆️</div>
         <div class="card-content">
@@ -46,7 +46,7 @@ function navigateTo(path) {
 .dashboard {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  /* padding: 20px; */
 }
 
 .welcome-banner {
@@ -120,11 +120,11 @@ function navigateTo(path) {
   .function-cards {
     grid-template-columns: 1fr;
   }
-  
+
   .welcome-banner {
     padding: 20px;
   }
-  
+
   .welcome-banner h1 {
     font-size: 24px;
   }
