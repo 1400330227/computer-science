@@ -36,7 +36,7 @@ const breadcrumbItems = computed(() => {
     const pathMap = {
         '/file-list': [{ title: '语料清单', path: '/file-list' }],
         '/upload': [{ title: '语料上传', path: '/upload' }],
-        '/file-manager': [{ title: '文件管理', path: '/file-manager' }],
+        '/about': [{ title: '关于', path: '/about' }],
     }
 
     return [...baseCrumb, ...(pathMap[routePath] || [])]

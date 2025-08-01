@@ -56,11 +56,14 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('userId')
     localStorage.removeItem('userType')
     localStorage.removeItem('phone')
+    // 确保清除任何可能残留的token
+    localStorage.removeItem('token')
   }
   
   // 从 localStorage 恢复用户状态
   const restoreFromStorage = () => {
     const storedLoginStatus = localStorage.getItem('isLoggedIn')
+    
     if (storedLoginStatus === 'true') {
       isLoggedIn.value = true
       userInfo.value = {
@@ -70,6 +73,9 @@ export const useUserStore = defineStore('user', () => {
         userType: localStorage.getItem('userType') || '',
         phone: localStorage.getItem('phone') || ''
       }
+    } else {
+      // 确保状态为false
+      isLoggedIn.value = false
     }
   }
   

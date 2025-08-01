@@ -215,33 +215,4 @@ public class UserController {
         
         return ResponseEntity.ok(responseMap);
     }
-    
-    /**
-     * 测试端点：查看数据库中所有用户（用于调试）
-     */
-    @GetMapping("/debug/all")
-    public ResponseEntity<?> getAllUsersForDebug() {
-        try {
-            List<User> allUsers = userService.list();
-            System.out.println("=== 数据库中所有用户 ===");
-            System.out.println("总用户数: " + allUsers.size());
-            
-            for (User u : allUsers) {
-                System.out.println("用户ID: " + u.getUserId() + 
-                                 ", account: [" + u.getAccount() + "]" +
-                                 ", userType: " + u.getUserType() + 
-                                 ", phone: " + u.getPhone());
-            }
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("total", allUsers.size());
-            response.put("users", allUsers);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            System.out.println("查询所有用户时出错: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body("查询失败: " + e.getMessage());
-        }
-    }
 } 

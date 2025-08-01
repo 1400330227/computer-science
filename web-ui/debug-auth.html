@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>认证状态调试工具</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        button { margin: 5px; padding: 10px; }
+        .status { background: #f0f0f0; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>认证状态调试工具</h1>
+    
+    <div class="status">
+        <h3>当前 localStorage 状态：</h3>
+        <div id="status"></div>
+    </div>
+    
+    <button onclick="showStatus()">刷新状态</button>
+    <button onclick="clearAuth()">清除认证状态</button>
+    <button onclick="simulateLogin()">模拟登录</button>
+    
+    <script>
+        function showStatus() {
+            const status = document.getElementById('status');
+            const authData = {
+                isLoggedIn: localStorage.getItem('isLoggedIn'),
+                username: localStorage.getItem('username'),
+                userId: localStorage.getItem('userId'),
+                userType: localStorage.getItem('userType'),
+                phone: localStorage.getItem('phone'),
+                token: localStorage.getItem('token')
+            };
+            
+            status.innerHTML = '<pre>' + JSON.stringify(authData, null, 2) + '</pre>';
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('username');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userType');
+            localStorage.removeItem('phone');
+            localStorage.removeItem('token');
+            alert('认证状态已清除');
+            showStatus();
+        }
+        
+        function simulateLogin() {
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('username', 'testuser');
+            localStorage.setItem('userId', '1');
+            localStorage.setItem('userType', '普通用户');
+            localStorage.setItem('phone', '13800138000');
+            alert('模拟登录状态已设置');
+            showStatus();
+        }
+        
+        // 页面加载时显示状态
+        window.onload = showStatus;
+    </script>
+</body>
+</html> 

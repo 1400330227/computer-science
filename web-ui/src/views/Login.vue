@@ -180,7 +180,7 @@ const handleLogin = async () => {
     ElMessage.success(`登录成功！欢迎您，${userData.account}`)
 
     // 跳转到首页
-    router.push({ name: 'home' })
+    router.push({ name: 'dashboard' })
 
   } catch (error) {
     // 如果登录失败，处理错误信息

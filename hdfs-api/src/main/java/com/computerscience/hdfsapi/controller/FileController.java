@@ -109,26 +109,26 @@ public class FileController {
             if (!UserContext.isUserLoggedIn()) {
                 return ResponseEntity.status(401).body("用户未登录");
             }
-            
+
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
-            
+
             // 检查用户权限（示例：仅管理员可上传）
             if (!"admin".equals(currentUser.getUserType())) {
                 return ResponseEntity.status(403).body("权限不足，仅管理员可执行此操作");
             }
-            
+
             // 执行文件上传逻辑...
             // fileService.uploadFile(file, currentUser.getUserId());
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "文件上传成功");
             response.put("uploadedBy", currentUser.getAccount());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("文件上传失败: " + e.getMessage());
         }
     }
-} 
+}
