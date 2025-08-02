@@ -188,6 +188,7 @@ import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
 import api from '../services/api'
+import axios from 'axios'
 
 const router = useRouter()
 const uploadForm = ref(null)
@@ -352,8 +353,13 @@ const saveForm = async () => {
     uploadProgress.status = '正在创建语料记录...'
     uploadProgress.completed = false
 
+    // 调试信息
+    console.log('开始创建语料记录，表单数据:', formData)
+
     // 第一步：创建语料记录
     const corpusResponse = await api.post('/corpus', formData)
+
+    console.log('语料记录创建响应:', corpusResponse)
 
     if (!corpusResponse.data) {
       throw new Error('创建语料失败')
@@ -364,48 +370,63 @@ const saveForm = async () => {
 
     // 第二步：上传文件（如果有文件）
     if (fileList.value.length > 0) {
+      console.log(`开始上传 ${fileList.value.length} 个文件`)
 
       for (let i = 0; i < fileList.value.length; i++) {
         const file = fileList.value[i]
+        console.log(`处理第 ${i + 1} 个文件:`, file.name, '文件对象:', file)
+
         if (file.raw) {
-          // 更新当前文件信息
-          uploadProgress.currentFile = i + 1
-          uploadProgress.currentFileName = file.name
-          uploadProgress.currentPercent = 0
-          uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
+          try {
+            // 更新当前文件信息
+            uploadProgress.currentFile = i + 1
+            uploadProgress.currentFileName = file.name
+            uploadProgress.currentPercent = 0
+            uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
 
-          // 创建取消token
-          const CancelToken = axios.CancelToken
-          const source = CancelToken.source()
-          uploadCancelToken = source
+            // 创建取消token
+            const CancelToken = axios.CancelToken
+            const source = CancelToken.source()
+            uploadCancelToken = source
 
-          const uploadFormData = new FormData()
-          uploadFormData.append('file', file.raw)
-          uploadFormData.append('corpusId', corpusId)
+            const uploadFormData = new FormData()
+            uploadFormData.append('file', file.raw)
+            uploadFormData.append('corpusId', corpusId)
 
-          await api.post('/corpus/upload', uploadFormData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            },
-            cancelToken: source.token,
-            onUploadProgress: (progressEvent) => {
-              if (progressEvent.lengthComputable) {
-                // 更新当前文件进度
-                const currentPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100)
-                uploadProgress.currentPercent = currentPercent
+            console.log(`开始上传文件: ${file.name}, corpusId: ${corpusId}`)
 
-                // 计算总进度
-                const completedFiles = i
-                const currentFileProgress = currentPercent / 100
-                const overallPercent = Math.round(((completedFiles + currentFileProgress) / totalFiles) * 100)
-                uploadProgress.overallPercent = overallPercent
+            await api.post('/corpus/upload', uploadFormData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              },
+              cancelToken: source.token,
+              onUploadProgress: (progressEvent) => {
+                if (progressEvent.lengthComputable) {
+                  // 更新当前文件进度
+                  const currentPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+                  uploadProgress.currentPercent = currentPercent
+
+                  // 计算总进度
+                  const completedFiles = i
+                  const currentFileProgress = currentPercent / 100
+                  const overallPercent = Math.round(((completedFiles + currentFileProgress) / totalFiles) * 100)
+                  uploadProgress.overallPercent = overallPercent
+                }
               }
-            }
-          })
+            })
 
-          // 文件上传完成
-          uploadProgress.currentPercent = 100
-          ElMessage.success(`文件 ${file.name} 上传成功`)
+            // 文件上传完成
+            uploadProgress.currentPercent = 100
+            console.log(`文件 ${file.name} 上传成功`)
+            ElMessage.success(`文件 ${file.name} 上传成功`)
+
+          } catch (fileError) {
+            console.error(`文件 ${file.name} 上传失败:`, fileError)
+            ElMessage.error(`文件 ${file.name} 上传失败: ${fileError.message}`)
+            // 继续上传下一个文件，不中断整个流程
+          }
+        } else {
+          console.warn(`第 ${i + 1} 个文件没有 raw 属性:`, file)
         }
       }
 
@@ -436,11 +457,20 @@ const saveForm = async () => {
   } catch (error) {
     uploadProgress.show = false
     console.error('上传失败:', error)
+    console.error('错误详情:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+      config: error.config
+    })
 
     if (error.name === 'CanceledError') {
       ElMessage.info('上传已取消')
     } else if (error.response?.status !== 401) {
-      ElMessage.error(error.response?.data || error.message || '上传失败，请稍后重试')
+      const errorMessage = error.response?.data || error.message || '上传失败，请稍后重试'
+      console.error('显示错误信息:', errorMessage)
+      ElMessage.error(errorMessage)
     }
   } finally {
     isSubmitting.value = false
@@ -478,7 +508,7 @@ const saveAndCreate = async () => {
     uploadProgress.title = '上传并新增...'
 
     // 第一步：创建语料记录
-    const corpusResponse = await api.post('/hdfs/corpus', formData)
+    const corpusResponse = await api.post('/corpus', formData)
 
     if (!corpusResponse.data) {
       throw new Error('创建语料失败')
@@ -493,44 +523,51 @@ const saveAndCreate = async () => {
       for (let i = 0; i < fileList.value.length; i++) {
         const file = fileList.value[i]
         if (file.raw) {
-          // 更新当前文件信息
-          uploadProgress.currentFile = i + 1
-          uploadProgress.currentFileName = file.name
-          uploadProgress.currentPercent = 0
-          uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
+          try {
+            // 更新当前文件信息
+            uploadProgress.currentFile = i + 1
+            uploadProgress.currentFileName = file.name
+            uploadProgress.currentPercent = 0
+            uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
 
-          // 创建取消token
-          const CancelToken = axios.CancelToken
-          const source = CancelToken.source()
-          uploadCancelToken = source
+            // 创建取消token
+            const CancelToken = axios.CancelToken
+            const source = CancelToken.source()
+            uploadCancelToken = source
 
-          const uploadFormData = new FormData()
-          uploadFormData.append('file', file.raw)
-          uploadFormData.append('corpusId', corpusId)
+            const uploadFormData = new FormData()
+            uploadFormData.append('file', file.raw)
+            uploadFormData.append('corpusId', corpusId)
 
-          await api.post('/hdfs/corpus/upload', uploadFormData, {
-            headers: {
-              'Content-Type': 'multipart/form-data'
-            },
-            cancelToken: source.token,
-            onUploadProgress: (progressEvent) => {
-              if (progressEvent.lengthComputable) {
-                // 更新当前文件进度
-                const currentPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100)
-                uploadProgress.currentPercent = currentPercent
+            await api.post('/corpus/upload', uploadFormData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              },
+              cancelToken: source.token,
+              onUploadProgress: (progressEvent) => {
+                if (progressEvent.lengthComputable) {
+                  // 更新当前文件进度
+                  const currentPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+                  uploadProgress.currentPercent = currentPercent
 
-                // 计算总进度
-                const completedFiles = i
-                const currentFileProgress = currentPercent / 100
-                const overallPercent = Math.round(((completedFiles + currentFileProgress) / totalFiles) * 100)
-                uploadProgress.overallPercent = overallPercent
+                  // 计算总进度
+                  const completedFiles = i
+                  const currentFileProgress = currentPercent / 100
+                  const overallPercent = Math.round(((completedFiles + currentFileProgress) / totalFiles) * 100)
+                  uploadProgress.overallPercent = overallPercent
+                }
               }
-            }
-          })
+            })
 
-          // 文件上传完成
-          uploadProgress.currentPercent = 100
-          ElMessage.success(`文件 ${file.name} 上传成功`)
+            // 文件上传完成
+            uploadProgress.currentPercent = 100
+            ElMessage.success(`文件 ${file.name} 上传成功`)
+
+          } catch (fileError) {
+            console.error(`文件 ${file.name} 上传失败:`, fileError)
+            ElMessage.error(`文件 ${file.name} 上传失败: ${fileError.message}`)
+            // 继续上传下一个文件，不中断整个流程
+          }
         }
       }
 
@@ -587,24 +624,26 @@ const goBack = () => {
 .upload-form-page {
   width: 1200px;
   margin: 0 auto;
-  background-color: #ffffff;
+  background: transparent;
   padding: 20px;
 }
 
 /* 提示信息区域 */
 .info-box {
-  background-color: #f9f9f9;
-  border: 1px solid #eaeaea;
-  padding: 15px;
-  margin-bottom: 20px;
-  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  padding: 24px;
+  margin-bottom: 32px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
 }
 
 .info-text {
-  margin: 5px 0;
+  margin: 8px 0;
   font-size: 14px;
-  color: #8e8e8e;
-  line-height: 1.5;
+  color: #6b7280;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .divider {
@@ -629,9 +668,10 @@ const goBack = () => {
 }
 
 .attachment-section h3 {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
 }
 
 /* .file-upload-container {
@@ -671,8 +711,14 @@ const goBack = () => {
 }
 
 .delete-link {
-  color: #409eff;
+  color: #667eea;
   cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.delete-link:hover {
+  color: #5a67d8;
 }
 
 .actions {
@@ -745,5 +791,80 @@ const goBack = () => {
   font-size: 14px;
   color: #666;
   margin-top: 12px;
+}
+
+/* 表单容器样式 */
+.form-container {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.form-container h3 {
+  color: #374151;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* 表单项标签样式 */
+:deep(.el-form-item__label) {
+  color: #6b7280 !important;
+  font-weight: 500 !important;
+}
+
+/* 输入框样式 */
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.2s ease;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* 操作按钮样式 */
+.actions .el-button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 10px;
+  padding: 12px 32px;
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.25);
+  transition: all 0.3s ease;
+}
+
+.actions .el-button--primary:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35);
+  transform: translateY(-2px);
+}
+
+.actions .el-button:not(.el-button--primary) {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  color: #667eea;
+  border-radius: 10px;
+  padding: 12px 32px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.actions .el-button:not(.el-button--primary):hover {
+  background: rgba(102, 126, 234, 0.05);
+  border-color: rgba(102, 126, 234, 0.3);
+  color: #5a67d8;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
 }
 </style>

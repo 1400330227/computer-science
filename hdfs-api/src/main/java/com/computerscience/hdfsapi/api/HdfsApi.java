@@ -113,6 +113,33 @@ public class HdfsApi {
             this.conf = new Configuration();
         }
 
+        // 禁用Hadoop本地库，避免Windows环境问题
+        this.conf.set("hadoop.native.lib", "false");
+        this.conf.set("io.native.lib.available", "false");
+
+        // 临时解决Windows环境下HADOOP_HOME未设置的问题
+        if (System.getProperty("hadoop.home.dir") == null) {
+            String tempDir = System.getProperty("java.io.tmpdir");
+            String hadoopHome = tempDir.endsWith("\\") ? tempDir.substring(0, tempDir.length() - 1) : tempDir;
+            System.setProperty("hadoop.home.dir", hadoopHome);
+
+            // 创建必需的bin目录和winutils.exe文件
+            java.io.File binDir = new java.io.File(hadoopHome, "bin");
+            if (!binDir.exists()) {
+                binDir.mkdirs();
+            }
+
+            // 创建虚拟的winutils.exe文件
+            java.io.File winutilsFile = new java.io.File(binDir, "winutils.exe");
+            if (!winutilsFile.exists()) {
+                try {
+                    winutilsFile.createNewFile();
+                } catch (java.io.IOException e) {
+                    // 忽略创建文件失败的错误
+                }
+            }
+        }
+
         UserGroupInformation.setConfiguration(conf);
         if (StringUtils.isNotBlank(user)) {
             // 创建远程用户
