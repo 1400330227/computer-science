@@ -3,6 +3,7 @@ package com.computerscience.hdfsapi.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.computerscience.hdfsapi.model.User;
 import com.computerscience.hdfsapi.service.UserService;
+import com.computerscience.hdfsapi.service.CryptoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private CryptoService cryptoService;
 
     /**
      * 根据ID查询用户
@@ -133,8 +137,34 @@ public class UserController {
     }
 
     /**
-     * 用户登录验证接口
-     * 这个接口用来验证用户的用户名和密码是否正确
+     * 获取RSA公钥接口
+     * 前端加密密码时需要先获取此公钥
+     */
+    @GetMapping("/public-key")
+    public ResponseEntity<?> getPublicKey() {
+        try {
+            String publicKeyPEM = cryptoService.getPublicKeyPEM();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("publicKey", publicKeyPEM);
+            response.put("message", "公钥获取成功");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("获取公钥失败: " + e.getMessage());
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "获取公钥失败");
+            
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    /**
+     * 用户登录验证接口（支持RSA加密密码）
+     * 这个接口用来验证用户的用户名和加密密码是否正确
      */
     @PostMapping("/login")  // 告诉Spring这是一个POST请求，访问地址是 /api/users/login
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpServletRequest request,
@@ -168,8 +198,35 @@ public class UserController {
         }
         
         // 验证密码是否正确
-        // 注意：实际项目中密码应该是加密存储的，这里为了简单直接比较
-        if (!password.equals(user.getPassword())) {
+        // 使用RSA解密密码，然后用BCrypt验证
+        boolean passwordValid = false;
+        try {
+            // 检查数据库中的密码是否是BCrypt格式
+            String storedPassword = user.getPassword();
+            if (storedPassword.startsWith("$2")) {
+                // 数据库中是BCrypt哈希密码，使用新的验证方式
+                passwordValid = cryptoService.verifyEncryptedPassword(password, storedPassword);
+                System.out.println("使用BCrypt验证方式，验证结果: " + passwordValid);
+            } else {
+                // 数据库中是明文密码（兼容旧数据），先解密RSA密码然后比较
+                String decryptedPassword = cryptoService.decryptWithRSA(password);
+                passwordValid = decryptedPassword.equals(storedPassword);
+                System.out.println("使用明文比较方式（兼容模式），验证结果: " + passwordValid);
+                
+                // 如果验证成功，将明文密码转换为BCrypt哈希并更新数据库
+                if (passwordValid) {
+                    String hashedPassword = cryptoService.encryptPasswordWithBCrypt(decryptedPassword);
+                    user.setPassword(hashedPassword);
+                    userService.updateById(user);
+                    System.out.println("已将用户密码升级为BCrypt哈希格式");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("密码验证过程中出错: " + e.getMessage());
+            passwordValid = false;
+        }
+        
+        if (!passwordValid) {
             // 如果密码不匹配，返回错误信息
             return ResponseEntity.badRequest().body("密码错误");
         }

@@ -76,6 +76,7 @@ import api from '@/services/api'
 import { useRouter } from 'vue-router'  // 路由跳转功能
 import { ElMessage } from 'element-plus'  // Element Plus 的消息提示组件
 import { useUserStore } from '@/stores/user'  // 用户状态管理
+import { JSEncrypt } from 'jsencrypt'  // RSA加密库
 
 // ======= 响应式数据定义 =======
 const router = useRouter()  // 创建路由对象，用于页面跳转
@@ -84,6 +85,7 @@ const userStore = useUserStore()  // 创建用户状态管理对象
 // 创建响应式的单个数据
 const loading = ref(false)     // 控制登录按钮的加载状态
 const rememberMe = ref(false)  // 控制是否记住用户名的复选框状态
+const publicKey = ref('')      // 存储从服务器获取的RSA公钥
 
 // 创建表单引用，用于调用表单的验证方法
 const loginFormRef = ref()
@@ -119,8 +121,29 @@ const formRules = reactive({
   ]
 })
 
+// ======= 获取RSA公钥函数 =======
+const fetchPublicKey = async () => {
+  try {
+    console.log('正在获取RSA公钥...')
+    const response = await api.get('/users/public-key')
+    
+    if (response.data.success) {
+      publicKey.value = response.data.publicKey
+      console.log('RSA公钥获取成功')
+    } else {
+      throw new Error(response.data.message || '获取公钥失败')
+    }
+  } catch (error) {
+    console.error('获取RSA公钥失败:', error)
+    ElMessage.error('获取加密密钥失败，请刷新页面重试')
+  }
+}
+
 // ======= 页面加载时执行的函数 =======
-onMounted(() => {
+onMounted(async () => {
+  // 获取RSA公钥
+  await fetchPublicKey()
+  
   // 检查本地存储中是否有记住的用户名
   const rememberedUsername = localStorage.getItem('rememberedUsername')
 
@@ -130,6 +153,34 @@ onMounted(() => {
     rememberMe.value = true  // 勾选"记住用户名"复选框
   }
 })
+
+// ======= RSA加密密码函数 =======
+const encryptPassword = (password) => {
+  try {
+    if (!publicKey.value) {
+      throw new Error('RSA公钥未获取，请刷新页面重试')
+    }
+    
+    // 创建JSEncrypt实例
+    const encrypt = new JSEncrypt()
+    
+    // 设置公钥
+    encrypt.setPublicKey(publicKey.value)
+    
+    // 加密密码
+    const encryptedPassword = encrypt.encrypt(password)
+    
+    if (!encryptedPassword) {
+      throw new Error('密码加密失败')
+    }
+    
+    console.log('密码加密成功')
+    return encryptedPassword
+  } catch (error) {
+    console.error('RSA密码加密失败:', error)
+    throw error
+  }
+}
 
 // ======= 登录处理函数 =======
 const handleLogin = async () => {
@@ -151,12 +202,31 @@ const handleLogin = async () => {
   loading.value = true
 
   try {
+    // 检查是否有公钥
+    if (!publicKey.value) {
+      ElMessage.error('加密密钥未准备就绪，请刷新页面重试')
+      return
+    }
+    
+    // 使用RSA加密密码
+    let encryptedPassword
+    try {
+      encryptedPassword = encryptPassword(loginForm.password)
+      console.log("密码加密成功")
+    } catch (error) {
+      ElMessage.error('密码加密失败：' + error.message)
+      return
+    }
+
     // 向后端发送登录请求
-    console.log("正在向后端发送登录请求:", loginForm)
+    console.log("正在向后端发送登录请求:", {
+      username: loginForm.username,
+      password: "*** RSA加密密码 ***"
+    })
 
     const response = await api.post('/users/login', {
-      username: loginForm.username,  // 发送用户名
-      password: loginForm.password   // 发送密码
+      username: loginForm.username,    // 发送用户名
+      password: encryptedPassword      // 发送RSA加密后的密码
     })
 
     console.log("后端响应:", response.data)

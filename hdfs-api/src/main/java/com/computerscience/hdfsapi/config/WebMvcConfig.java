@@ -23,6 +23,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")  // 拦截所有请求
                 .excludePathPatterns(
                         "/users/login",   // 登录接口不拦截
+            "/users/public-key",  // 获取公钥接口不拦截
                         "/users/logout",  // 登出接口不拦截
                         "/users",         // 用户注册接口不拦截
                         "/login.html",    // 登录页面不拦截
