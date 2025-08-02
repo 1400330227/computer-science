@@ -45,52 +45,34 @@ const breadcrumbItems = computed(() => {
 
 <style scoped>
 .breadcrumb {
-    padding: 16px 0;
+    padding: 10px 0;
     color: #666;
-    font-size: 14px;
+    font-size: 12px;
     display: flex;
     justify-content: left;
     max-width: 1240px;
-    margin: 0 auto;
-    background: transparent;
+    margin: 10px auto;
 }
 
 .breadcrumb .el-breadcrumb {
     width: 100%;
-    padding: 0 24px;
+    padding: 0 20px;
 }
 
 :deep(.el-breadcrumb__item) {
-    color: #64748b;
-    font-weight: 500;
+    color: #333;
 }
 
 :deep(.el-breadcrumb__inner.is-link) {
-    color: #667eea;
-    transition: all 0.3s ease;
-    padding: 4px 8px;
-    border-radius: 6px;
-
-    &:hover {
-        background: rgba(102, 126, 234, 0.08);
-        color: #5a67d8;
-    }
+    color: #4B70BD;
 }
 
 :deep(.el-breadcrumb__inner) {
-    font-weight: 500;
+    font-weight: normal;
 }
 
 :deep(.el-breadcrumb__item:last-child .el-breadcrumb__inner) {
-    color: #5a67d8;
-    font-weight: 600;
-    background: rgba(102, 126, 234, 0.1);
-    padding: 4px 12px;
-    border-radius: 6px;
-}
-
-:deep(.el-breadcrumb__separator) {
-    color: #cbd5e1;
-    font-weight: 600;
+    color: #333;
+    font-weight: 500;
 }
 </style>

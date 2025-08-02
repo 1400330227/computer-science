@@ -19,16 +19,6 @@ spring:
       max-file-size: 10240MB
       max-request-size: 102400MB
 
-  # Session配置
-  session:
-    store-type: memory
-    timeout: 30m  # Session超时时间30分钟
-    cookie:
-      name: JSESSIONID
-      http-only: false  # 允许JavaScript访问Cookie
-      secure: false     # 开发环境不使用HTTPS
-      same-site: lax    # 跨站请求策略
-
 # Hadoop配置
 hadoop:
   hdfs:
@@ -45,7 +35,7 @@ logging:
 server:
   # 服务器的HTTP端口，默认为8080
   port: 8080
-  # 移除 context-path 配置，让前端代理直接转发到根路径
-  # servlet:
-  #   context-path: /api
+  servlet:
+    # 应用的访问路径
+    context-path: /api
 

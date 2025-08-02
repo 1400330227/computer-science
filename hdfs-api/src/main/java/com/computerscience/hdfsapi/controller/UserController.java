@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
-import java.util.Date;
-import java.util.Collections;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletResponse;
@@ -218,41 +216,4 @@ public class UserController {
         
         return ResponseEntity.ok(responseMap);
     }
-
-    /**
-     * 检查Session状态的调试接口
-     */
-    @GetMapping("/session-debug")
-    public ResponseEntity<?> sessionDebug(HttpServletRequest request) {
-        Map<String, Object> debugInfo = new HashMap<>();
-
-        HttpSession session = request.getSession(false);
-        debugInfo.put("sessionExists", session != null);
-
-        if (session != null) {
-            debugInfo.put("sessionId", session.getId());
-            debugInfo.put("creationTime", new Date(session.getCreationTime()));
-            debugInfo.put("lastAccessedTime", new Date(session.getLastAccessedTime()));
-            debugInfo.put("maxInactiveInterval", session.getMaxInactiveInterval());
-            debugInfo.put("isNew", session.isNew());
-
-            // 获取所有Session属性
-            Map<String, Object> attributes = new HashMap<>();
-            for (String attrName : Collections.list(session.getAttributeNames())) {
-                attributes.put(attrName, session.getAttribute(attrName));
-            }
-            debugInfo.put("attributes", attributes);
-        }
-
-        // Cookie信息
-        if (request.getCookies() != null) {
-            Map<String, String> cookies = new HashMap<>();
-            for (Cookie cookie : request.getCookies()) {
-                cookies.put(cookie.getName(), cookie.getValue());
-            }
-            debugInfo.put("cookies", cookies);
-        }
-
-        return ResponseEntity.ok(debugInfo);
-    }
-}
+} 

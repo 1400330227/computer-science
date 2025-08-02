@@ -64,40 +64,10 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('nickname')
   }
   
-  // 从服务器验证用户状态（推荐方式）
-  const validateUserSession = async () => {
-    try {
-      // 调用后端接口验证当前用户状态
-      const response = await fetch('/api/users/current', {
-        method: 'GET',
-        credentials: 'include', // 重要：包含cookies
-        headers: {
-          'Accept': 'application/json'
-        }
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        // 如果服务器确认用户已登录，更新前端状态
-        login(userData)
-        return true
-      } else {
-        // 如果服务器返回未登录，清除前端状态
-        logout()
-        return false
-      }
-    } catch (error) {
-      console.error('验证用户会话失败:', error)
-      // 网络错误时，尝试从localStorage恢复（降级方案）
-      restoreFromStorageAsFallback()
-      return false
-    }
-  }
-
-  // 从 localStorage 恢复用户状态（降级方案）
-  const restoreFromStorageAsFallback = () => {
+  // 从 localStorage 恢复用户状态
+  const restoreFromStorage = () => {
     const storedLoginStatus = localStorage.getItem('isLoggedIn')
-
+    
     if (storedLoginStatus === 'true') {
       isLoggedIn.value = true
       userInfo.value = {
@@ -113,12 +83,6 @@ export const useUserStore = defineStore('user', () => {
       isLoggedIn.value = false
     }
   }
-
-  // 主要的状态恢复方法
-  const restoreFromStorage = async () => {
-    // 优先从服务器验证，失败时使用localStorage
-    await validateUserSession()
-  }
   
   return {
     userInfo,
@@ -127,7 +91,6 @@ export const useUserStore = defineStore('user', () => {
     displayName,
     login,
     logout,
-    restoreFromStorage,
-    validateUserSession
+    restoreFromStorage
   }
 }) 

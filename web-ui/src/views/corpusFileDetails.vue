@@ -76,15 +76,9 @@
                         <div class="file-name">{{ file.fileName }}</div>
                         <div class="file-actions">
                             <span class="file-size" v-if="file.fileSize">{{ formatFileSize(file.fileSize) }}</span>
-                            <el-button
-                                type="primary"
-                                link
-                                @click="downloadFile(file)"
-                                :loading="file.downloading"
-                                :disabled="file.downloading"
-                            >
+                            <el-button type="primary" link @click="downloadFile(file)" :loading="file.downloading">
                                 <el-icon>
-                                    <component :is="file.downloading ? 'Loading' : 'Download'" />
+                                    <Download />
                                 </el-icon>下载
                             </el-button>
                         </div>
@@ -98,11 +92,10 @@
 
 <script setup>
 import { ref, onMounted, inject } from 'vue'
-import { Download, Back, Loading } from '@element-plus/icons-vue'
+import { Download, Back } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import api from '../services/api'
-import { startDownload } from '../utils/downloadManager'
 
 const route = useRoute()
 const router = useRouter()
@@ -209,7 +202,7 @@ function loadFileList() {
 }
 
 // 下载文件
-async function downloadFile(file) {
+function downloadFile(file) {
     if (file.downloading) return
 
     // 设置下载状态
@@ -218,28 +211,33 @@ async function downloadFile(file) {
         fileList.value[fileIndex].downloading = true
     }
 
-    try {
-        // 构建下载URL
-        const downloadUrl = `${api.defaults.baseURL}/hdfs/file?filePath=${encodeURIComponent(file.filePath)}&flag=true`
+    ElMessage.info(`开始下载文件: ${file.fileName}`)
 
-        // 使用下载管理器开始下载
-        await startDownload(downloadUrl, file.fileName || file.name || 'download', {
-            headers: {
-                'Authorization': api.defaults.headers.common['Authorization'] || ''
+    api({
+        url: `/files/${file.fileId}`,
+        method: 'GET',
+        responseType: 'blob'
+    })
+        .then(response => {
+            const url = window.URL.createObjectURL(new Blob([response.data]))
+            const link = document.createElement('a')
+            link.href = url
+            link.setAttribute('download', file.fileName || file.name || 'download')
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            ElMessage.success('下载完成')
+        })
+        .catch(error => {
+            console.error('文件下载失败:', error)
+            ElMessage.error('文件下载失败，请稍后重试')
+        })
+        .finally(() => {
+            // 重置下载状态
+            if (fileIndex !== -1) {
+                fileList.value[fileIndex].downloading = false
             }
         })
-
-        ElMessage.success('下载已开始，请查看右上角进度')
-
-    } catch (error) {
-        console.error('文件下载失败:', error)
-        ElMessage.error('文件下载失败，请稍后重试')
-    } finally {
-        // 重置下载状态
-        if (fileIndex !== -1) {
-            fileList.value[fileIndex].downloading = false
-        }
-    }
 }
 
 // 返回上一页

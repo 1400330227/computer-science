@@ -91,27 +91,15 @@ public class HdfsApiController {
      * @throws Exception
      */
     @PostMapping("/upload")
-    public ResponseEntity<?> upLoadFile(@RequestParam(name = "file", required = true) MultipartFile file, @RequestParam(name = "destPath", required = false) String destPath)
+    public ResponseEntity<?> upLoadFile(@RequestParam(name = "file", required = true) MultipartFile file, @RequestParam(name = "destPath") String destPath)
             throws Exception {
         User currentUser = UserContext.getCurrentUser();
-
-        // 构建用户专属的存储路径，确保文件隔离
-        String userBasePath = rootPath + currentUser.getAccount();
-
-        // 如果指定了destPath，则在用户目录下创建子目录；否则直接存储在用户根目录
-        String finalDestPath;
-        if (destPath != null && !destPath.trim().isEmpty()) {
-            // 确保destPath不会跳出用户目录（安全检查）
-            destPath = destPath.replaceAll("\\.\\.", "").replaceAll("^/+", "");
-            finalDestPath = userBasePath + "/" + destPath;
-        } else {
-            finalDestPath = userBasePath;
-        }
+        destPath = rootPath + currentUser.getAccount();
 
         HdfsApi api = new HdfsApi(conf, user);
         InputStream is = file.getInputStream();
         String name = file.getOriginalFilename();
-        api.upLoadFile(is, finalDestPath + "/" + name);
+        api.upLoadFile(is, destPath + "/" + name);
         api.close();
         return ResponseEntity.ok("文件上传成功");
     }
@@ -124,20 +112,8 @@ public class HdfsApiController {
             response.getWriter().write("用户未登录");
             return;
         }
-
-        User currentUser = UserContext.getCurrentUser();
-        String userBasePath = rootPath + currentUser.getAccount();
-
-        // 安全检查：确保用户只能下载自己目录下的文件
-        if (!filePath.startsWith(userBasePath)) {
-            response.setStatus(403);
-            response.getWriter().write("无权限访问该文件");
-            return;
-        }
-
         HdfsApi api = new HdfsApi(conf, user);
         api.downLoadFile(filePath, response, flag);
-        api.close();
     }
 
     /**
@@ -148,31 +124,8 @@ public class HdfsApiController {
      * @throws Exception
      */
     @GetMapping("/files")
-    public ResponseEntity<?> getFileList(@RequestParam(name = "path", required = false) String path)
+    public ResponseEntity<?> getFileList(@RequestParam(name = "path", defaultValue = "/") String path)
             throws Exception {
-        System.out.println("=== HDFS文件列表请求 ===");
-        System.out.println("请求路径: " + path);
-
-        if (!UserContext.isUserLoggedIn()) {
-            System.out.println("用户登录检查失败");
-            return ResponseEntity.status(401).body("用户未登录");
-        }
-
-        System.out.println("用户登录检查通过");
-
-        User currentUser = UserContext.getCurrentUser();
-        String userBasePath = rootPath + currentUser.getAccount();
-
-        // 如果没有指定路径，默认为用户根目录
-        if (path == null || path.trim().isEmpty() || path.equals("/")) {
-            path = userBasePath;
-        }
-
-        // 安全检查：确保用户只能访问自己目录下的文件
-        if (!path.startsWith(userBasePath)) {
-            return ResponseEntity.status(403).body("无权限访问该路径");
-        }
-
         HdfsApi api = new HdfsApi(conf, user);
         try {
             if (!api.exists(path)) {
