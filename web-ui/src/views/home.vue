@@ -64,8 +64,12 @@ import { ArrowRight } from '@element-plus/icons-vue'
 
 <template>
   <div class="app-container">
+    <!-- 添加平台标题 -->
+    <div class="platform-title">东盟语料收集与管理平台</div>
     <!-- 只在非登录页面显示导航栏 -->
     <el-menu :default-active="activeIndex" class="el-menu-demo top-nav" mode="horizontal" @select="handleSelect" router>
+
+
       <el-menu-item index="/" class="nav-item">首页</el-menu-item>
       <el-sub-menu index="2" class="nav-item">
         <template #title>语料清单</template>
@@ -94,6 +98,19 @@ import { ArrowRight } from '@element-plus/icons-vue'
 </template>
 
 <style scoped lang="scss">
+/* 平台标题样式 */
+.platform-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #ffffff;
+  padding: 0 15px;
+  position: absolute;
+  left: 0;
+  top: 12px;
+  z-index: 1;
+
+}
+
 /* 右侧用户信息和注销按钮 */
 .nav-right {
   margin-left: 10px;
