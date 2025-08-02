@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 // Create an axios instance with default config
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  timeout: 30000, // 30 seconds timeout
+  timeout: 7200000, // 30 seconds timeout
   withCredentials: true, // 重要：允许跨域请求携带cookies（Session需要）
   headers: {
     'Content-Type': 'application/json',

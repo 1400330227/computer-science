@@ -76,11 +76,18 @@
                         <div class="file-name">{{ file.fileName }}</div>
                         <div class="file-actions">
                             <span class="file-size" v-if="file.fileSize">{{ formatFileSize(file.fileSize) }}</span>
-                            <el-button type="primary" link @click="downloadFile(file)" :loading="file.downloading">
+                            <a 
+                              :href="getFileDownloadUrl(file)" 
+                              class="file-download-link" 
+                              @click="showFileDownloadMessage(file)"
+                              title="下载文件"
+                              download
+                            >
                                 <el-icon>
                                     <Download />
-                                </el-icon>下载
-                            </el-button>
+                                </el-icon>
+                                下载
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -186,12 +193,8 @@ function loadFileList() {
     filesLoading.value = true
     api.get(`/files/corpus/${corpusId.value}`)
         .then(response => {
-            // 为每个文件添加下载状态标志
-            const files = response.data || []
-            fileList.value = files.map(file => ({
-                ...file,
-                downloading: false
-            }))
+            // 直接设置文件列表
+            fileList.value = response.data || []
             filesLoading.value = false
         })
         .catch(error => {
@@ -201,48 +204,22 @@ function loadFileList() {
         })
 }
 
-// 下载文件
-function downloadFile(file) {
-    if (file.downloading) return
 
-    // 设置下载状态
-    const fileIndex = fileList.value.findIndex(f => f.fileId === file.fileId)
-    if (fileIndex !== -1) {
-        fileList.value[fileIndex].downloading = true
-    }
-
-    ElMessage.info(`开始下载文件: ${file.fileName}`)
-
-    api({
-        url: `/files/${file.fileId}`,
-        method: 'GET',
-        responseType: 'blob'
-    })
-        .then(response => {
-            const url = window.URL.createObjectURL(new Blob([response.data]))
-            const link = document.createElement('a')
-            link.href = url
-            link.setAttribute('download', file.fileName || file.name || 'download')
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            ElMessage.success('下载完成')
-        })
-        .catch(error => {
-            console.error('文件下载失败:', error)
-            ElMessage.error('文件下载失败，请稍后重试')
-        })
-        .finally(() => {
-            // 重置下载状态
-            if (fileIndex !== -1) {
-                fileList.value[fileIndex].downloading = false
-            }
-        })
-}
 
 // 返回上一页
 function goBack() {
     router.go(-1)
+}
+
+// 计算文件下载URL
+function getFileDownloadUrl(file) {
+    return `/api/files/${file.fileId}/download`
+}
+
+// 显示文件下载消息（不阻止默认的链接行为）
+function showFileDownloadMessage(file) {
+    // 不使用 event.preventDefault()，让 <a> 标签的默认下载行为正常执行
+    ElMessage.success(`正在下载文件: ${file.fileName}`);
 }
 </script>
 
@@ -353,5 +330,28 @@ function goBack() {
 .file-download {
     cursor: pointer;
     color: #409eff;
+}
+
+.file-download-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    background-color: #409eff;
+    color: #fff;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.file-download-link:hover {
+    background-color: #66b1ff;
+}
+
+.file-download-link.downloading {
+    background-color: #909399;
+    cursor: not-allowed;
 }
 </style>

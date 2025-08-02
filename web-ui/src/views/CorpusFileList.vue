@@ -25,7 +25,15 @@
         <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip />
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" @click="downloadFile(row)">下载</el-button>
+            <a 
+              :href="getDownloadUrl(row)" 
+              class="download-link" 
+              @click="showDownloadMessage(row)"
+              title="下载语料"
+              download
+            >
+              下载
+            </a>
             <el-button link type="primary" @click="viewDetails(row)">详情</el-button>
           </template>
         </el-table-column>
@@ -116,31 +124,7 @@ function handleCurrentChange(newPage) {
   loadFileList()
 }
 
-// 下载语料
-function downloadFile(corpus) {
-  ElMessage.info(`开始下载语料: ${corpus.collectionName}`)
 
-  api({
-    url: `/corpus/download/${corpus.corpusId}`,
-    method: 'GET',
-    responseType: 'blob'
-  })
-    .then(response => {
-      // 创建下载链接
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', corpus.collectionName)
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      ElMessage.success('下载完成')
-    })
-    .catch(error => {
-      console.error('下载语料失败:', error)
-      ElMessage.error('下载语料失败，请稍后重试')
-    })
-}
 
 // 查看详情
 function viewDetails(corpus) {
@@ -151,6 +135,17 @@ function viewDetails(corpus) {
 // 跳转到上传页面
 function goToUpload() {
   router.push('/upload')
+}
+
+// 计算下载URL
+function getDownloadUrl(corpus) {
+  return `/api/corpus/download/${corpus.corpusId}`;
+}
+
+// 显示下载消息（不阻止默认的链接行为）
+function showDownloadMessage(row) {
+  // 不使用 event.preventDefault()，让 <a> 标签的默认下载行为正常执行
+  ElMessage.success(`正在下载语料: ${row.collectionName}`);
 }
 </script>
 
@@ -196,5 +191,23 @@ function goToUpload() {
   margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+/* 下载链接样式 */
+.download-link {
+  display: inline-block;
+  padding: 0;
+  margin-right: 15px;
+  color: #409eff;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  border: none;
+  background: none;
+}
+
+.download-link:hover {
+  color: #66b1ff;
 }
 </style>

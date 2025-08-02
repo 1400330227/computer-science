@@ -207,7 +207,7 @@ const uploadProgress = reactive({
 })
 
 // 取消上传的控制器
-let uploadCancelToken = null
+let uploadAbortController = null
 
 // 获取全局面包屑管理工具
 const breadcrumb = inject('breadcrumb')
@@ -241,6 +241,15 @@ const rules = {
   classification: [
     { required: true, message: '请输入数据分类', trigger: 'blur' }
   ],
+  dataVolume: [
+    { required: true, message: '请填写数据量', trigger: 'blur' }
+  ],
+  volumeUnit: [
+    { required: true, message: '请填写数据量单位', trigger: 'blur' }
+  ],
+  estimatedCapacityGb: [
+    { required: true, message: '请填写容量估算', trigger: 'blur' }
+  ],
   dataYear: [
     { required: true, message: '请输入数据年份', trigger: 'blur' }
   ],
@@ -259,9 +268,9 @@ const formData = reactive({
   language: '',
   dataFormat: '',
   classification: '',
-  dataVolume: '',
+  dataVolume: null,
   volumeUnit: '',
-  estimatedCapacityGb: '',
+  estimatedCapacityGb: null,
   dataYear: '',
   sourceLocation: '',
   dataSource: '',
@@ -272,37 +281,7 @@ const formData = reactive({
 
 const fileList = ref([])
 
-const uploadData = reactive({
-  destPath: '/corpus' // 设置默认的目标路径
-})
 
-
-const customUpload = async (options) => {
-  try {
-    const formData = new FormData();
-    formData.append('file', options.file);  // 文件字段
-
-    // 添加额外参数
-    Object.entries(uploadData).forEach(([key, value]) => {
-      formData.append(key, value);
-    });
-
-    // Axios 上传
-    const response = await api.post('/hdfs/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      onUploadProgress: (progressEvent) => {
-        if (progressEvent.total > 0) {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          options.onProgress({ percent });  // 更新进度条
-        }
-      }
-    });
-  } catch (error) {
-    options.onError(error);
-  }
-};
 
 // 文件上传前的验证
 const beforeUpload = (file) => {
@@ -374,10 +353,9 @@ const saveForm = async () => {
           uploadProgress.currentPercent = 0
           uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
 
-          // 创建取消token
-          const CancelToken = api.CancelToken
-          const source = CancelToken.source()
-          uploadCancelToken = source
+          // 创建取消控制器
+          const abortController = new AbortController()
+          uploadAbortController = abortController
 
           const uploadFormData = new FormData()
           uploadFormData.append('file', file.raw)
@@ -387,7 +365,7 @@ const saveForm = async () => {
             headers: {
               'Content-Type': 'multipart/form-data'
             },
-            cancelToken: source.token,
+            signal: abortController.signal,
             onUploadProgress: (progressEvent) => {
               if (progressEvent.lengthComputable) {
                 // 更新当前文件进度
@@ -437,21 +415,21 @@ const saveForm = async () => {
     uploadProgress.show = false
     console.error('上传失败:', error)
 
-    if (error.name === 'CanceledError') {
+    if (error.name === 'AbortError') {
       ElMessage.info('上传已取消')
     } else if (error.response?.status !== 401) {
       ElMessage.error(error.response?.data || error.message || '上传失败，请稍后重试')
     }
   } finally {
     isSubmitting.value = false
-    uploadCancelToken = null
+    uploadAbortController = null
   }
 }
 
 // 取消上传
 const cancelUpload = () => {
-  if (uploadCancelToken) {
-    uploadCancelToken.cancel('用户取消上传')
+  if (uploadAbortController) {
+    uploadAbortController.abort()
   }
   uploadProgress.show = false
   isSubmitting.value = false
@@ -478,7 +456,7 @@ const saveAndCreate = async () => {
     uploadProgress.title = '上传并新增...'
 
     // 第一步：创建语料记录
-    const corpusResponse = await api.post('/hdfs/corpus', formData)
+    const corpusResponse = await api.post('/corpus', formData)
 
     if (!corpusResponse.data) {
       throw new Error('创建语料失败')
@@ -499,20 +477,19 @@ const saveAndCreate = async () => {
           uploadProgress.currentPercent = 0
           uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
 
-          // 创建取消token
-          const CancelToken = api.CancelToken
-          const source = CancelToken.source()
-          uploadCancelToken = source
+          // 创建取消控制器
+          const abortController = new AbortController()
+          uploadAbortController = abortController
 
           const uploadFormData = new FormData()
           uploadFormData.append('file', file.raw)
           uploadFormData.append('corpusId', corpusId)
 
-          await api.post('/hdfs/corpus/upload', uploadFormData, {
+          await api.post('/corpus/upload', uploadFormData, {
             headers: {
               'Content-Type': 'multipart/form-data'
             },
-            cancelToken: source.token,
+            signal: abortController.signal,
             onUploadProgress: (progressEvent) => {
               if (progressEvent.lengthComputable) {
                 // 更新当前文件进度
@@ -566,14 +543,14 @@ const saveAndCreate = async () => {
     uploadProgress.title = '正在上传...' // 重置标题
     console.error('上传失败:', error)
 
-    if (error.name === 'CanceledError') {
+    if (error.name === 'AbortError') {
       ElMessage.info('上传已取消')
     } else if (error.response?.status !== 401) {
       ElMessage.error(error.response?.data || error.message || '上传失败，请稍后重试')
     }
   } finally {
     isSubmitting.value = false
-    uploadCancelToken = null
+    uploadAbortController = null
   }
 }
 

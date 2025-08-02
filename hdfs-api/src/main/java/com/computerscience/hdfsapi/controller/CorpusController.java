@@ -24,6 +24,7 @@ import java.util.Map;
 
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hadoop.fs.Path;
 import java.io.IOException;
@@ -308,6 +309,7 @@ public class CorpusController {
                 response.getWriter().write("语料库不存在");
                 return;
             }
+
             if (!corpus.getCreatorId().equals(currentUser.getUserId())) {
                 response.setStatus(403);
                 response.getWriter().write("无权限访问该语料库");
@@ -339,6 +341,11 @@ public class CorpusController {
                 response.setContentType("application/octet-stream");
                 response.setHeader("Content-Disposition",
                         "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                response.setHeader("Pragma", "no-cache");
+                response.setHeader("Expires", "0");
+                
+                response.flushBuffer();
 
                 // 从HDFS下载文件
                 HdfsApi hdfsApi = new HdfsApi(conf, user);
@@ -349,14 +356,22 @@ public class CorpusController {
             } else {
                 // 多个文件时，打包成ZIP下载
                 String zipFileName = corpus.getCollectionName() + ".zip";
+                
                 response.setContentType("application/zip");
                 response.setHeader("Content-Disposition",
                         "attachment;filename=" + URLEncoder.encode(zipFileName, "UTF-8"));
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                response.setHeader("Pragma", "no-cache");
+                response.setHeader("Expires", "0");
+                
+                response.flushBuffer();
 
                 System.out.println("多文件打包下载，ZIP文件名: " + zipFileName);
 
                 // 创建ZIP输出流
                 ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                
+                // 创建HDFS API连接
                 HdfsApi hdfsApi = new HdfsApi(conf, user);
 
                 for (FileEntity file : files) {
