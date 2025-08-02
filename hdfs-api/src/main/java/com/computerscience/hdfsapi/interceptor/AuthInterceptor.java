@@ -43,7 +43,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                 response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
             } else {
                 // 对于普通请求，重定向到登录页面
-                response.sendRedirect("/login.html");
+                response.sendRedirect("/login");
             }
             return false;
         }
