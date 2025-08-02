@@ -46,6 +46,19 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
     }
 
     @Override
+    public List<FileEntity> findByCreatorId(Integer creatorId) {
+        if (creatorId == null) {
+            return null;
+        }
+        
+        LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FileEntity::getCreatorId, creatorId);
+        queryWrapper.orderByDesc(FileEntity::getCreatedAt);
+        
+        return list(queryWrapper);
+    }
+
+    @Override
     public IPage<FileEntity> findFilePage(Integer page, Integer size, String fileType, Integer corpusId) {
         LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
         

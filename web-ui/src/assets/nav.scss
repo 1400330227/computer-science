@@ -29,7 +29,7 @@
 }
 
 
-.el-menu--horizontal>.el-sub-menu .el-sub-menu__title {
+.el-menu--horizontal.top-nav>.el-sub-menu .el-sub-menu__title {
     color: white !important;
     font-size: 16px;
 
@@ -41,9 +41,10 @@
 }
 
 
-.el-menu--horizontal>.el-menu-item,
-.el-menu--horizontal>.el-sub-menu>.el-sub-menu__title {
+.el-menu--horizontal.top-nav>.el-menu-item,
+.el-menu--horizontal.top-nav>.el-sub-menu>.el-sub-menu__title {
     border-bottom: none !important;
+    font-weight: 600;
 }
 
 

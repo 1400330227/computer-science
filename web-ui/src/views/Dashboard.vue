@@ -2,14 +2,13 @@
   <div class="dashboard">
     <div class="welcome-banner">
       <h1>欢迎使用广西大学东盟语料收集与管理平台</h1>
-      <p>请选择您需要的功能</p>
     </div>
 
     <div class="function-cards">
       <div class="card" @click="navigateTo('/file-list')">
         <div class="card-icon">📁</div>
         <div class="card-content">
-          <h2>文件管理</h2>
+          <h2>语料管理</h2>
           <p>浏览、上传、下载和管理您的文件</p>
         </div>
       </div>
@@ -17,8 +16,16 @@
       <div class="card" @click="navigateTo('/file-upload')">
         <div class="card-icon">⬆️</div>
         <div class="card-content">
-          <h2>上传文件</h2>
+          <h2>上传语料集</h2>
           <p>快速上传文件到HDFS存储系统</p>
+        </div>
+      </div>
+
+      <div class="card" @click="navigateTo('/my-files')">
+        <div class="card-icon">👤</div>
+        <div class="card-content">
+          <h2>我的文件</h2>
+          <p>查看和管理我的文件</p>
         </div>
       </div>
     </div>

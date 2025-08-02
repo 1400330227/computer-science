@@ -36,7 +36,7 @@
           <h3>语料集信息</h3>
           <div class="divider"></div>
 
-          <!-- <div class="info-box">
+          <div class="info-box">
             <p class="info-text">
               <strong>国家：</strong>填写相关国家，如老挝、泰国
             </p>
@@ -76,7 +76,7 @@
             <p class="info-text">
               <strong>数据提供方联系方式：</strong>联系人（联系电话）
             </p>
-          </div> -->
+          </div>
           <div class="form-content">
             <!-- 左侧表单 -->
             <div class="form-column">
