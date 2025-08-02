@@ -16,7 +16,6 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     const xsrfToken = Cookies.get('XSRF-TOKEN')
-    debugger
     if (xsrfToken) {
       // 默认头名称是X-XSRF-TOKEN，与后端Spring Security默认期望的一致
       config.headers['X-XSRF-TOKEN'] = xsrfToken
@@ -48,7 +47,7 @@ api.interceptors.response.use(
           // 清除登录状态
           localStorage.removeItem('isLoggedIn')
           localStorage.removeItem('username')
-          localStorage.removeItem('userId') 
+          localStorage.removeItem('userId')
           localStorage.removeItem('userType')
           localStorage.removeItem('phone')
           // 使用Vue Router进行跳转，而不是直接修改location
@@ -79,4 +78,4 @@ api.interceptors.response.use(
   }
 )
 
-export default api 
+export default api

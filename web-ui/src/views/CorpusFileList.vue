@@ -121,7 +121,7 @@ function downloadFile(corpus) {
   ElMessage.info(`开始下载语料: ${corpus.collectionName}`)
 
   api({
-    url: `/hdfs/corpus/download/${corpus.corpusId}`,
+    url: `/corpus/download/${corpus.corpusId}`,
     method: 'GET',
     responseType: 'blob'
   })

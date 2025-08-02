@@ -1,19 +1,17 @@
 <script setup>
-import { RouterView, useRoute, useRouter } from 'vue-router'
-import { ref, provide, computed, onMounted } from 'vue'
+import { RouterView, useRouter } from 'vue-router'
+import { ref, provide, onMounted } from 'vue'
 import BreadcrumbNav from '../components/BreadcrumbNav.vue'
 import { useBreadcrumbStore } from '../stores/breadcrumb'
 import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-const route = useRoute()
+
 const router = useRouter()
 const userStore = useUserStore()
 
-// 判断是否是登录页面
-const isLoginPage = computed(() => {
-  return route.name === 'login'
-})
+
+
 
 const breadcrumbStore = useBreadcrumbStore()
 provide('breadcrumb', {
@@ -59,13 +57,12 @@ const handleLogout = async () => {
   }
 }
 
-import { ArrowRight } from '@element-plus/icons-vue'
 </script>
 
 <template>
   <div class="app-container">
     <!-- 添加平台标题 -->
-    <div class="platform-title">东盟语料收集与管理平台</div>
+    <div class="platform-title">广西大学东盟语料收集与管理平台</div>
     <!-- 只在非登录页面显示导航栏 -->
     <el-menu :default-active="activeIndex" class="el-menu-demo top-nav" mode="horizontal" @select="handleSelect" router>
 

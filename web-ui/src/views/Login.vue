@@ -8,7 +8,7 @@
       <!-- 登录表单的标题 -->
       <template #header>
         <div class="card-header">
-          <h1>HDFS 文件管理系统</h1>
+          <h1>广西大学东盟语料收集与管理平台</h1>
           <p>请输入您的账号信息登录</p>
         </div>
       </template>
@@ -229,7 +229,7 @@ const handleLogin = async () => {
   /* 登录卡片的样式 */
   width: 100%;
   /* 宽度100% */
-  max-width: 400px;
+  max-width: 500px;
   /* 最大宽度400px */
   border-radius: 12px;
   /* 圆角 */
