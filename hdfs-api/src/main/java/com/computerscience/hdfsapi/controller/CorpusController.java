@@ -1,6 +1,5 @@
 package com.computerscience.hdfsapi.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.computerscience.hdfsapi.model.Corpus;
 import com.computerscience.hdfsapi.model.User;
 import com.computerscience.hdfsapi.model.FileEntity;
@@ -8,6 +7,7 @@ import com.computerscience.hdfsapi.service.CorpusService;
 import com.computerscience.hdfsapi.service.FileService;
 import com.computerscience.hdfsapi.utils.UserContext;
 import com.computerscience.hdfsapi.api.HdfsApi;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hadoop.conf.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,9 +17,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import java.io.IOException;
+import org.apache.hadoop.fs.Path;
 
 /**
  * 语料库控制器
@@ -281,6 +287,130 @@ public class CorpusController {
             return ResponseEntity.status(500).body("文件上传失败: " + e.getMessage());
         }
     }
+
+
+    /**
+     * 下载语料库文件
+     */
+    @GetMapping("/download/{corpusId}")
+    public void downloadCorpus(@PathVariable Integer corpusId, HttpServletResponse response) {
+        try {
+            // 获取当前登录用户
+            User currentUser = UserContext.getCurrentUser();
+            if (currentUser == null) {
+                response.setStatus(401);
+                response.getWriter().write("用户未登录");
+                return;
+            }
+
+            // 验证语料库是否存在且属于当前用户
+            Corpus corpus = corpusService.getById(corpusId);
+            if (corpus == null) {
+                response.setStatus(404);
+                response.getWriter().write("语料库不存在");
+                return;
+            }
+            if (!corpus.getCreatorId().equals(currentUser.getUserId())) {
+                response.setStatus(403);
+                response.getWriter().write("无权限访问该语料库");
+                return;
+            }
+
+            // 获取语料库下的所有文件
+            List<FileEntity> files = fileService.findByCorpusId(corpusId);
+            if (files == null || files.isEmpty()) {
+                response.setStatus(404);
+                response.getWriter().write("该语料库下暂无文件");
+                return;
+            }
+
+            System.out.println("=== 语料下载开始 ===");
+            System.out.println("语料ID: " + corpusId);
+            System.out.println("语料名称: " + corpus.getCollectionName());
+            System.out.println("文件数量: " + files.size());
+
+            // 如果只有一个文件，直接下载该文件
+            if (files.size() == 1) {
+                FileEntity file = files.get(0);
+                String hdfsPath = file.getFilePath();
+
+                System.out.println("单文件下载，HDFS路径: " + hdfsPath);
+
+                // 设置响应头
+                String fileName = file.getFileName();
+                response.setContentType("application/octet-stream");
+                response.setHeader("Content-Disposition",
+                        "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+
+                // 从HDFS下载文件
+                HdfsApi hdfsApi = new HdfsApi(conf, user);
+                hdfsApi.downLoadFile(hdfsPath, response, true);
+                hdfsApi.close();
+
+                System.out.println("单文件下载完成");
+            } else {
+                // 多个文件时，打包成ZIP下载
+                String zipFileName = corpus.getCollectionName() + ".zip";
+                response.setContentType("application/zip");
+                response.setHeader("Content-Disposition",
+                        "attachment;filename=" + URLEncoder.encode(zipFileName, "UTF-8"));
+
+                System.out.println("多文件打包下载，ZIP文件名: " + zipFileName);
+
+                // 创建ZIP输出流
+                ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                HdfsApi hdfsApi = new HdfsApi(conf, user);
+
+                for (FileEntity file : files) {
+                    try {
+                        String hdfsPath = file.getFilePath();
+                        String fileName = file.getFileName();
+
+                        System.out.println("添加文件到ZIP: " + fileName + " (HDFS: " + hdfsPath + ")");
+
+                        // 添加ZIP条目
+                        ZipEntry zipEntry = new ZipEntry(fileName);
+                        zipOut.putNextEntry(zipEntry);
+
+                        // 从HDFS读取文件并写入ZIP
+                        Path sPath = new Path(hdfsPath);
+                        InputStream inputStream = hdfsApi.getFs().open(sPath);
+
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = inputStream.read(buffer)) > 0) {
+                            zipOut.write(buffer, 0, length);
+                        }
+
+                        inputStream.close();
+                        zipOut.closeEntry();
+
+                    } catch (Exception e) {
+                        System.err.println("添加文件到ZIP失败: " + file.getFileName() + ", 错误: " + e.getMessage());
+                        // 继续处理其他文件，不中断整个下载过程
+                    }
+                }
+
+                zipOut.close();
+                hdfsApi.close();
+
+                System.out.println("多文件打包下载完成");
+            }
+
+            System.out.println("==================");
+
+        } catch (Exception e) {
+            System.err.println("语料下载失败: " + e.getMessage());
+            e.printStackTrace();
+            try {
+                response.setStatus(500);
+                response.getWriter().write("下载失败: " + e.getMessage());
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+    }
+
 
     /**
      * 获取文件扩展名

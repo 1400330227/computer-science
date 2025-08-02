@@ -117,29 +117,115 @@ function handleCurrentChange(newPage) {
 }
 
 // 下载语料
-function downloadFile(corpus) {
-  ElMessage.info(`开始下载语料: ${corpus.collectionName}`)
+async function downloadFile(corpus) {
+  // 添加下载状态
+  const corpusIndex = fileList.value.findIndex(c => c.corpusId === corpus.corpusId)
+  if (corpusIndex !== -1) {
+    fileList.value[corpusIndex].downloading = true
+  }
 
-  api({
-    url: `/hdfs/corpus/download/${corpus.corpusId}`,
-    method: 'GET',
-    responseType: 'blob'
-  })
-    .then(response => {
-      // 创建下载链接
-      const url = window.URL.createObjectURL(new Blob([response.data]))
+  try {
+    // 确定文件名
+    let fileName = corpus.collectionName || `语料库_${corpus.corpusId}`
+
+    // 构建下载URL
+    const downloadUrl = `${api.defaults.baseURL}/corpus/download/${corpus.corpusId}`
+
+    console.log('开始下载语料库:', fileName, downloadUrl)
+    console.log('下载URL:', downloadUrl)
+
+    // 方法1: 使用fetch获取blob，然后创建下载链接
+    try {
+      console.log('尝试使用fetch方式下载...')
+
+      const response = await api.get(`/corpus/download/${corpus.corpusId}`, {
+        responseType: 'blob'
+      })
+
+      console.log('下载响应:', response)
+
+      // 创建blob URL
+      const blob = new Blob([response.data])
+      const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
       link.setAttribute('download', corpus.collectionName)
+      link.download = fileName + '.zip'
+      link.style.display = 'none'
+
+      // 添加到DOM并点击
       document.body.appendChild(link)
       link.click()
+
+      // 清理
       document.body.removeChild(link)
-      ElMessage.success('下载完成')
-    })
-    .catch(error => {
-      console.error('下载语料失败:', error)
-      ElMessage.error('下载语料失败，请稍后重试')
-    })
+
+      window.URL.revokeObjectURL(url)
+
+      console.log('下载链接已触发')
+      ElMessage.success('下载已开始，请查看浏览器下载管理器')
+
+    } catch (fetchError) {
+      console.error('Fetch下载失败:', fetchError)
+
+      // 方法2: 回退到window.open方式
+      console.log('回退到window.open方式...')
+
+      const downloadWindow = window.open(downloadUrl, '_blank')
+
+      if (!downloadWindow) {
+        console.log('弹窗被拦截，使用iframe方式...')
+        // 如果被拦截，尝试使用iframe方式
+        const iframe = document.createElement('iframe')
+        iframe.style.display = 'none'
+        iframe.src = downloadUrl
+        document.body.appendChild(iframe)
+
+        // 5秒后移除iframe
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe)
+          }
+        }, 5000)
+      } else {
+        console.log('window.open成功')
+        // 如果成功打开，等待一下后关闭窗口（下载会继续）
+        setTimeout(() => {
+          try {
+            downloadWindow.close()
+          } catch (e) {
+            console.log('关闭窗口失败:', e)
+          }
+        }, 1000)
+      }
+
+      ElMessage.success('下载已开始，请查看浏览器下载管理器')
+    }
+
+  } catch (error) {
+    console.error('下载语料失败:', error)
+
+    // 根据错误类型显示不同的错误信息
+    if (error.response) {
+      const status = error.response.status
+      if (status === 401) {
+        ElMessage.error('用户未登录，请重新登录')
+      } else if (status === 403) {
+        ElMessage.error('无权限下载该语料')
+      } else if (status === 404) {
+        ElMessage.error('语料不存在或暂无文件')
+      } else {
+        ElMessage.error(`下载失败: ${error.response.data || error.message}`)
+      }
+    } else {
+      ElMessage.error(`下载失败: ${error.message}`)
+    }
+  } finally {
+    // 重置下载状态
+    if (corpusIndex !== -1) {
+      fileList.value[corpusIndex].downloading = false
+    }
+  }
 }
 
 // 查看详情
@@ -150,7 +236,7 @@ function viewDetails(corpus) {
 
 // 跳转到上传页面
 function goToUpload() {
-  router.push('/upload')
+  router.push('/file-upload')
 }
 </script>
 
