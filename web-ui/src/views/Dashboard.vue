@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <div class="welcome-banner">
-      <h1>欢迎使用 HDFS 文件管理系统</h1>
+      <h1>欢迎使用东盟语料收集与管理平台</h1>
       <p>请选择您需要的功能</p>
     </div>
 

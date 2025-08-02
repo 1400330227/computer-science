@@ -375,7 +375,7 @@ const saveForm = async () => {
           uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
 
           // 创建取消token
-          const CancelToken = axios.CancelToken
+          const CancelToken = api.CancelToken
           const source = CancelToken.source()
           uploadCancelToken = source
 
@@ -500,7 +500,7 @@ const saveAndCreate = async () => {
           uploadProgress.status = `正在上传文件 ${i + 1}/${totalFiles}: ${file.name}`
 
           // 创建取消token
-          const CancelToken = axios.CancelToken
+          const CancelToken = api.CancelToken
           const source = CancelToken.source()
           uploadCancelToken = source
 

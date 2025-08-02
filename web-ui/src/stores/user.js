@@ -18,7 +18,7 @@ export const useUserStore = defineStore('user', () => {
   const isAuthenticated = computed(() => isLoggedIn.value)
   
   // 计算属性：用户显示名称
-  const displayName = computed(() => userInfo.value.account || userInfo.value.username || '未知用户')
+  const displayName = computed(() => userInfo.value.nickname || userInfo.value.account || '未知用户')
   
   // 登录方法
   const login = (userData) => {
@@ -27,7 +27,8 @@ export const useUserStore = defineStore('user', () => {
       username: userData.username || '',
       account: userData.account || '',
       userType: userData.userType || '',
-      phone: userData.phone || ''
+      phone: userData.phone || '',
+      nickname: userData.nickname || ''
     }
     isLoggedIn.value = true
     
@@ -37,6 +38,7 @@ export const useUserStore = defineStore('user', () => {
     localStorage.setItem('userId', userData.userId || '')
     localStorage.setItem('userType', userData.userType || '')
     localStorage.setItem('phone', userData.phone || '')
+    localStorage.setItem('nickname', userData.nickname || '')
   }
   
   // 登出方法
@@ -46,8 +48,9 @@ export const useUserStore = defineStore('user', () => {
       username: '',
       account: '',
       userType: '',
-      phone: ''
-    }
+      phone: '',
+      nickname: ''
+    } 
     isLoggedIn.value = false
     
     // 清除 localStorage
@@ -58,6 +61,7 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('phone')
     // 确保清除任何可能残留的token
     localStorage.removeItem('token')
+    localStorage.removeItem('nickname')
   }
   
   // 从 localStorage 恢复用户状态
@@ -71,7 +75,8 @@ export const useUserStore = defineStore('user', () => {
         username: localStorage.getItem('username') || '',
         account: localStorage.getItem('username') || '', // 使用 username 作为 account
         userType: localStorage.getItem('userType') || '',
-        phone: localStorage.getItem('phone') || ''
+        phone: localStorage.getItem('phone') || '', 
+        nickname: localStorage.getItem('nickname') || ''
       }
     } else {
       // 确保状态为false

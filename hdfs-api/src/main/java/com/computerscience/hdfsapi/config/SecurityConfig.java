@@ -25,15 +25,16 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .anyRequest().permitAll()
                 )
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers(
-                                "/users/login",
-                                "/users/logout",
-                                "/users",
-                                "/hdfs/**"
-                        )
-                )
+                .csrf(AbstractHttpConfigurer::disable)
+//                .csrf(csrf -> csrf
+//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+//                        .ignoringRequestMatchers(
+//                                "/users/login",
+//                                "/users/logout",
+//                                "/users",
+//                                "/hdfs/**"
+//                        )
+//                )
                 .headers(headers -> headers
                         .xssProtection(Customizer.withDefaults())
                         .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"))

@@ -193,6 +193,7 @@ public class UserController {
         responseMap.put("account", user.getAccount());   // 用户账号
         responseMap.put("userType", user.getUserType()); // 用户类型（如：管理员、普通用户）
         responseMap.put("phone", user.getPhone());       // 用户手机号
+        responseMap.put("nickname", user.getNickname());       // 用户手机号
         // 注意：这里故意不返回密码，保护用户隐私安全
         
         // 返回200成功状态码和用户信息
