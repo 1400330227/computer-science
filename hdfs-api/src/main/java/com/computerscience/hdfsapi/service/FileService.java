@@ -33,6 +33,15 @@ public interface FileService extends IService<FileEntity> {
     List<FileEntity> findByCreatorId(Integer creatorId);
     
     /**
+     * 根据创建者ID分页查询文件列表
+     * @param creatorId 创建者ID
+     * @param page 页码
+     * @param size 每页大小
+     * @return 分页文件列表
+     */
+    IPage<FileEntity> findByCreatorIdPage(Integer creatorId, Integer page, Integer size);
+    
+    /**
      * 分页查询文件列表
      * @param page 页码
      * @param size 每页大小

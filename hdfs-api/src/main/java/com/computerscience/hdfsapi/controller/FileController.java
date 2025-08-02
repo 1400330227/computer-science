@@ -135,26 +135,29 @@ public class FileController {
      * 查询当前用户的所有文件
      */
     @GetMapping("/my-files")
-    public ResponseEntity<?> getMyFiles() {
+    public ResponseEntity<?> getMyFiles(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
         try {
             // 调试信息
-            System.out.println("=== 查询当前用户的所有文件 ===");
+            System.out.println("=== 查询当前用户的所有文件（分页） ===");
+            System.out.println("页码: " + page + ", 每页大小: " + size);
             
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
                        
             System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
             
-            // 查询文件列表
-            List<FileEntity> files = fileService.findByCreatorId(currentUser.getUserId());
-            System.out.println("找到文件数量: " + (files != null ? files.size() : 0));
+            // 查询文件列表（分页）
+            IPage<FileEntity> pageResult = 
+                fileService.findByCreatorIdPage(currentUser.getUserId(), page, size);
             
-            if (files == null) {
-                return ResponseEntity.ok(java.util.Collections.emptyList());
-            }
+            System.out.println("总记录数: " + pageResult.getTotal());
+            System.out.println("总页数: " + pageResult.getPages());
+            System.out.println("当前页记录数: " + pageResult.getRecords().size());
             
             System.out.println("===================");
-            return ResponseEntity.ok(files);
+            return ResponseEntity.ok(pageResult);
             
         } catch (Exception e) {
             System.err.println("查询用户文件列表失败: " + e.getMessage());

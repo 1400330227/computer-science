@@ -48,12 +48,25 @@ const getFileIcon = (fileType) => {
 const fetchUserFiles = async () => {
     loading.value = true;
     try {
-        const response = await getUserFiles();
-        files.value = response.data || [];
-        total.value = files.value.length;
+        const response = await getUserFiles(currentPage.value, pageSize.value);
+        // 检查响应格式，适配分页数据结构
+        if (response.data && Array.isArray(response.data.records)) {
+            files.value = response.data.records;
+            total.value = response.data.total || 0;
+        } else if (Array.isArray(response.data)) {
+            // 兼容旧格式
+            files.value = response.data;
+            total.value = response.data.length;
+        } else {
+            files.value = [];
+            total.value = 0;
+            ElMessage.warning('返回数据格式不正确');
+        }
     } catch (error) {
         console.error('获取文件列表失败:', error);
         ElMessage.error('获取文件列表失败，请稍后重试');
+        files.value = [];
+        total.value = 0;
     } finally {
         loading.value = false;
     }
