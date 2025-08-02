@@ -93,7 +93,11 @@ function loadFileList() {
     .then(response => {
       if (response.data && response.data.records) {
         fileList.value = response.data.records
-        total.value = response.data.total || response.data.records.length
+        total.value = response.data.total || 0
+      } else if (Array.isArray(response.data)) {
+        // 兼容可能的旧格式响应
+        fileList.value = response.data
+        total.value = response.data.length
       } else {
         fileList.value = []
         total.value = 0

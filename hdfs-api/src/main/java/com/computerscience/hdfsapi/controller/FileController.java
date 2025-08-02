@@ -56,25 +56,18 @@ public class FileController {
             // 调试信息
             System.out.println("=== 查询文件详情 ===");
             System.out.println("请求的文件ID: " + id);
-            
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
-            if (currentUser == null) {
-                System.out.println("认证失败：用户未登录");
-                return ResponseEntity.status(401).body("用户未登录");
-            }
-            
             System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
-            
             // 查询文件
             FileEntity file = fileService.getById(id);
             if (file == null) {
                 System.out.println("文件不存在，ID: " + id);
                 return ResponseEntity.notFound().build();
             }
-            
+
             System.out.println("文件信息: " + file.getFileName() + " (创建者ID: " + file.getCreatorId() + ")");
-            
+
             // 检查文件是否属于当前用户（通过创建者ID）
             if (!file.getCreatorId().equals(currentUser.getUserId())) {
                 // 如果文件创建者ID不匹配，还需要检查文件所属语料是否属于当前用户
@@ -93,10 +86,10 @@ public class FileController {
             } else {
                 System.out.println("权限检查通过：文件创建者匹配");
             }
-            
+
             System.out.println("=================");
             return ResponseEntity.ok(file);
-            
+
         } catch (Exception e) {
             System.err.println("查询文件失败: " + e.getMessage());
             e.printStackTrace();
@@ -113,7 +106,7 @@ public class FileController {
             // 调试信息
             System.out.println("=== 下载文件 ===");
             System.out.println("请求的文件ID: " + id);
-            
+
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
             if (currentUser == null) {
@@ -122,9 +115,9 @@ public class FileController {
                 response.getWriter().write("用户未登录");
                 return;
             }
-            
+
             System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
-            
+
             // 查询文件
             FileEntity file = fileService.getById(id);
             if (file == null) {
@@ -133,9 +126,9 @@ public class FileController {
                 response.getWriter().write("文件不存在");
                 return;
             }
-            
+
             System.out.println("文件信息: " + file.getFileName() + " (创建者ID: " + file.getCreatorId() + ")");
-            
+
             // 检查文件是否属于当前用户（通过创建者ID）
             if (!file.getCreatorId().equals(currentUser.getUserId())) {
                 // 如果文件创建者ID不匹配，还需要检查文件所属语料是否属于当前用户
@@ -167,7 +160,7 @@ public class FileController {
             response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Expires", "0");
-            
+
             // 立刻刷新响应头到客户端
             response.flushBuffer();
 
@@ -180,7 +173,7 @@ public class FileController {
 
             System.out.println("文件下载完成: " + fileName);
             System.out.println("===============");
-            
+
         } catch (Exception e) {
             System.err.println("文件下载失败: " + e.getMessage());
             e.printStackTrace();
@@ -202,47 +195,78 @@ public class FileController {
             // 调试信息
             System.out.println("=== 查询语料文件列表 ===");
             System.out.println("请求的语料ID: " + corpusId);
-            
+
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
-            if (currentUser == null) {
-                System.out.println("认证失败：用户未登录");
-                return ResponseEntity.status(401).body("用户未登录");
-            }
-            
+
             System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
-            
+
             // 检查语料是否存在且属于当前用户
             Corpus corpus = corpusService.getById(corpusId);
             if (corpus == null) {
                 System.out.println("语料不存在，ID: " + corpusId);
                 return ResponseEntity.notFound().build();
             }
-            
+
             System.out.println("语料信息: " + corpus.getCollectionName() + " (创建者ID: " + corpus.getCreatorId() + ")");
-            
+
             if (!corpus.getCreatorId().equals(currentUser.getUserId())) {
                 System.out.println("权限检查失败：用户 " + currentUser.getUserId() + " 尝试访问用户 " + corpus.getCreatorId() + " 的语料");
                 return ResponseEntity.status(403).body("无权限访问该语料的文件列表");
             }
-            
+
             System.out.println("权限检查通过，查询文件列表");
-            
+
             // 查询文件列表
             List<FileEntity> files = fileService.findByCorpusId(corpusId);
             System.out.println("找到文件数量: " + (files != null ? files.size() : 0));
-            
+
             if (files == null || files.isEmpty()) {
                 return ResponseEntity.ok(java.util.Collections.emptyList());
             }
-            
+
             System.out.println("===================");
             return ResponseEntity.ok(files);
-            
+
         } catch (Exception e) {
             System.err.println("查询文件列表失败: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.status(500).body("查询文件列表失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 查询当前用户的所有文件
+     */
+    @GetMapping("/my-files")
+    public ResponseEntity<?> getMyFiles(
+            @RequestParam(value = "page", defaultValue = "1") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        try {
+            // 调试信息
+            System.out.println("=== 查询当前用户的所有文件（分页） ===");
+            System.out.println("页码: " + page + ", 每页大小: " + size);
+
+            // 获取当前登录用户
+            User currentUser = UserContext.getCurrentUser();
+
+            System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
+
+            // 查询文件列表（分页）
+            IPage<FileEntity> pageResult =
+                fileService.findByCreatorIdPage(currentUser.getUserId(), page, size);
+
+            System.out.println("总记录数: " + pageResult.getTotal());
+            System.out.println("总页数: " + pageResult.getPages());
+            System.out.println("当前页记录数: " + pageResult.getRecords().size());
+
+            System.out.println("===================");
+            return ResponseEntity.ok(pageResult);
+
+        } catch (Exception e) {
+            System.err.println("查询用户文件列表失败: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("查询用户文件列表失败: " + e.getMessage());
         }
     }
 
@@ -301,12 +325,7 @@ public class FileController {
     @PostMapping("/upload-with-auth")
     public ResponseEntity<?> uploadWithAuth(@RequestParam("file") MultipartFile file) {
         try {
-            // 检查用户是否登录
-            if (!UserContext.isUserLoggedIn()) {
-                return ResponseEntity.status(401).body("用户未登录");
-            }
-
-            // 获取当前登录用户
+                // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
 
             // 检查用户权限（示例：仅管理员可上传）

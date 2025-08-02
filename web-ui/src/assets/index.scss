@@ -1,0 +1,12 @@
+@forward 'element-plus/theme-chalk/src/common/var.scss' with ($colors: ('primary': ('base': #4169e1, )),
+    $font-size: ('base': 16px, ),
+    $text-color: ('primary': #333333, // 主要文字颜色
+        'regular': #333333, // 常规文字颜色
+        'secondary': #999999, // 次要文字颜色
+        'placeholder': #c0c4cc // 占位符文字颜色
+    ),
+    $button: ('text-color': #333333,
+        'disabled-text-color': #cccccc),
+    $input: ('text-color': #333333,
+        'disabled-text-color': #cccccc));
+@use "element-plus/theme-chalk/src/index.scss" as *;
