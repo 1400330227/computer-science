@@ -78,4 +78,68 @@ api.interceptors.response.use(
   }
 )
 
-export default api 
+// HDFS 文件管理 API
+export const hdfsApi = {
+  // 获取文件列表
+  getFileList(path = '') {
+    return api.get('/hdfs/files', {
+      params: path ? { path } : {}
+    })
+  },
+
+  // 上传文件
+  uploadFile(file, destPath = '') {
+    const formData = new FormData()
+    formData.append('file', file)
+    if (destPath) {
+      formData.append('destPath', destPath)
+    }
+
+    return api.post('/hdfs/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+  },
+
+  // 下载文件
+  downloadFile(filePath) {
+    return api.get('/hdfs/file', {
+      params: {
+        filePath,
+        flag: true
+      },
+      responseType: 'blob'
+    })
+  },
+
+  // 下载语料库
+  downloadCorpus(corpusId) {
+    return api.get(`/corpus/download/${corpusId}`, {
+      responseType: 'blob'
+    })
+  },
+
+  // 删除文件
+  deleteFile(filePath) {
+    return api.delete('/hdfs/file', {
+      params: { filePath }
+    })
+  },
+
+  // 创建目录
+  createDirectory(dirPath) {
+    return api.post('/hdfs/directory', null, {
+      params: { dirPath }
+    })
+  },
+
+  // 重命名文件/目录
+  renameFile(oldPath, newPath) {
+    return api.put('/hdfs/rename', null, {
+      params: { oldPath, newPath }
+    })
+  }
+}
+
+export default api

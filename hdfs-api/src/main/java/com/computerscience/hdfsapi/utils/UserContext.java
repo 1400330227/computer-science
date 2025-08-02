@@ -39,7 +39,8 @@ public class UserContext {
      */
     public static HttpSession getCurrentSession() {
         HttpServletRequest request = getCurrentRequest();
-        return request != null ? request.getSession(false) : null;
+        // 使用getSession(true)确保Session存在，如果不存在则创建
+        return request != null ? request.getSession(true) : null;
     }
 
     /**

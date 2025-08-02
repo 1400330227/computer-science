@@ -1,4 +1,5 @@
 import './assets/main.scss'
+import './styles/element-plus-theme.scss'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'

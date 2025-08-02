@@ -219,8 +219,8 @@ const handleLogin = async () => {
   /* 垂直居中 */
   min-height: 100vh;
   /* 最小高度为视窗高度 */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  /* 渐变背景 */
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  /* 浅灰渐变背景 */
   padding: 20px;
   /* 内边距 */
 }
@@ -231,38 +231,94 @@ const handleLogin = async () => {
   /* 宽度100% */
   max-width: 400px;
   /* 最大宽度400px */
-  border-radius: 12px;
+  border-radius: 16px;
   /* 圆角 */
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15);
+  /* 紫色调阴影 */
+  border: 1px solid rgba(102, 126, 234, 0.1);
+  /* 紫色调边框 */
 }
 
 .card-header {
   /* 卡片头部（标题区域）的样式 */
   text-align: center;
   /* 文字居中 */
-  padding: 20px 0;
+  padding: 30px 20px;
   /* 上下内边距 */
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* 紫蓝渐变 */
+  border-radius: 16px 16px 0 0;
+  /* 顶部圆角 */
+  margin: -20px -20px 20px -20px;
+  /* 负边距让渐变延伸到卡片边缘 */
 }
 
 .card-header h1 {
   /* 主标题样式 */
-  color: #303133;
-  /* 深灰色 */
-  font-size: 24px;
+  color: #ffffff;
+  /* 白色文字 */
+  font-size: 26px;
   /* 字体大小 */
   font-weight: 600;
   /* 字体粗细 */
   margin-bottom: 8px;
   /* 下边距 */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  /* 轻微阴影增强可读性 */
 }
 
 .card-header p {
   /* 副标题样式 */
-  color: #909399;
-  /* 浅灰色 */
+  color: rgba(255, 255, 255, 0.9);
+  /* 半透明白色 */
   font-size: 14px;
   /* 字体大小 */
   margin: 0;
   /* 清除默认边距 */
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  /* 轻微阴影增强可读性 */
+}
+
+/* 表单样式优化 */
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.2s ease;
+}
+
+:deep(.el-input__wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.4);
+}
+
+:deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+/* 登录按钮样式 */
+:deep(.el-button--primary) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 12px rgba(102, 126, 234, 0.25);
+  transition: all 0.3s ease;
+}
+
+:deep(.el-button--primary:hover) {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.35);
+  transform: translateY(-1px);
+}
+
+/* 复选框样式 */
+:deep(.el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: #667eea;
+  border-color: #667eea;
+}
+
+:deep(.el-checkbox__input.is-checked + .el-checkbox__label) {
+  color: #667eea;
 }
 
 /* 响应式设计：在小屏幕上调整样式 */
