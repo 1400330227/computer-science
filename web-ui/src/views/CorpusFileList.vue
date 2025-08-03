@@ -14,20 +14,20 @@
       <!-- 语料表格 -->
       <el-table v-loading="loading" :data="fileList" style="width: 100%">
         <el-table-column prop="country" label="国家" />
-        <el-table-column prop="collectionName" label="语料集名称" />
+        <el-table-column prop="collectionName" label="语料集名称" min-width="100" />
         <el-table-column prop="domain" label="所属领域" />
         <el-table-column prop="language" label="语种" />
         <el-table-column prop="dataFormat" label="数据形式" />
         <el-table-column prop="classification" label="数据分类" />
         <el-table-column prop="dataYear" label="数据年份" />
-        <el-table-column prop="sourceLocation" label="来源归属地" />
+        <el-table-column prop="sourceLocation" label="来源归属地" min-width="100" />
         <el-table-column prop="dataSource" label="数据来源" />
         <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip />
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <a 
-              :href="getDownloadUrl(row)" 
-              class="download-link" 
+            <a
+              :href="getDownloadUrl(row)"
+              class="download-link"
               @click="showDownloadMessage(row)"
               title="下载语料"
               download
@@ -59,7 +59,6 @@
 import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Refresh, Plus } from '@element-plus/icons-vue'
 import api from '../services/api'
 
 const router = useRouter()
@@ -202,9 +201,9 @@ function showDownloadMessage(row) {
   display: inline-block;
   padding: 0;
   margin-right: 15px;
-  color: #409eff;
+  color: #4169e1;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   transition: color 0.3s ease;
   border: none;

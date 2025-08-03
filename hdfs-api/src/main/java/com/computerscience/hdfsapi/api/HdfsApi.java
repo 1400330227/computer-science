@@ -542,22 +542,20 @@ public class HdfsApi {
                 } else {
                     sPath = new Path(srcFile);
                 }
-
-
-                String fileName = srcFile.substring(srcFile.lastIndexOf("/") + 1);
-                System.err.println(fileName);
-                String mimeType = URLConnection.guessContentTypeFromName(fileName);
-                response.setContentType(mimeType);
-                response.setHeader("Content-Disposition",
-                        "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+//                String fileName = srcFile.substring(srcFile.lastIndexOf("/") + 1);
+//                System.err.println(fileName);
+//                String mimeType = URLConnection.guessContentTypeFromName(fileName);
+//                response.setContentType(mimeType);
+//                response.setHeader("Content-Disposition",
+//                        "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
 
                 try {
                     InputStream is = fs.open(sPath);
-                    byte[] data = new byte[1024];
+                    byte[] buffer = new byte[1024];
                     OutputStream out = response.getOutputStream();
-
-                    while (is.read(data) != -1) {
-                        out.write(data);
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
                     }
                     out.flush();
                     is.close();
@@ -1173,6 +1171,69 @@ public class HdfsApi {
      */
     public void close() throws IOException {
         fs.close();
+    }
+
+    /**
+     * 获取指定路径的文件状态信息。
+     *
+     * @param filePath 文件的 HDFS 路径
+     * @return FileStatus 对象，如果文件不存在则返回 null
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public FileStatus getFileStatus(final String filePath) throws IOException, InterruptedException {
+        return execute(new PrivilegedExceptionAction<FileStatus>() {
+            public FileStatus run() throws Exception {
+                Path path;
+                if (StringUtils.isNotBlank(uri)) {
+                    path = new Path(uri + "/" + filePath);
+                } else {
+                    path = new Path(filePath);
+                }
+
+                if (fs.exists(path)) {
+                    return fs.getFileStatus(path);
+                }
+                return null;
+            }
+        });
+    }
+
+    /**
+     * 获取指定 HDFS 文件的大小（以字节为单位）。
+     * 这是一个便利方法，内部调用 getFileStatus。
+     *
+     * @param filePath 文件的 HDFS 路径
+     * @return 文件的字节大小。如果文件不存在，则返回 -1。
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public long getFileSize(final String filePath) throws IOException, InterruptedException {
+        FileStatus fileStatus = getFileStatus(filePath);
+        if (fileStatus != null && !fileStatus.isDirectory()) {
+            return fileStatus.getLen();
+        }
+        return -1; // 或者抛出异常，表示文件不存在或为目录
+    }
+
+    /**
+     * 获取多个 HDFS 文件的大小（以字节为单位）。
+     * 这是一个便利方法，内部调用 getFileStatus。
+     *
+     * @param filePaths 文件的 HDFS 路径
+     * @return 文件的字节大小。如果文件不存在，则返回 -1。
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public long getFileSizes(final String[] filePaths) throws IOException, InterruptedException {
+        long fileSizes = -1;
+        for (String filePath : filePaths) {
+            FileStatus fileStatus = getFileStatus(filePath);
+            if (fileStatus != null && !fileStatus.isDirectory()) {
+                fileSizes += fileStatus.getLen();
+            }
+        }
+        return fileSizes;
     }
 
     public static void main(String[] args) throws Exception {

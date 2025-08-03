@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.zip.ZipOutputStream;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.hadoop.fs.Path;
+
 import java.io.IOException;
 import java.net.URLEncoder;
 
@@ -40,10 +42,10 @@ public class CorpusController {
 
     @Autowired
     private CorpusService corpusService;
-    
+
     @Autowired
     private FileService fileService;
-    
+
     @Autowired
     @Qualifier("conf")
     private Configuration conf;
@@ -60,7 +62,7 @@ public class CorpusController {
         if (corpus == null) {
             return ResponseEntity.notFound().build();
         }
-        
+
         // 调试信息：显示语料的详细信息
         System.out.println("=== 语料详情调试信息 ===");
         System.out.println("语料ID: " + corpus.getCorpusId());
@@ -68,7 +70,7 @@ public class CorpusController {
         System.out.println("创建者ID: " + corpus.getCreatorId());
         System.out.println("创建时间: " + corpus.getCreatedAt());
         System.out.println("========================");
-        
+
         return ResponseEntity.ok(corpus);
     }
 
@@ -161,16 +163,16 @@ public class CorpusController {
             System.out.println("=== 创建语料认证检查 ===");
             Integer userId = UserContext.getCurrentUserId();
             System.out.println("从Session获取的用户ID: " + userId);
-            
+
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
             System.out.println("用户对象: " + (currentUser != null ? currentUser.getAccount() : "null"));
-            
+
             if (currentUser == null) {
                 System.out.println("认证失败：用户未登录");
                 return ResponseEntity.status(401).body("用户未登录");
             }
-            
+
             System.out.println("认证成功，用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
 
             // 设置创建者ID
@@ -182,7 +184,7 @@ public class CorpusController {
                 System.out.println("语料名称: " + corpus.getCollectionName());
                 System.out.println("创建者ID: " + corpus.getCreatorId());
                 System.out.println("====================");
-                
+
                 return ResponseEntity.ok(corpus);
             } else {
                 return ResponseEntity.badRequest().body("创建语料库失败，名称可能已存在");
@@ -340,39 +342,60 @@ public class CorpusController {
                 String fileName = file.getFileName();
                 response.setContentType("application/octet-stream");
                 response.setHeader("Content-Disposition",
-                        "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+                        "attachment;filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
                 response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
                 response.setHeader("Pragma", "no-cache");
                 response.setHeader("Expires", "0");
-                
-                response.flushBuffer();
+
+//                response.flushBuffer();
 
                 // 从HDFS下载文件
                 HdfsApi hdfsApi = new HdfsApi(conf, user);
+                long fileSize = hdfsApi.getFileSize(hdfsPath);
+
+                if (fileSize < 0) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在: " + hdfsPath);
+                    return;
+                }
+
+                response.setContentLengthLong(fileSize);
+
+                System.out.println("获取到文件大小: " + fileSize + " bytes");
+
                 hdfsApi.downLoadFile(hdfsPath, response, true);
                 hdfsApi.close();
 
                 System.out.println("单文件下载完成");
             } else {
+                String[] filePaths = files.stream().map(FileEntity::getFilePath).toArray(String[]::new);
+                // 创建HDFS API连接
+                HdfsApi hdfsApi = new HdfsApi(conf, user);
+                long fileSize = hdfsApi.getFileSizes(filePaths);
+
+                if (fileSize < 0) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在");
+                    return;
+                }
+
                 // 多个文件时，打包成ZIP下载
                 String zipFileName = corpus.getCollectionName() + ".zip";
-                
+
                 response.setContentType("application/zip");
                 response.setHeader("Content-Disposition",
                         "attachment;filename=" + URLEncoder.encode(zipFileName, "UTF-8"));
                 response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
                 response.setHeader("Pragma", "no-cache");
                 response.setHeader("Expires", "0");
-                
-                response.flushBuffer();
+                response.setContentLengthLong(fileSize);
+
+//                response.flushBuffer();
 
                 System.out.println("多文件打包下载，ZIP文件名: " + zipFileName);
 
+
                 // 创建ZIP输出流
                 ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
-                
-                // 创建HDFS API连接
-                HdfsApi hdfsApi = new HdfsApi(conf, user);
+
 
                 for (FileEntity file : files) {
                     try {
