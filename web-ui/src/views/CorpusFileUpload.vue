@@ -50,6 +50,9 @@
               <strong>语种：</strong>填写语料对应语言：如老挝语、泰国语、印尼语等东南亚国家语言
             </p>
             <p class="info-text">
+              <strong>数据形式：</strong>纸质、可编辑电子文本、扫描电子文本、语音、视频、图像
+            </p>
+            <p class="info-text">
               <strong>数据分类：</strong>包括：基础语料、预训练语料、SFT语料、强化学习语料、平行语料、价值观语料、ASR语料、TTS语料，其中除原始语料之外的都属于加工语料。
             </p>
             <p class="info-text">
@@ -82,6 +85,10 @@
             <div class="form-column">
               <el-form-item label="国家" prop="country">
                 <el-input v-model="formData.country" placeholder="请填写国家"></el-input>
+                <!-- <el-select v-model="formData.country" filterable placeholder="请选择国家">
+                  <el-option v-for="country in countries" :key="country.code" :label="country.name"
+                    :value="country.name"></el-option>
+                </el-select> -->
               </el-form-item>
 
               <el-form-item label="语料集名称" prop="collectionName">
@@ -89,7 +96,10 @@
               </el-form-item>
 
               <el-form-item label="所属领域" prop="domain">
-                <el-input v-model="formData.domain" placeholder="请填写所属领域"></el-input>
+                <el-select v-model="formData.domain" filterable placeholder="请选择所属领域">
+                  <el-option v-for="domain in domains" :key="domain.domainName" :label="domain.domainName"
+                    :value="domain.domainName"></el-option>
+                </el-select>
               </el-form-item>
 
               <el-form-item label="语种" prop="language">
@@ -97,11 +107,17 @@
               </el-form-item>
 
               <el-form-item label="数据形式" prop="dataFormat">
-                <el-input v-model="formData.dataFormat" placeholder="请填写数据形式"></el-input>
+                <el-select v-model="formData.dataFormat" filterable placeholder="请选择数据形式" multiple>
+                  <el-option v-for="dataFormat in dataFormats" :key="dataFormat.dataFormat"
+                    :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
+                </el-select>
               </el-form-item>
 
               <el-form-item label="数据分类" prop="classification">
-                <el-input v-model="formData.classification" placeholder="请填写数据分类"></el-input>
+                <el-select v-model="formData.classification" filterable placeholder="请选择数据分类">
+                  <el-option v-for="classification in classifications" :key="classification.classificationName"
+                    :label="classification.classificationName" :value="classification.classificationName"></el-option>
+                </el-select>
               </el-form-item>
 
               <el-form-item label="数据量" prop="dataVolume">
@@ -109,19 +125,23 @@
               </el-form-item>
 
               <el-form-item label="数据量单位" prop="volumeUnit">
-                <el-input v-model="formData.volumeUnit" placeholder="请填写数据量单位"></el-input>
+                <el-select v-model="formData.volumeUnit" filterable placeholder="请选择数据量单位">
+                  <el-option v-for="volumeUnit in volumeUnits" :key="volumeUnit.volumeUnit"
+                    :label="volumeUnit.volumeUnit" :value="volumeUnit.volumeUnit"></el-option>
+                </el-select>
               </el-form-item>
             </div>
 
             <!-- 右侧表单 -->
             <div class="form-column">
               <el-form-item label="容量估算 (GB)" prop="estimatedCapacityGb">
-                <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"
-                  disabled></el-input>
+                <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"></el-input>
               </el-form-item>
 
               <el-form-item label="数据年份" prop="dataYear">
-                <el-input v-model="formData.dataYear" placeholder="请填写数据年份"></el-input>
+                <el-date-picker v-model="formData.dataYear" type="year" placeholder="请选择数据年份" format="YYYY"
+                  value-format="YYYY">
+                </el-date-picker>
               </el-form-item>
 
               <el-form-item label="来源归属地" prop="sourceLocation">
@@ -137,11 +157,12 @@
               </el-form-item>
 
               <el-form-item label="提供方联系方式" prop="providerContact">
-                <el-input v-model="formData.providerContact" placeholder="请填写数据提供方联系方式"></el-input>
+                <el-input v-model="formData.providerContact" placeholder="联系方式（手机号或座机号：区号-电话号码）">
+                </el-input>
               </el-form-item>
 
               <el-form-item label="备注说明">
-                <el-input v-model="formData.remarks" placeholder="请填写备注说明（选填）"></el-input>
+                <el-input v-model="formData.remarks" placeholder="请填写备注说明（选填）" type="textarea" :rows="3"></el-input>
               </el-form-item>
             </div>
           </div>
@@ -161,14 +182,6 @@
                   </div>
                 </el-upload>
               </div>
-
-              <!-- <div class="file-list">
-                <div v-for="(file, index) in fileList" :key="index" class="file-item">
-                  <div class="file-number">{{ index + 1 }}.</div>
-                  <div class="file-name">{{ file.name }}</div>
-                  <a class="delete-link" @click="removeFile(file)">删除</a>
-                </div>
-              </div> -->
             </div>
           </div>
 
@@ -184,16 +197,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, inject, onMounted } from 'vue'
+import { ref, reactive, inject, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
 import api from '../services/api'
+import corpus from '../assets/corpus.json'
+
 
 const router = useRouter()
 const uploadForm = ref(null)
 const isSubmitting = ref(false)
-
+const countries = corpus.countries.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+const domains = corpus.domains
+const classifications = corpus.classifications
+const volumeUnits = corpus.volumeUnits
+const dataFormats = corpus.dataFormats
 // 上传进度状态
 const uploadProgress = reactive({
   show: false,
@@ -249,7 +268,7 @@ const rules = {
     { required: true, message: '请填写数据量单位', trigger: 'blur' }
   ],
   estimatedCapacityGb: [
-    { required: true, message: '请填写容量估算', trigger: 'blur' }
+    { required: false, message: '请填写容量估算', trigger: 'blur' }
   ],
   dataYear: [
     { required: true, message: '请输入数据年份', trigger: 'blur' }
@@ -259,6 +278,29 @@ const rules = {
   ],
   dataSource: [
     { required: true, message: '请输入数据来源', trigger: 'blur' }
+  ],
+  provider: [
+    { required: true, message: '请输入数据提供方', trigger: 'blur' }
+  ],
+  providerContact: [
+    { required: true, message: '请输入数据提供方联系方式', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        // 匹配中国大陆手机号码 (11位数字，以1开头)
+        const mobilePattern = /^1[3-9]\d{9}$/;
+        // 匹配中国大陆座机号码 (区号3-4位数字 + 连接符可选 + 7-8位数字)
+        const landlinePattern = /^(0\d{2,3})-?(\d{7,8})$/;
+
+        if (!value) {
+          callback();
+        } else if (mobilePattern.test(value) || landlinePattern.test(value)) {
+          callback();
+        } else {
+          callback(new Error('请输入有效的手机号或座机号（座机格式：区号-电话号码）'));
+        }
+      },
+      trigger: 'blur'
+    }
   ]
 }
 
@@ -267,7 +309,7 @@ const formData = reactive({
   collectionName: '',
   domain: '',
   language: '',
-  dataFormat: '',
+  dataFormat: [],
   classification: '',
   dataVolume: null,
   volumeUnit: '',
@@ -278,6 +320,14 @@ const formData = reactive({
   provider: '',
   providerContact: '',
   remarks: ''
+})
+
+// 计算属性：将dataFormat数组转换为文本
+const dataFormatText = computed(() => {
+  if (Array.isArray(formData.dataFormat)) {
+    return formData.dataFormat.join('、');
+  }
+  return formData.dataFormat || '';
 })
 
 const fileList = ref([])
@@ -344,8 +394,11 @@ const saveForm = async () => {
     uploadProgress.status = '正在创建语料记录...'
     uploadProgress.completed = false
 
+    // 创建提交数据副本，将dataFormat转换为文本
+    const submitData = { ...formData, dataFormat: dataFormatText.value }
+
     // 第一步：创建语料记录
-    const corpusResponse = await api.post('/corpus', formData)
+    const corpusResponse = await api.post('/corpus', submitData)
 
     if (!corpusResponse.data) {
       throw new Error('创建语料失败')
@@ -468,8 +521,11 @@ const saveAndCreate = async () => {
     uploadProgress.completed = false
     uploadProgress.title = '上传并新增...'
 
+    // 创建提交数据副本，将dataFormat转换为文本
+    const submitData = { ...formData, dataFormat: dataFormatText.value }
+
     // 第一步：创建语料记录
-    const corpusResponse = await api.post('/corpus', formData)
+    const corpusResponse = await api.post('/corpus', submitData)
 
     if (!corpusResponse.data) {
       throw new Error('创建语料失败')

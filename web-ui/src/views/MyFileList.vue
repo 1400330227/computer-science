@@ -106,7 +106,6 @@ const handleDeleteFile = async (fileId) => {
 };
 
 function getFileDownloadUrl(fileEntity) {
-    debugger
     return `/api/files/${fileEntity.fileId}/download`;
 };
 

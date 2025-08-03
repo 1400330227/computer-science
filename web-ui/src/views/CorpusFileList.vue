@@ -138,7 +138,6 @@ function goToUpload() {
 
 // 计算下载URL
 function getDownloadUrl(corpus) {
-  debugger
   return `/api/corpus/download/${corpus.corpusId}`;
 }
 
