@@ -40,6 +40,9 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
         
         LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(FileEntity::getCorpusId, corpusId);
+        queryWrapper.inSql(FileEntity::getFileId,
+                "SELECT MAX(file_id) FROM files WHERE corpus_id = " + corpusId + " GROUP BY file_path"
+        );
         queryWrapper.orderByDesc(FileEntity::getCreatedAt);
         
         return list(queryWrapper);

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { getUserFiles, deleteUserFile, getFileDownloadUrl } from '@/services/files';
+import { getUserFiles, deleteUserFile } from '@/services/files';
 import { useBreadcrumbStore } from '@/stores/breadcrumb';
 
 // 面包屑配置
@@ -105,26 +105,16 @@ const handleDeleteFile = async (fileId) => {
     }
 };
 
-// 下载文件
-const handleDownloadFile = (file) => {
-    try {
-        // 获取文件下载URL
-        const downloadUrl = getFileDownloadUrl(file.fileId);
-
-        // 创建一个隐藏的a标签并触发下载
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.setAttribute('download', file.fileName);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        ElMessage.success('文件下载已开始');
-    } catch (error) {
-        console.error('下载文件失败:', error);
-        ElMessage.error('下载文件失败，请稍后重试');
-    }
+function getFileDownloadUrl(fileEntity) {
+    debugger
+    return `/api/files/${fileEntity.fileId}/download`;
 };
+
+// 下载文件
+function showDownloadMessage(row) {
+    // 不使用 event.preventDefault()，让 <a> 标签的默认下载行为正常执行
+    ElMessage.success(`正在下载文件: ${row.fileName}`);
+}
 
 // 处理分页变化
 const handlePageChange = (page) => {
@@ -160,6 +150,7 @@ onMounted(() => {
                 </el-table-column>
 
                 <el-table-column label="文件类型" prop="fileType" width="120" />
+                <el-table-column label="文件大小GB" prop="size" />
 
                 <el-table-column label="创建时间" width="180">
                     <template #default="scope">
@@ -167,18 +158,18 @@ onMounted(() => {
                     </template>
                 </el-table-column>
 
-                <el-table-column label="更新时间" width="180">
+                <!-- <el-table-column label="更新时间" width="180">
                     <template #default="scope">
                         {{ formatDateTime(scope.row.updatedAt) }}
                     </template>
-                </el-table-column>
+                </el-table-column> -->
 
                 <el-table-column label="操作" width="200" fixed="right">
-                    <template #default="scope">
-                        <el-button link type="primary" @click="handleDownloadFile(scope.row)">
+                    <template #default="{ row }">
+                        <a :href="getFileDownloadUrl(row)" class="download-link" @click="showDownloadMessage(row)"
+                            download>
                             下载
-                        </el-button>
-
+                        </a>
                     </template>
                 </el-table-column>
             </el-table>
@@ -227,5 +218,22 @@ onMounted(() => {
     margin-top: 20px;
     display: flex;
     justify-content: center;
+}
+
+.download-link {
+    display: inline-block;
+    padding: 0;
+    margin-right: 15px;
+    color: #4169e1;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    border: none;
+    background: none;
+}
+
+.download-link:hover {
+    color: #66b1ff;
 }
 </style>

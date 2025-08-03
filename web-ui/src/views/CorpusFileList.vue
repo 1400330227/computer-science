@@ -20,18 +20,14 @@
         <el-table-column prop="dataFormat" label="数据形式" />
         <el-table-column prop="classification" label="数据分类" />
         <el-table-column prop="dataYear" label="数据年份" />
-        <el-table-column prop="sourceLocation" label="来源归属地" min-width="100" />
-        <el-table-column prop="dataSource" label="数据来源" />
-        <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip />
+        <!-- <el-table-column prop="sourceLocation" label="来源归属地" min-width="100" /> -->
+        <!-- <el-table-column prop="dataSource" label="数据来源" /> -->
+        <el-table-column prop="estimatedCapacityGb" label="容量估算GB" />
+        <!-- <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip /> -->
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <a
-              :href="getDownloadUrl(row)"
-              class="download-link"
-              @click="showDownloadMessage(row)"
-              title="下载语料"
-              download
-            >
+            <a :href="getDownloadUrl(row)" class="download-link" @click="showDownloadMessage(row)" title="下载语料"
+              download>
               下载
             </a>
             <el-button link type="primary" @click="viewDetails(row)">详情</el-button>
@@ -142,6 +138,7 @@ function goToUpload() {
 
 // 计算下载URL
 function getDownloadUrl(corpus) {
+  debugger
   return `/api/corpus/download/${corpus.corpusId}`;
 }
 

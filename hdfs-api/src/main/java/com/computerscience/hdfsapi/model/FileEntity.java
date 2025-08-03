@@ -39,6 +39,12 @@ public class FileEntity implements Serializable {
     private String filePath;
 
     /**
+     * 文件大小，以GB为单位
+     */
+    @TableField("size")
+    private String size;
+
+    /**
      * 文件创建者ID (外键关联users表)
      */
     @TableField("creator_id")

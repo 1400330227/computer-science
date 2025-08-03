@@ -167,12 +167,6 @@ public class CorpusController {
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
             System.out.println("用户对象: " + (currentUser != null ? currentUser.getAccount() : "null"));
-
-            if (currentUser == null) {
-                System.out.println("认证失败：用户未登录");
-                return ResponseEntity.status(401).body("用户未登录");
-            }
-
             System.out.println("认证成功，用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
 
             // 设置创建者ID
@@ -229,10 +223,6 @@ public class CorpusController {
         try {
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
-            if (currentUser == null) {
-                return ResponseEntity.status(401).body("用户未登录");
-            }
-
             // 验证语料库是否存在且属于当前用户
             Corpus corpus = corpusService.getById(corpusId);
             if (corpus == null) {
@@ -268,6 +258,11 @@ public class CorpusController {
             fileEntity.setCreatorId(currentUser.getUserId());
             fileEntity.setCorpusId(corpusId);
             fileEntity.setCreatedAt(LocalDateTime.now());
+            
+            // 设置文件大小，转换为GB并保留两位小数
+            double sizeInGB = (double) file.getSize() / (1024 * 1024 * 1024);
+            String formattedSize = String.format("%.2f", sizeInGB);
+            fileEntity.setSize(formattedSize);
 
             // 保存文件记录到数据库
             if (fileService.save(fileEntity)) {

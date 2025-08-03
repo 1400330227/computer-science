@@ -106,18 +106,9 @@ public class FileController {
             // 调试信息
             System.out.println("=== 下载文件 ===");
             System.out.println("请求的文件ID: " + id);
-
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
-            if (currentUser == null) {
-                System.out.println("认证失败：用户未登录");
-                response.setStatus(401);
-                response.getWriter().write("用户未登录");
-                return;
-            }
-
             System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
-
             // 查询文件
             FileEntity file = fileService.getById(id);
             if (file == null) {
@@ -161,14 +152,23 @@ public class FileController {
             response.setHeader("Pragma", "no-cache");
             response.setHeader("Expires", "0");
 
-            // 立刻刷新响应头到客户端
-            response.flushBuffer();
+//            // 立刻刷新响应头到客户端
+//            response.flushBuffer();
 
             System.out.println("开始从HDFS下载文件: " + file.getFilePath());
 
             // 从HDFS下载文件
             HdfsApi hdfsApi = new HdfsApi(conf, user);
-            hdfsApi.downLoadFile(file.getFilePath(), response, true);
+            String hdfsPath = file.getFilePath();
+            long fileSize = hdfsApi.getFileSize(hdfsPath);
+
+            if (fileSize < 0) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在: " + hdfsPath);
+                return;
+            }
+            response.setContentLengthLong(fileSize);
+
+            hdfsApi.downLoadFile(hdfsPath, response, true);
             hdfsApi.close();
 
             System.out.println("文件下载完成: " + fileName);

@@ -14,5 +14,5 @@ export const deleteUserFile = (fileId) => {
   
 // 获取文件下载URL
 export const getFileDownloadUrl = (fileId) => {
-  return `${api.defaults.baseURL}/files/download/${fileId}`;
+    return `${api.defaults.baseURL}/files/download/${fileId}`;
 };
