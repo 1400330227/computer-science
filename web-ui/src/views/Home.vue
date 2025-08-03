@@ -1,10 +1,11 @@
 <script setup>
 import { RouterView, useRouter } from 'vue-router'
-import { ref, provide, onMounted } from 'vue'
+import { ref, provide, onMounted, onUnmounted } from 'vue'
 import BreadcrumbNav from '../components/BreadcrumbNav.vue'
 import { useBreadcrumbStore } from '../stores/breadcrumb'
 import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import heartbeatService from '@/services/heartbeat'
 
 
 const router = useRouter()
@@ -29,6 +30,18 @@ const handleSelect = (key, keyPath) => {
 // 页面加载时恢复用户信息
 onMounted(() => {
   userStore.restoreFromStorage()
+  
+  // 启动心跳检测服务
+  if (userStore.isAuthenticated) {
+    heartbeatService.start()
+    console.log('🔄 主页面已启动心跳检测')
+  }
+})
+
+// 组件卸载时停止心跳检测
+onUnmounted(() => {
+  heartbeatService.stop()
+  console.log('🛑 主页面已停止心跳检测')
 })
 
 // 登出功能
@@ -44,6 +57,9 @@ const handleLogout = async () => {
       }
     )
 
+    // 停止心跳检测
+    heartbeatService.stop()
+    
     // 使用 store 清除用户信息
     userStore.logout()
 

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.computerscience.hdfsapi.model.User;
 import com.computerscience.hdfsapi.service.UserService;
 import com.computerscience.hdfsapi.service.CryptoService;
+import com.computerscience.hdfsapi.service.SessionManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Cookie;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 用户控制器
@@ -28,6 +31,11 @@ public class UserController {
     
     @Autowired
     private CryptoService cryptoService;
+    
+    @Autowired
+    private SessionManagementService sessionManagementService;
+    
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     /**
      * 根据ID查询用户
@@ -240,6 +248,12 @@ public class UserController {
         // 登录成功，将用户ID存储到Session中
         HttpSession session = request.getSession(true);
         session.setAttribute("currentUser", user.getUserId());
+        
+        // 处理单点登录控制
+        boolean kickedOldSession = sessionManagementService.handleUserLogin(user.getUserId(), session);
+        if (kickedOldSession) {
+            System.out.println("用户 " + user.getAccount() + " 的旧会话已被踢出");
+        }
 
         // 如果所有验证都通过，准备返回给前端的用户信息
         // 使用Map来组织返回的数据，就像一个信息盒子
@@ -264,6 +278,16 @@ public class UserController {
     public ResponseEntity<?> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
+            // 获取用户ID用于清理session映射
+            Integer userId = (Integer) session.getAttribute("currentUser");
+            String sessionId = session.getId();
+            
+            // 清理session管理服务中的映射
+            if (userId != null) {
+                sessionManagementService.handleUserLogout(userId, sessionId);
+            }
+            
+            // 销毁session
             session.invalidate();
         }
         
@@ -272,5 +296,150 @@ public class UserController {
         responseMap.put("message", "已成功登出");
         
         return ResponseEntity.ok(responseMap);
+    }
+    
+    /**
+     * 获取系统在线用户统计信息（管理员接口）
+     */
+    @GetMapping("/online-stats")
+    public ResponseEntity<?> getOnlineStats(HttpServletRequest request) {
+        // 检查当前用户是否为管理员
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
+        
+        Integer currentUserId = (Integer) session.getAttribute("currentUser");
+        if (currentUserId == null) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
+        
+        // 获取当前用户信息
+        User currentUser = userService.getById(currentUserId);
+        if (currentUser == null || !"admin".equals(currentUser.getUserType())) {
+            return ResponseEntity.status(403).body("权限不足，仅管理员可访问");
+        }
+        
+        // 获取在线统计信息
+        int onlineUserCount = sessionManagementService.getOnlineUserCount();
+        
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("onlineUserCount", onlineUserCount);
+        stats.put("timestamp", System.currentTimeMillis());
+        stats.put("message", "在线用户统计");
+        
+        return ResponseEntity.ok(stats);
+    }
+    
+    /**
+     * 强制踢出指定用户（管理员接口）
+     */
+    @PostMapping("/kick-user/{userId}")
+    public ResponseEntity<?> kickUser(@PathVariable Integer userId, HttpServletRequest request) {
+        // 检查当前用户是否为管理员
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
+        
+        Integer currentUserId = (Integer) session.getAttribute("currentUser");
+        if (currentUserId == null) {
+            return ResponseEntity.status(401).body("用户未登录");
+        }
+        
+        // 获取当前用户信息
+        User currentUser = userService.getById(currentUserId);
+        if (currentUser == null || !"admin".equals(currentUser.getUserType())) {
+            return ResponseEntity.status(403).body("权限不足，仅管理员可访问");
+        }
+        
+        // 不能踢出自己
+        if (userId.equals(currentUserId)) {
+            return ResponseEntity.badRequest().body("不能踢出自己");
+        }
+        
+        // 获取目标用户的session ID
+        String sessionId = sessionManagementService.getCurrentSessionId(userId);
+        if (sessionId == null) {
+            return ResponseEntity.badRequest().body("目标用户当前未登录");
+        }
+        
+        // 强制登出目标用户
+        sessionManagementService.handleUserLogout(userId, sessionId);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "用户已被强制下线");
+        response.put("kickedUserId", userId);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 心跳检测接口 - 检查当前会话是否有效
+     * 用于前端定期检查是否被踢出
+     */
+    @GetMapping("/heartbeat")
+    public ResponseEntity<?> heartbeat(HttpServletRequest request) {
+        try {
+            HttpSession session = request.getSession(false);
+            
+            if (session == null) {
+                return ResponseEntity.status(401).body("会话不存在");
+            }
+            
+            Integer userId = (Integer) session.getAttribute("currentUser");
+            if (userId == null) {
+                return ResponseEntity.status(401).body("用户未登录");
+            }
+            
+            // 检查session是否被踢出
+            if (!sessionManagementService.isSessionValid(session)) {
+                String sessionId = session.getId();
+                
+                // 从SessionManagementService获取踢出原因
+                String kickReason = sessionManagementService.getKickReason(sessionId);
+                if (kickReason == null) {
+                    // 尝试从session获取（兼容处理）
+                    try {
+                        kickReason = (String) session.getAttribute("kick_reason");
+                    } catch (Exception e) {
+                        // 忽略异常
+                    }
+                    
+                    if (kickReason == null) {
+                        kickReason = "您的账号在其他地方登录，当前会话已被强制下线";
+                    }
+                }
+                
+                // 清理踢出记录（避免内存泄漏）
+                sessionManagementService.clearKickRecord(sessionId);
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("code", "SESSION_KICKED_OUT");
+                response.put("message", kickReason);
+                response.put("timestamp", System.currentTimeMillis());
+                
+                return ResponseEntity.status(401).body(response);
+            }
+            
+            // 会话有效
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "会话有效");
+            response.put("userId", userId);
+            response.put("timestamp", System.currentTimeMillis());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("心跳检测异常", e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "心跳检测失败");
+            
+            return ResponseEntity.status(500).body(response);
+        }
     }
 } 
