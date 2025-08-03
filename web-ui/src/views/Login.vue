@@ -77,6 +77,7 @@ import { useRouter } from 'vue-router'  // 路由跳转功能
 import { ElMessage } from 'element-plus'  // Element Plus 的消息提示组件
 import { useUserStore } from '@/stores/user'  // 用户状态管理
 import { JSEncrypt } from 'jsencrypt'  // RSA加密库
+import heartbeatService from '@/services/heartbeat'  // 心跳检测服务
 
 // ======= 响应式数据定义 =======
 const router = useRouter()  // 创建路由对象，用于页面跳转
@@ -247,6 +248,10 @@ const handleLogin = async () => {
 
     // 显示登录成功的消息
     ElMessage.success(`登录成功！欢迎您，${userData.account}`)
+
+    // 启动心跳检测服务
+    heartbeatService.start()
+    console.log('🔄 登录成功，已启动心跳检测')
 
     // 跳转到首页
     router.push({ name: 'dashboard' })
