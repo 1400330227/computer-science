@@ -53,7 +53,7 @@
               <strong>数据分类：</strong>包括：基础语料、预训练语料、SFT语料、强化学习语料、平行语料、价值观语料、ASR语料、TTS语料，其中除原始语料之外的都属于加工语料。
             </p>
             <p class="info-text">
-              <strong>数据量：</strong>对应的数据量数字表述
+              <strong>数据量：</strong>对应的数据量数字表述,如1000
             </p>
             <p class="info-text">
               <strong>数据量单位：</strong>对应的数据量表述单位，如GB、条、份、本、小时、篇等
@@ -135,8 +135,8 @@
                 <el-input v-model="formData.provider" placeholder="请填写数据提供方"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据提供方联系方式" prop="providerContact">
-                <el-input v-model="formData.providerContact" placeholder="请填写联系方式"></el-input>
+              <el-form-item label="提供方联系方式" prop="providerContact">
+                <el-input v-model="formData.providerContact" placeholder="请填写数据提供方联系方式"></el-input>
               </el-form-item>
 
               <el-form-item label="备注说明">
@@ -161,13 +161,13 @@
                 </el-upload>
               </div>
 
-              <div class="file-list">
+              <!-- <div class="file-list">
                 <div v-for="(file, index) in fileList" :key="index" class="file-item">
                   <div class="file-number">{{ index + 1 }}.</div>
                   <div class="file-name">{{ file.name }}</div>
                   <a class="delete-link" @click="removeFile(file)">删除</a>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
 
@@ -302,6 +302,18 @@ const handleFileChange = (file, uploadFileList) => {
     size: uploadFile.size,
     raw: uploadFile.raw  // 保存原始文件对象，用于后续上传
   }))
+
+  // 计算所有文件的总大小（以GB为单位）
+  let totalSizeInBytes = 0
+  uploadFileList.forEach(file => {
+    totalSizeInBytes += file.size
+  })
+
+  // 转换为GB并保留2位小数
+  const totalSizeInGB = (totalSizeInBytes / (1024 * 1024 * 1024)).toFixed(2)
+
+  // 自动填充容量估算字段
+  formData.estimatedCapacityGb = totalSizeInGB
 }
 
 // 移除文件
