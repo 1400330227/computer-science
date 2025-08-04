@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
 import com.computerscience.hdfsapi.OP;
 import com.computerscience.hdfsapi.api.HdfsApi;

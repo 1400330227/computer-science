@@ -15,7 +15,7 @@ import org.apache.hadoop.fs.PathFilter;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
 import java.util.List;
 

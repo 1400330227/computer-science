@@ -13,8 +13,14 @@
     <description>Hadoop Distributed File System integration</description>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>11</java.version>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
+
+<!--    <properties>-->
+
+<!--    </properties>-->
 
     <dependencies>
         <!-- 现在不需要exclusions了，由父pom统一管理 -->
@@ -58,7 +64,7 @@
         <!-- 引入 MyBatis-Plus Starter 依赖 -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>3.5.12</version>
         </dependency>
 

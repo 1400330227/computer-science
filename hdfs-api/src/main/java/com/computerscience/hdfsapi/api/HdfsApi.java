@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import jakarta.servlet.http.HttpServletResponse;
 
 import com.computerscience.hdfsapi.HdfsApiException;
 import com.computerscience.hdfsapi.model.HDFSFileStatus;
@@ -39,6 +38,8 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * HDFS Java API fs文件系统API类

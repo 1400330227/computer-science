@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.servlet.http.HttpSession;
+import javax.servlet.http.HttpSession;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 

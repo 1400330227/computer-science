@@ -30,7 +30,7 @@ const handleSelect = (key, keyPath) => {
 // 页面加载时恢复用户信息
 onMounted(() => {
   userStore.restoreFromStorage()
-  
+
   // 启动心跳检测服务
   if (userStore.isAuthenticated) {
     heartbeatService.start()
@@ -59,7 +59,7 @@ const handleLogout = async () => {
 
     // 停止心跳检测
     heartbeatService.stop()
-    
+
     // 使用 store 清除用户信息
     userStore.logout()
 
@@ -87,8 +87,8 @@ const handleLogout = async () => {
           <el-menu-item index="/file-upload">上传语料集</el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/my-files" class="nav-item">我的文件</el-menu-item>
-        <el-menu-item index="3" class="nav-item">用户</el-menu-item>
-        <el-menu-item index="4" class="nav-item">权限管理</el-menu-item>
+        <!-- <el-menu-item index="3" class="nav-item">用户</el-menu-item> -->
+        <!-- <el-menu-item index="4" class="nav-item">权限管理</el-menu-item> -->
       </el-menu>
       <!-- 添加平台标题 -->
       <div class="platform-title">广西大学东盟语料收集与管理平台</div>

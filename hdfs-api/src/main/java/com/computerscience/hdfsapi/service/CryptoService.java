@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
