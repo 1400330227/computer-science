@@ -1,5 +1,6 @@
 package com.computerscience.hdfsapi.config;
 
+import com.computerscience.hdfsapi.interceptor.AdminAuthInterceptor;
 import com.computerscience.hdfsapi.interceptor.AuthInterceptor;
 import com.computerscience.hdfsapi.interceptor.SessionValidationInterceptor;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +15,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     private final AuthInterceptor authInterceptor;
     private final SessionValidationInterceptor sessionValidationInterceptor;
+    private final AdminAuthInterceptor adminAuthInterceptor;
 
-    public WebMvcConfig(AuthInterceptor authInterceptor, SessionValidationInterceptor sessionValidationInterceptor) {
+    public WebMvcConfig(AuthInterceptor authInterceptor, SessionValidationInterceptor sessionValidationInterceptor, AdminAuthInterceptor adminAuthInterceptor) {
         this.authInterceptor = authInterceptor;
         this.sessionValidationInterceptor = sessionValidationInterceptor;
+        this.adminAuthInterceptor = adminAuthInterceptor;
     }
 
     @Override
@@ -53,7 +56,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/js/**",         // JS资源不拦截
                         "/css/**",        // CSS资源不拦截
                         "/images/**",     // 图片资源不拦截
-                        "/error"          // 错误页面不拦截
+                        "/error",         // 错误页面不拦截
+                        "/admin/**"       // 管理员API由专门的拦截器处理
                 );
+
+        // 最后添加管理员权限拦截器，只拦截管理员API路径
+        registry.addInterceptor(adminAuthInterceptor)
+                .addPathPatterns("/admin/**");  // 修正拦截路径
     }
 } 

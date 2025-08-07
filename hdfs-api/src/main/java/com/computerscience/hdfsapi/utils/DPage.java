@@ -1,151 +1,76 @@
 package com.computerscience.hdfsapi.utils;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.computerscience.hdfsapi.model.HDFSFileStatus;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * 对List集合进行分页  == 使用subList对list对象进行切割
- * @author yukun24@126.com
- * @blob   http://blog.csdn.net/appleyk
- * @date   2018年6月29日-下午3:13:36
+ * 通用分页工具类
  * @param <T>
  */
 public class DPage<T> {
 
-	//当前页
-	private Integer pageNum;
-	//总记录数
-	private Integer total;
-	//总页数
-	private Integer pages;
-	
-	//当前页显示多少条记录
-	@JsonIgnore
-	private Integer pageSize;
-	
-	private List<T> list;
-	
-	public DPage(List<T> list,Integer pageNum,Integer pageSize){
-	
-		this.pageNum  = pageNum;
-		this.pageSize = pageSize;
-		this.total = list.size();
-		
-		//总记录数和每页显示的记录之间是否可以凑成整数（pages）
-		boolean full = total % pageSize == 0;
-			
-		//分页 == 根据pageSize（每页显示的记录数）计算pages
-		if(!full){
-			//如果凑不成整数
-			this.pages = total/pageSize + 1;
-		}else{
-			//如果凑成整数
-			this.pages = total/pageSize;
-		}
-		
-		int fromIndex = 0;
-		int toIndex   = 0;
-		fromIndex = pageNum*pageSize-pageSize;
-		if(pageNum == 0){
-			throw new ArithmeticException("第0页无法展示");
-		}else if(pageNum>pages){
-			//如果查询的页码数大于总的页码数，list设置为[]
-			list = new ArrayList<>();
-		}else if(pageNum == pages){
-			//如果查询的当前页等于总页数，直接索引到total处
-			toIndex = total;
-		}else{		
-			//如果查询的页码数小于总页数，不用担心切割List的时候toIndex索引会越界，直接等
-			toIndex   = pageNum*pageSize;			
-		}	
-		
-		if(list.size() == 0){
-			this.list = list;
-		}else{
-			this.list = list.subList(fromIndex, toIndex);
-		}
-		
-	}
-	 
+    private Integer pageNum;  // 当前页
+    private Integer total;    // 总记录数
+    private Integer pages;    // 总页数
+    private List<T> list;     // 当前页数据
 
-	
-	public Integer getPageNum() {
-		return pageNum;
-	}
+    @JsonIgnore
+    private Integer pageSize; // 每页显示条数
 
+    /**
+     * 用于接收已经由数据库分页好的数据
+     * @param list  已经分页的列表
+     * @param total 总记录数
+     * @param pageNum 当前页码
+     * @param pageSize 每页数量
+     */
+    public DPage(List<T> list, long total, int pageNum, int pageSize) {
+        this.list = list;
+        this.total = (int) total;
+        this.pageNum = pageNum;
+        this.pageSize = pageSize;
+        this.pages = (int) Math.ceil((double) total / pageSize);
+    }
 
-	public void setPageNum(Integer pageNum) {
-		this.pageNum = pageNum;
-	}
+    /**
+     * 用于对一个完整的List在内存中进行分页
+     * @param list 未分页的完整列表
+     * @param pageNum 当前页码
+     * @param pageSize 每页数量
+     */
+    public DPage(List<T> list, Integer pageNum, Integer pageSize) {
+        if (list == null) {
+            list = new ArrayList<>();
+        }
+        this.pageNum = pageNum;
+        this.pageSize = pageSize;
+        this.total = list.size();
+        this.pages = (int) Math.ceil((double) total / pageSize);
 
+        int fromIndex = (pageNum - 1) * pageSize;
+        int toIndex = pageNum * pageSize;
 
-	public Integer getTotal() {
-		return total;
-	}
+        if (fromIndex >= list.size()) {
+            this.list = new ArrayList<>();
+        } else {
+            if (toIndex > list.size()) {
+                toIndex = list.size();
+            }
+            this.list = list.subList(fromIndex, toIndex);
+        }
+    }
 
-
-	public void setTotal(Integer total) {
-		this.total = total;
-	}
-
-
-	public Integer getPages() {
-		return pages;
-	}
-
-
-	public void setPages(Integer pages) {
-		this.pages = pages;
-	}
-
-
-	public Integer getPageSize() {
-		return pageSize;
-	}
-
-
-	public void setPageSize(Integer pageSize) {
-		this.pageSize = pageSize;
-	}
-
-
-	public List<T> getList() {
-		return list;
-	}
-
-
-	public void setList(List<T> list) {
-		this.list = list;
-	}
-
-
-
-
-	public static void main(String[] args) throws Exception{
-		
-		ObjectMapper mapper = new ObjectMapper();
-		List<HDFSFileStatus> data = new ArrayList<>();
-		HDFSFileStatus model1 = new HDFSFileStatus();
-		model1.setPath("A");
-		HDFSFileStatus model2 = new HDFSFileStatus();
-		model2.setPath("B");
-		HDFSFileStatus model3 = new HDFSFileStatus();
-		model3.setPath("C");
-		HDFSFileStatus model4 = new HDFSFileStatus();
-		model4.setPath("D");
-		HDFSFileStatus model5 = new HDFSFileStatus();
-		model5.setPath("E");
-		HDFSFileStatus model6 = new HDFSFileStatus();
-		model6.setPath("F");
-		data.add(model1);data.add(model2);data.add(model3);data.add(model4);data.add(model5);data.add(model6);
-		int pageNum = 13;
-		int pageSize = 2; 
-		System.out.println("pageNum: "+pageNum+",pageSize : "+pageSize);
-		DPage<HDFSFileStatus> page = new DPage<>(data,pageNum, pageSize);
-		System.out.println(mapper.writeValueAsString(page));
-	} 
-}
+    // Getters and Setters
+    public Integer getPageNum() { return pageNum; }
+    public void setPageNum(Integer pageNum) { this.pageNum = pageNum; }
+    public Integer getTotal() { return total; }
+    public void setTotal(Integer total) { this.total = total; }
+    public Integer getPages() { return pages; }
+    public void setPages(Integer pages) { this.pages = pages; }
+    public List<T> getList() { return list; }
+    public void setList(List<T> list) { this.list = list; }
+    public Integer getPageSize() { return pageSize; }
+    public void setPageSize(Integer pageSize) { this.pageSize = pageSize; }
+} 

@@ -52,6 +52,18 @@ const router = createRouter({
           name: 'my-files',
           component: () => import('../views/MyFileList.vue'),
           meta: { requiresAuth: true }
+        },
+        {
+          path: '/user-management',
+          name: 'user-management',
+          component: () => import('../views/UserManagement.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
+        },
+        {
+          path: '/corpus-management',
+          name: 'corpus-management',
+          component: () => import('../views/CorpusManagement.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true }
         }
       ]
     },
@@ -76,6 +88,13 @@ router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !userStore.isAuthenticated) {
     next({ name: 'login' })
     return
+  }
+
+  // 如果路由需要管理员权限但用户不是管理员，重定向到首页
+  if (to.meta.requiresAdmin && userStore.user?.userType !== 'admin') {
+    alert('You do not have permission to access this page.');
+    next({ name: 'home' });
+    return;
   }
 
   // 如果路由需要游客状态（如登录页）且用户已登录，重定向到首页

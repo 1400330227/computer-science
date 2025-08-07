@@ -87,8 +87,14 @@ const handleLogout = async () => {
           <el-menu-item index="/file-upload">上传语料集</el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/my-files" class="nav-item">我的文件</el-menu-item>
-        <!-- <el-menu-item index="3" class="nav-item">用户</el-menu-item> -->
-        <!-- <el-menu-item index="4" class="nav-item">权限管理</el-menu-item> -->
+        
+        <!-- Admin Menu -->
+        <el-sub-menu index="admin" class="nav-item" v-if="userStore.user?.userType === 'admin'">
+          <template #title>后台管理</template>
+          <el-menu-item index="/user-management">用户管理</el-menu-item>
+          <el-menu-item index="/corpus-management">语料库管理</el-menu-item>
+        </el-sub-menu>
+
       </el-menu>
       <!-- 添加平台标题 -->
       <div class="platform-title">广西大学东盟语料收集与管理平台</div>

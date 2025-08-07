@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.computerscience.hdfsapi.model.Corpus;
 
+import java.util.List;
+
 /**
  * 语料库服务接口
  */
@@ -37,6 +39,24 @@ public interface CorpusService extends IService<Corpus> {
      */
     IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification);
     
+    /**
+     * [Admin] 分页查询所有语料库
+     * @param page 页码
+     * @param size 每页大小
+     * @param collectionName 语料库名称（可选）
+     * @param creatorId 用户ID（可选）
+     * @return 分页语料库列表
+     */
+    IPage<Corpus> findCorpusPageForAdmin(Integer page, Integer size, String collectionName, Integer creatorId);
+
+    /**
+     * [Admin] 转移语料库所有权
+     * @param corpusIds 语料库ID列表
+     * @param targetUserId 目标用户ID
+     * @return 是否转移成功
+     */
+    boolean transferCorpusOwnership(List<Integer> corpusIds, Integer targetUserId);
+
     /**
      * 创建语料库
      * @param corpus 语料库信息

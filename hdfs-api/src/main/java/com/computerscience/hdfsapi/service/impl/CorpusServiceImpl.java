@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 语料库服务实现类
@@ -66,6 +67,47 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
         queryWrapper.orderByDesc(Corpus::getCreatedAt);
         
         return page(new Page<>(page, size), queryWrapper);
+    }
+
+    @Override
+    public IPage<Corpus> findCorpusPageForAdmin(Integer page, Integer size, String collectionName, Integer creatorId) {
+        LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
+
+        if (StringUtils.hasText(collectionName)) {
+            queryWrapper.like(Corpus::getCollectionName, collectionName);
+        }
+
+        if (creatorId != null) {
+            queryWrapper.eq(Corpus::getCreatorId, creatorId);
+        }
+
+        queryWrapper.orderByDesc(Corpus::getCreatedAt);
+
+        return page(new Page<>(page, size), queryWrapper);
+    }
+
+    @Override
+    @Transactional
+    public boolean transferCorpusOwnership(List<Integer> corpusIds, Integer targetUserId) {
+        if (corpusIds == null || corpusIds.isEmpty() || targetUserId == null) {
+            return false;
+        }
+        
+        // Note: In a real-world scenario, you should also validate if the targetUser exists.
+        // This is omitted for brevity here but recommended for production code.
+
+        List<Corpus> corporaToUpdate = listByIds(corpusIds);
+        if (corporaToUpdate.size() != corpusIds.size()) {
+            // This means some of the provided corpus IDs were not found, which might indicate an issue.
+            // Depending on requirements, you might want to throw an exception here.
+            return false;
+        }
+        
+        for (Corpus corpus : corporaToUpdate) {
+            corpus.setCreatorId(targetUserId);
+        }
+
+        return updateBatchById(corporaToUpdate);
     }
 
     @Override

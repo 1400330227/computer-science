@@ -27,8 +27,16 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+        System.out.println("=== AuthInterceptor 调试 ===");
+        System.out.println("请求路径: " + request.getRequestURI());
+        System.out.println("请求方法: " + request.getMethod());
+        
         // 检查用户是否已登录
-        if (!UserContext.isUserLoggedIn()) {
+        boolean isLoggedIn = UserContext.isUserLoggedIn();
+        System.out.println("用户是否已登录: " + isLoggedIn);
+        
+        if (!isLoggedIn) {
+            System.out.println("AuthInterceptor: 用户未登录，拒绝访问");
             // 判断是否是AJAX请求
             if (isAjaxRequest(request)) {
                 // 对于AJAX请求，返回JSON格式的未授权错误
@@ -48,6 +56,8 @@ public class AuthInterceptor implements HandlerInterceptor {
             return false;
         }
         
+        System.out.println("AuthInterceptor: 验证通过，继续处理");
+        System.out.println("==============================");
         return true;
     }
     
