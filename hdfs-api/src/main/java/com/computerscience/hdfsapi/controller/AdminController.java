@@ -74,6 +74,11 @@ public class AdminController {
             String collectionName = params.get("collectionName");
             String creatorAccount = params.get("creatorAccount");
             
+            System.out.println("=== 语料查询调试 ===");
+            System.out.println("页码: " + page + ", 大小: " + size);
+            System.out.println("语料名称: " + collectionName);
+            System.out.println("创建者账号: " + creatorAccount);
+            
             LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
             
             if (StringUtils.hasText(collectionName)) {
@@ -105,6 +110,7 @@ public class AdminController {
             queryWrapper.orderByDesc(Corpus::getCreatedAt);
 
             IPage<Corpus> corpusPage = corpusService.page(new Page<>(page, size), queryWrapper);
+            System.out.println("查询到的语料数量: " + corpusPage.getRecords().size());
             
             // 获取所有相关用户信息
             Set<Integer> creatorIdSet = new HashSet<>();
@@ -112,11 +118,16 @@ public class AdminController {
                 creatorIdSet.add(corpus.getCreatorId());
             }
             List<Integer> creatorIds = new ArrayList<>(creatorIdSet);
+            System.out.println("需要查询的用户ID: " + creatorIds);
             
             Map<Integer, User> userMap = new HashMap<>();
-            List<User> users = userService.listByIds(creatorIds);
-            for (User user : users) {
-                userMap.put(user.getUserId(), user);
+            // 只有当creatorIds不为空时才查询用户信息
+            if (!creatorIds.isEmpty()) {
+                List<User> users = userService.listByIds(creatorIds);
+                System.out.println("查询到的用户数量: " + users.size());
+                for (User user : users) {
+                    userMap.put(user.getUserId(), user);
+                }
             }
             
             // 转换为包含用户信息的DTO
@@ -157,8 +168,12 @@ public class AdminController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", result);
+            System.out.println("语料查询成功，返回 " + result.getList().size() + " 条记录");
+            System.out.println("===================");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            System.out.println("语料查询异常: " + e.getMessage());
+            e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "获取语料列表失败: " + e.getMessage());
