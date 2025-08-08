@@ -53,4 +53,16 @@ export const transferCorpus = (corpusIds, targetUserId) => {
   return handleApiResponse(
     api.post('/admin/corpus/transfer', { corpusIds, targetUserId })
   );
+};
+
+/**
+ * Updates a user's role (user type).
+ * @param {number} userId - The user ID.
+ * @param {string} userType - The new user type ('user' or 'admin').
+ * @returns {Promise}
+ */
+export const updateUserRole = (userId, userType) => {
+  return handleApiResponse(
+    api.post(`/admin/users/${userId}/update-role`, { userType })
+  );
 }; 

@@ -8,6 +8,7 @@ import com.computerscience.hdfsapi.model.User;
 import com.computerscience.hdfsapi.service.CorpusService;
 import com.computerscience.hdfsapi.service.UserService;
 import com.computerscience.hdfsapi.utils.DPage;
+import com.computerscience.hdfsapi.utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -240,6 +241,75 @@ public class AdminController {
         }
     }
 
+    @PostMapping("/users/{userId}/update-role")
+    public ResponseEntity<Map<String, Object>> updateUserRole(@PathVariable Integer userId, @RequestBody UpdateUserRoleRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (userId == null || request.getUserType() == null) {
+                response.put("success", false);
+                response.put("message", "用户ID和用户类型不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 验证用户类型值
+            if (!"user".equals(request.getUserType()) && !"admin".equals(request.getUserType())) {
+                response.put("success", false);
+                response.put("message", "用户类型只能是 'user' 或 'admin'");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 获取要修改的用户
+            User targetUser = userService.getById(userId);
+            if (targetUser == null) {
+                response.put("success", false);
+                response.put("message", "用户不存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // 防止管理员取消自己的管理员权限（至少保留一个管理员）
+            User currentUser = UserContext.getCurrentUser();
+            if (currentUser != null && currentUser.getUserId().equals(userId) && "user".equals(request.getUserType())) {
+                // 检查是否还有其他管理员
+                LambdaQueryWrapper<User> adminQuery = new LambdaQueryWrapper<>();
+                adminQuery.eq(User::getUserType, "admin");
+                adminQuery.ne(User::getUserId, userId);
+                long adminCount = userService.count(adminQuery);
+                
+                if (adminCount == 0) {
+                    response.put("success", false);
+                    response.put("message", "不能取消最后一个管理员的权限");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            }
+            
+            // 更新用户权限
+            String oldUserType = targetUser.getUserType();
+            targetUser.setUserType(request.getUserType());
+            boolean success = userService.updateById(targetUser);
+            
+            if (success) {
+                response.put("success", true);
+                response.put("message", "用户权限修改成功");
+                Map<String, Object> data = new HashMap<>();
+                data.put("userId", userId);
+                data.put("account", targetUser.getAccount());
+                data.put("oldUserType", oldUserType);
+                data.put("newUserType", request.getUserType());
+                response.put("data", data);
+            } else {
+                response.put("success", false);
+                response.put("message", "用户权限修改失败");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "修改用户权限时发生错误: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
     // DTO类用于返回包含用户信息的语料数据
     public static class CorpusWithUserInfo {
         private Integer corpusId;
@@ -339,5 +409,13 @@ public class AdminController {
         public void setCorpusIds(List<Integer> corpusIds) { this.corpusIds = corpusIds; }
         public Integer getTargetUserId() { return targetUserId; }
         public void setTargetUserId(Integer targetUserId) { this.targetUserId = targetUserId; }
+    }
+
+    // 修改用户权限请求类
+    public static class UpdateUserRoleRequest {
+        private String userType;
+
+        public String getUserType() { return userType; }
+        public void setUserType(String userType) { this.userType = userType; }
     }
 } 

@@ -43,11 +43,17 @@
           </template>
         </el-table-column>
         <el-table-column prop="nickname" label="昵称" min-width="100" />
-        <el-table-column prop="userType" label="用户类型" width="100" align="center">
+        <el-table-column prop="userType" label="用户类型" width="120" align="center">
           <template #default="scope">
-            <el-tag :type="scope.row.userType === 'admin' ? 'danger' : 'success'" size="small">
-              {{ scope.row.userType === 'admin' ? '管理员' : '普通用户' }}
-            </el-tag>
+            <el-select 
+              v-model="scope.row.userType" 
+              size="small" 
+              @change="handleUserTypeChange(scope.row)"
+              :disabled="updating === scope.row.userId"
+            >
+              <el-option label="普通用户" value="user" />
+              <el-option label="管理员" value="admin" />
+            </el-select>
           </template>
         </el-table-column>
         <el-table-column prop="phone" label="手机号" min-width="120" />
@@ -103,9 +109,9 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getUsers } from '@/services/admin';
+import { getUsers, updateUserRole } from '@/services/admin';
 import { Search, Refresh, Document } from '@element-plus/icons-vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 
 export default {
   name: 'UserManagement',
@@ -118,6 +124,7 @@ export default {
     const router = useRouter();
     const users = ref([]);
     const loading = ref(false);
+    const updating = ref(null); // 正在更新权限的用户ID
     const total = ref(0);
     const currentPage = ref(1);
     const pageSize = ref(10);
@@ -136,7 +143,7 @@ export default {
         total.value = response.data.data.total;
       } catch (error) {
         console.error("Failed to fetch users:", error);
-        // 错误已在admin.js中处理，这里不需要再显示错误消息
+        // 错误已在admin.js中处理
       } finally {
         loading.value = false;
       }
@@ -171,11 +178,48 @@ export default {
       });
     };
 
+    const handleUserTypeChange = async (user) => {
+      const oldUserType = user.userType === 'admin' ? 'user' : 'admin'; // 获取变更前的值
+      const newUserType = user.userType;
+      
+      try {
+        await ElMessageBox.confirm(
+          `确定要将用户 ${user.account} 的权限修改为 ${newUserType === 'admin' ? '管理员' : '普通用户'} 吗？`,
+          '确认修改权限',
+          {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          }
+        );
+
+        updating.value = user.userId;
+        const response = await updateUserRole(user.userId, newUserType);
+        
+        ElMessage.success(response.data.message || '用户权限修改成功');
+        
+        // 刷新用户列表
+        await fetchUsers();
+      } catch (error) {
+        if (error !== 'cancel') {
+          console.error('Failed to update user role:', error);
+          // 恢复原来的值
+          user.userType = oldUserType;
+        } else {
+          // 用户取消，恢复原来的值
+          user.userType = oldUserType;
+        }
+      } finally {
+        updating.value = null;
+      }
+    };
+
     onMounted(fetchUsers);
 
     return {
       users,
       loading,
+      updating,
       total,
       currentPage,
       pageSize,
@@ -185,6 +229,7 @@ export default {
       handleSearch,
       handleReset,
       viewUserCorpus,
+      handleUserTypeChange,
     };
   },
 };
