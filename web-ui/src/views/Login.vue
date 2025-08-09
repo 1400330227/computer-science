@@ -9,7 +9,7 @@
       <template #header>
         <div class="card-header">
           <h1>广西大学东盟语料收集与管理平台</h1>
-          <p>请输入您的账号信息登录</p>
+          <p>请输入您的手机号信息登录</p>
         </div>
       </template>
 
@@ -20,33 +20,26 @@
       -->
       <el-form :model="loginForm" :rules="formRules" ref="loginFormRef" label-width="0px" size="large">
 
-        <!-- 用户名输入框 -->
-        <el-form-item prop="username">
-          <!-- Element Plus 输入框组件
-               v-model="loginForm.username" 双向绑定用户名数据
-               placeholder="请输入用户名" 输入框提示文字
-               prefix-icon="User" 输入框前面的用户图标
-          -->
-          <el-input v-model="loginForm.username" placeholder="请输入用户名" prefix-icon="User" clearable />
+        <!-- 手机号输入框 -->
+        <el-form-item prop="phone">
+          <el-input v-model="loginForm.phone" placeholder="请输入手机号" prefix-icon="Iphone" clearable maxlength="11" />
         </el-form-item>
 
-        <!-- 密码输入框 -->
-        <el-form-item prop="password">
-          <!-- Element Plus 密码输入框
-               type="password" 表示这是密码输入框，会显示为黑点
-               show-password 显示密码可见性切换按钮（小眼睛图标）
-               @keyup.enter="handleLogin" 按回车键时触发登录
-          -->
-          <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock" show-password
-            clearable @keyup.enter="handleLogin" />
+        <!-- 验证码输入框 -->
+        <el-form-item prop="code">
+          <div style="display: flex; gap: 10px;">
+            <el-input v-model="loginForm.code" placeholder="请输入验证码" prefix-icon="Message" clearable maxlength="6" 
+              style="flex: 1;" @keyup.enter="handleLogin" />
+            <el-button type="primary" :disabled="codeButtonDisabled" @click="sendVerificationCode" 
+              style="min-width: 120px;">
+              {{ codeButtonText }}
+            </el-button>
+          </div>
         </el-form-item>
 
-        <!-- 记住用户名选项 -->
+        <!-- 记住手机号选项 -->
         <el-form-item>
-          <!-- Element Plus 复选框
-               v-model="rememberMe" 双向绑定记住密码的状态
-          -->
-          <el-checkbox v-model="rememberMe">记住用户名</el-checkbox>
+          <el-checkbox v-model="rememberMe">记住手机号</el-checkbox>
         </el-form-item>
 
         <!-- 登录按钮 -->
@@ -76,7 +69,7 @@ import api from '@/services/api'
 import { useRouter } from 'vue-router'  // 路由跳转功能
 import { ElMessage } from 'element-plus'  // Element Plus 的消息提示组件
 import { useUserStore } from '@/stores/user'  // 用户状态管理
-import { JSEncrypt } from 'jsencrypt'  // RSA加密库
+
 import heartbeatService from '@/services/heartbeat'  // 心跳检测服务
 
 // ======= 响应式数据定义 =======
@@ -85,110 +78,117 @@ const userStore = useUserStore()  // 创建用户状态管理对象
 
 // 创建响应式的单个数据
 const loading = ref(false)     // 控制登录按钮的加载状态
-const rememberMe = ref(false)  // 控制是否记住用户名的复选框状态
-const publicKey = ref('')      // 存储从服务器获取的RSA公钥
+const rememberMe = ref(false)  // 控制是否记住手机号的复选框状态
+const codeButtonDisabled = ref(false)  // 控制验证码按钮的禁用状态
+const countdown = ref(0)       // 倒计时秒数
 
 // 创建表单引用，用于调用表单的验证方法
 const loginFormRef = ref()
 
 // 创建响应式的表单数据对象
 const loginForm = reactive({
-  username: '',  // 用户名输入框的值
-  password: ''   // 密码输入框的值
+  phone: '',  // 手机号输入框的值
+  code: ''    // 验证码输入框的值
 })
+
+// 验证码按钮文字
+const codeButtonText = ref('获取验证码')
 
 // ======= 表单验证规则 =======
 const formRules = reactive({
-  // 用户名验证规则
-  username: [
-    {
-      required: true,           // 必填字段
-      message: '请输入用户名',   // 错误提示信息
-      trigger: 'blur'          // 触发验证的时机（失去焦点时）
-    }
-  ],
-  // 密码验证规则
-  password: [
+  // 手机号验证规则
+  phone: [
     {
       required: true,
-      message: '请输入密码',
+      message: '请输入手机号',
       trigger: 'blur'
     },
     {
-      min: 1,                  // 最少1个字符
-      message: '密码不能为空',
+      pattern: /^1[3-9]\d{9}$/,
+      message: '请输入正确的手机号格式',
+      trigger: 'blur'
+    }
+  ],
+  // 验证码验证规则
+  code: [
+    {
+      required: true,
+      message: '请输入验证码',
+      trigger: 'blur'
+    },
+    {
+      pattern: /^\d{6}$/,
+      message: '验证码为6位数字',
       trigger: 'blur'
     }
   ]
 })
 
-// ======= 获取RSA公钥函数 =======
-const fetchPublicKey = async () => {
+// ======= 发送验证码函数 =======
+const sendVerificationCode = async () => {
+  // 首先验证手机号格式
+  if (!loginForm.phone) {
+    ElMessage.error('请先输入手机号')
+    return
+  }
+  
+  if (!/^1[3-9]\d{9}$/.test(loginForm.phone)) {
+    ElMessage.error('请输入正确的手机号格式')
+    return
+  }
+  
   try {
-    console.log('正在获取RSA公钥...')
-    const response = await api.get('/users/public-key')
+    codeButtonDisabled.value = true
+    
+    const response = await api.post('/users/send-verification-code', {
+      phone: loginForm.phone
+    })
     
     if (response.data.success) {
-      publicKey.value = response.data.publicKey
-      console.log('RSA公钥获取成功')
+      ElMessage.success('验证码已发送，请查收')
+      
+      // 开始60秒倒计时
+      countdown.value = 60
+      const timer = setInterval(() => {
+        countdown.value--
+        codeButtonText.value = `${countdown.value}秒后重发`
+        
+        if (countdown.value <= 0) {
+          clearInterval(timer)
+          codeButtonDisabled.value = false
+          codeButtonText.value = '获取验证码'
+        }
+      }, 1000)
     } else {
-      throw new Error(response.data.message || '获取公钥失败')
+      ElMessage.error(response.data.message || '发送验证码失败')
+      codeButtonDisabled.value = false
     }
   } catch (error) {
-    console.error('获取RSA公钥失败:', error)
-    ElMessage.error('获取加密密钥失败，请刷新页面重试')
+    console.error('发送验证码失败:', error)
+    const errorMessage = error.response?.data?.message || '发送验证码失败，请稍后重试'
+    ElMessage.error(errorMessage)
+    codeButtonDisabled.value = false
   }
 }
 
 // ======= 页面加载时执行的函数 =======
 onMounted(async () => {
-  // 获取RSA公钥
-  await fetchPublicKey()
-  
-  // 检查本地存储中是否有记住的用户名
-  const rememberedUsername = localStorage.getItem('rememberedUsername')
+  // 检查本地存储中是否有记住的手机号
+  const rememberedPhone = localStorage.getItem('rememberedPhone')
 
-  if (rememberedUsername) {
-    // 如果有记住的用户名，自动填入表单
-    loginForm.username = rememberedUsername
-    rememberMe.value = true  // 勾选"记住用户名"复选框
+  if (rememberedPhone) {
+    // 如果有记住的手机号，自动填入表单
+    loginForm.phone = rememberedPhone
+    rememberMe.value = true  // 勾选"记住手机号"复选框
   }
 })
 
-// ======= RSA加密密码函数 =======
-const encryptPassword = (password) => {
-  try {
-    if (!publicKey.value) {
-      throw new Error('RSA公钥未获取，请刷新页面重试')
-    }
-    
-    // 创建JSEncrypt实例
-    const encrypt = new JSEncrypt()
-    
-    // 设置公钥
-    encrypt.setPublicKey(publicKey.value)
-    
-    // 加密密码
-    const encryptedPassword = encrypt.encrypt(password)
-    
-    if (!encryptedPassword) {
-      throw new Error('密码加密失败')
-    }
-    
-    console.log('密码加密成功')
-    return encryptedPassword
-  } catch (error) {
-    console.error('RSA密码加密失败:', error)
-    throw error
-  }
-}
+
 
 // ======= 登录处理函数 =======
 const handleLogin = async () => {
-  // async 表示这是一个异步函数，可以使用 await 等待网络请求
-
   // 首先验证表单是否填写正确
-  if (!loginFormRef.value) return  // 如果表单引用不存在，直接返回
+  if (!loginFormRef.value) return
 
   try {
     // 调用Element Plus表单的validate方法进行验证
@@ -203,31 +203,15 @@ const handleLogin = async () => {
   loading.value = true
 
   try {
-    // 检查是否有公钥
-    if (!publicKey.value) {
-      ElMessage.error('加密密钥未准备就绪，请刷新页面重试')
-      return
-    }
-    
-    // 使用RSA加密密码
-    let encryptedPassword
-    try {
-      encryptedPassword = encryptPassword(loginForm.password)
-      console.log("密码加密成功")
-    } catch (error) {
-      ElMessage.error('密码加密失败：' + error.message)
-      return
-    }
-
-    // 向后端发送登录请求
-    console.log("正在向后端发送登录请求:", {
-      username: loginForm.username,
-      password: "*** RSA加密密码 ***"
+    // 向后端发送短信登录请求
+    console.log("正在向后端发送短信登录请求:", {
+      phone: loginForm.phone,
+      code: loginForm.code
     })
 
-    const response = await api.post('/users/login', {
-      username: loginForm.username,    // 发送用户名
-      password: encryptedPassword      // 发送RSA加密后的密码
+    const response = await api.post('/users/login-with-sms', {
+      phone: loginForm.phone,
+      code: loginForm.code
     })
 
     console.log("后端响应:", response.data)
@@ -238,12 +222,12 @@ const handleLogin = async () => {
     // 使用 store 保存用户信息
     userStore.login(userData)
 
-    // 如果用户勾选了"记住用户名"
+    // 如果用户勾选了"记住手机号"
     if (rememberMe.value) {
-      localStorage.setItem('rememberedUsername', loginForm.username)
+      localStorage.setItem('rememberedPhone', loginForm.phone)
     } else {
-      // 如果没有勾选，删除之前记住的用户名
-      localStorage.removeItem('rememberedUsername')
+      // 如果没有勾选，删除之前记住的手机号
+      localStorage.removeItem('rememberedPhone')
     }
 
     // 显示登录成功的消息
@@ -262,10 +246,12 @@ const handleLogin = async () => {
 
     // 根据不同的错误信息显示相应的提示
     if (typeof errorMessage === 'string') {
-      if (errorMessage.includes('用户不存在')) {
-        ElMessage.error('用户不存在，请检查用户名')
-      } else if (errorMessage.includes('密码错误')) {
-        ElMessage.error('密码错误，请重新输入')
+      if (errorMessage.includes('该手机号尚未注册')) {
+        ElMessage.error('该手机号尚未注册，请先注册')
+      } else if (errorMessage.includes('验证码不正确')) {
+        ElMessage.error('验证码不正确，请重新输入')
+      } else if (errorMessage.includes('验证码已过期')) {
+        ElMessage.error('验证码已过期，请重新获取')
       } else if (errorMessage.includes('账号已被禁用')) {
         ElMessage.error('账号已被禁用，请联系管理员')
       } else {

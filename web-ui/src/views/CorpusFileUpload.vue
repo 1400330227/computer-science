@@ -92,7 +92,16 @@
               </el-form-item>
 
               <el-form-item label="语料集名称" prop="collectionName">
-                <el-input v-model="formData.collectionName" placeholder="请填写语料集名称"></el-input>
+                <el-input 
+                  v-model="formData.collectionName" 
+                  placeholder="请填写语料集名称"
+                  @blur="checkCollectionNameDuplicate"
+                ></el-input>
+                <div v-if="collectionNameStatus.show" class="name-check-status">
+                  <span :class="collectionNameStatus.type">
+                    {{ collectionNameStatus.message }}
+                  </span>
+                </div>
               </el-form-item>
 
               <el-form-item label="所属领域" prop="domain">
@@ -332,6 +341,13 @@ const dataFormatText = computed(() => {
 
 const fileList = ref([])
 
+// 语料名称检查状态
+const collectionNameStatus = reactive({
+  show: false,
+  type: '', // 'success' 或 'error'
+  message: ''
+})
+
 
 
 // 文件上传前的验证
@@ -375,6 +391,42 @@ const removeFile = (file) => {
   }
 }
 
+// 检查语料集名称是否重复
+const checkCollectionNameDuplicate = async () => {
+  const collectionName = formData.collectionName?.trim()
+  
+  if (!collectionName) {
+    collectionNameStatus.show = false
+    return
+  }
+  
+  try {
+    // 调用后端接口检查是否重复
+    const response = await api.get(`/corpus/my-corpus`, {
+      params: {
+        page: 1,
+        size: 1,
+        collectionName: collectionName
+      }
+    })
+    
+    if (response.data && response.data.records && response.data.records.length > 0) {
+      // 找到重复的语料
+      collectionNameStatus.show = true
+      collectionNameStatus.type = 'error'
+      collectionNameStatus.message = '⚠️ 该语料集名称已存在，请使用其他名称'
+    } else {
+      // 名称可用
+      collectionNameStatus.show = true
+      collectionNameStatus.type = 'success'
+      collectionNameStatus.message = '✅ 语料集名称可用'
+    }
+  } catch (error) {
+    console.error('检查语料名称失败:', error)
+    collectionNameStatus.show = false
+  }
+}
+
 // 保存表单
 const saveForm = async () => {
   if (isSubmitting.value) return
@@ -400,8 +452,8 @@ const saveForm = async () => {
     // 第一步：创建语料记录
     const corpusResponse = await api.post('/corpus', submitData)
 
-    if (!corpusResponse.data) {
-      throw new Error('创建语料失败')
+    if (!corpusResponse.data || !corpusResponse.data.corpusId) {
+      throw new Error('创建语料失败，可能是语料名称已存在')
     }
 
     const corpusId = corpusResponse.data.corpusId
@@ -484,7 +536,24 @@ const saveForm = async () => {
     if (error.name === 'AbortError') {
       ElMessage.info('上传已取消')
     } else if (error.response?.status !== 401) {
-      ElMessage.error(error.response?.data || error.message || '上传失败，请稍后重试')
+      // 改进错误消息显示逻辑
+      let errorMessage = '上传失败，请稍后重试'
+      
+      if (error.response?.data) {
+        // 如果后端返回了具体错误信息
+        errorMessage = error.response.data
+      } else if (error.message) {
+        // 如果是前端抛出的错误（如语料创建失败）
+        errorMessage = error.message
+      }
+      
+      // 显示更明确的错误提示
+      ElMessage({
+        message: errorMessage,
+        type: 'error',
+        duration: 5000, // 延长显示时间到5秒
+        showClose: true // 允许手动关闭
+      })
     }
   } finally {
     isSubmitting.value = false
@@ -527,8 +596,8 @@ const saveAndCreate = async () => {
     // 第一步：创建语料记录
     const corpusResponse = await api.post('/corpus', submitData)
 
-    if (!corpusResponse.data) {
-      throw new Error('创建语料失败')
+    if (!corpusResponse.data || !corpusResponse.data.corpusId) {
+      throw new Error('创建语料失败，可能是语料名称已存在')
     }
 
     const corpusId = corpusResponse.data.corpusId
@@ -615,7 +684,24 @@ const saveAndCreate = async () => {
     if (error.name === 'AbortError') {
       ElMessage.info('上传已取消')
     } else if (error.response?.status !== 401) {
-      ElMessage.error(error.response?.data || error.message || '上传失败，请稍后重试')
+      // 改进错误消息显示逻辑
+      let errorMessage = '上传失败，请稍后重试'
+      
+      if (error.response?.data) {
+        // 如果后端返回了具体错误信息
+        errorMessage = error.response.data
+      } else if (error.message) {
+        // 如果是前端抛出的错误（如语料创建失败）
+        errorMessage = error.message
+      }
+      
+      // 显示更明确的错误提示
+      ElMessage({
+        message: errorMessage,
+        type: 'error',
+        duration: 5000, // 延长显示时间到5秒
+        showClose: true // 允许手动关闭
+      })
     }
   } finally {
     isSubmitting.value = false
@@ -791,5 +877,19 @@ const goBack = () => {
   font-size: 14px;
   color: #666;
   margin-top: 12px;
+}
+
+/* 语料名称检查状态样式 */
+.name-check-status {
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.name-check-status .success {
+  color: #67c23a;
+}
+
+.name-check-status .error {
+  color: #f56c6c;
 }
 </style>

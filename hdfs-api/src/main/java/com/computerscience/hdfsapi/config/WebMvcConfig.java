@@ -29,8 +29,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(sessionValidationInterceptor)
                 .addPathPatterns("/**")  // 拦截所有请求
                 .excludePathPatterns(
-                        "/users/login",   // 登录接口不拦截
-                        "/users/public-key",  // 获取公钥接口不拦截
+                        "/users/login",   // 登录接口不拦截（已废弃，保留兼容性）
+                        "/users/login-with-sms",  // 短信验证码登录接口不拦截
+                        "/users/send-verification-code",  // 发送验证码接口不拦截
+                        "/users/public-key",  // 获取公钥接口不拦截（已废弃，保留兼容性）
                         "/users/logout",  // 登出接口不拦截（登出时需要清理）
                         "/users/heartbeat",  // 心跳检测接口不拦截
                         "/users",         // 用户注册接口不拦截
@@ -46,8 +48,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/**")  // 拦截所有请求
                 .excludePathPatterns(
-                        "/users/login",   // 登录接口不拦截
-                        "/users/public-key",  // 获取公钥接口不拦截
+                        "/users/login",   // 登录接口不拦截（已废弃，保留兼容性）
+                        "/users/login-with-sms",  // 短信验证码登录接口不拦截
+                        "/users/send-verification-code",  // 发送验证码接口不拦截
+                        "/users/public-key",  // 获取公钥接口不拦截（已废弃，保留兼容性）
                         "/users/logout",  // 登出接口不拦截
                         "/users/heartbeat",  // 心跳检测接口不拦截
                         "/users",         // 用户注册接口不拦截

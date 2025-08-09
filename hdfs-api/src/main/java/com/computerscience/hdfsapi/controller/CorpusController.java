@@ -144,10 +144,12 @@ public class CorpusController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String language,
-            @RequestParam(required = false) String classification) {
+            @RequestParam(required = false) String classification,
+            @RequestParam(required = false) String collectionName,
+            @RequestParam(required = false) String country) {
         try {
             User currentUser = UserContext.getCurrentUser();
-            return ResponseEntity.ok(corpusService.findUserCorpusPage(currentUser.getUserId(), page, size, language, classification));
+            return ResponseEntity.ok(corpusService.findUserCorpusPage(currentUser.getUserId(), page, size, language, classification, collectionName, country));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("获取语料列表失败: " + e.getMessage());
         }
@@ -181,7 +183,13 @@ public class CorpusController {
 
                 return ResponseEntity.ok(corpus);
             } else {
-                return ResponseEntity.badRequest().body("创建语料库失败，名称可能已存在");
+                System.out.println("=== 语料创建失败 ===");
+                System.out.println("失败原因: 语料名称已存在");
+                System.out.println("语料名称: " + corpus.getCollectionName());
+                System.out.println("用户ID: " + corpus.getCreatorId());
+                System.out.println("==================");
+                
+                return ResponseEntity.badRequest().body("语料名称 \"" + corpus.getCollectionName() + "\" 已存在，请使用其他名称");
             }
         } catch (Exception e) {
             return ResponseEntity.status(500).body("创建语料库失败: " + e.getMessage());

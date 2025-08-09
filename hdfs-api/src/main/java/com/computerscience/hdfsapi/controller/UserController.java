@@ -5,6 +5,7 @@ import com.computerscience.hdfsapi.model.User;
 import com.computerscience.hdfsapi.service.UserService;
 import com.computerscience.hdfsapi.service.CryptoService;
 import com.computerscience.hdfsapi.service.SessionManagementService;
+import com.computerscience.hdfsapi.service.SmsVerificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,9 @@ public class UserController {
     
     @Autowired
     private SessionManagementService sessionManagementService;
+    
+    @Autowired
+    private SmsVerificationService smsVerificationService;
 
     // 临时管理员测试端点
     @GetMapping("/admin-test")
@@ -154,9 +158,174 @@ public class UserController {
     }
 
     /**
+     * 发送手机验证码接口
+     */
+    @PostMapping("/send-verification-code")
+    public ResponseEntity<?> sendVerificationCode(@RequestBody Map<String, String> request) {
+        String phone = request.get("phone");
+        
+        if (phone == null || phone.trim().isEmpty()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "手机号不能为空");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        // 检查手机号是否已注册（如果已注册，检查账号状态）
+        User user = userService.findByPhone(phone);
+        if (user != null) {
+            // 用户已存在，检查账号状态
+            if (!"active".equals(user.getAccountStatus()) && !"正常".equals(user.getAccountStatus())) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "账号已被禁用，无法登录");
+                return ResponseEntity.badRequest().body(response);
+            }
+            System.out.println("发送验证码给已注册用户: " + user.getAccount());
+        } else {
+            // 新用户，首次使用手机号登录
+            System.out.println("发送验证码给新用户: " + phone);
+        }
+        
+        // 发送验证码
+        SmsVerificationService.SendResult result = smsVerificationService.sendVerificationCode(phone);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", result.isSuccess());
+        response.put("message", result.getMessage());
+        
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    /**
+     * 根据手机号自动创建新用户
+     * @param phone 手机号
+     * @return 创建的用户对象，失败时返回null
+     */
+    private User createNewUserByPhone(String phone) {
+        try {
+            User newUser = new User();
+            
+            // 设置基本信息
+            newUser.setPhone(phone);
+            newUser.setAccount(phone); // 默认账号为手机号
+            newUser.setNickname("用户" + phone.substring(7)); // 默认昵称：用户+后4位手机号
+            newUser.setUserType("user"); // 默认为普通用户
+            newUser.setAccountStatus("active"); // 默认状态为激活
+            newUser.setGender("未知"); // 默认性别
+            newUser.setCreator("system"); // 创建者为系统
+            newUser.setRemarks("通过手机号验证码登录自动创建"); // 备注说明
+            
+            // 设置默认密码（使用BCrypt加密的空密码，因为现在用验证码登录）
+            String defaultPassword = cryptoService.encryptPasswordWithBCrypt("SMS_LOGIN_USER");
+            newUser.setPassword(defaultPassword);
+            
+            // 调用用户服务创建用户
+            if (userService.createUser(newUser)) {
+                System.out.println("=== 自动创建用户成功 ===");
+                System.out.println("手机号: " + phone);
+                System.out.println("用户ID: " + newUser.getUserId());
+                System.out.println("账号: " + newUser.getAccount());
+                System.out.println("昵称: " + newUser.getNickname());
+                System.out.println("========================");
+                return newUser;
+            } else {
+                System.err.println("自动创建用户失败：userService.createUser返回false");
+                return null;
+            }
+        } catch (Exception e) {
+            System.err.println("自动创建用户时发生异常: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    /**
+     * 手机号验证码登录接口
+     */
+    @PostMapping("/login-with-sms")
+    public ResponseEntity<?> loginWithSms(@RequestBody Map<String, String> loginRequest, 
+                                         HttpServletRequest request) {
+        String phone = loginRequest.get("phone");
+        String code = loginRequest.get("code");
+        
+        System.out.println("=== 短信登录调试信息 ===");
+        System.out.println("接收到的手机号: [" + phone + "]");
+        System.out.println("接收到的验证码: [" + code + "]");
+        
+        // 检查参数是否为空
+        if (phone == null || code == null) {
+            return ResponseEntity.badRequest().body("手机号和验证码不能为空");
+        }
+        
+        // 验证验证码
+        SmsVerificationService.VerifyResult verifyResult = smsVerificationService.verifyCode(phone, code);
+        if (!verifyResult.isSuccess()) {
+            System.out.println("验证码验证失败: " + verifyResult.getMessage());
+            return ResponseEntity.badRequest().body(verifyResult.getMessage());
+        }
+        
+        // 根据手机号查找用户
+        User user = userService.findByPhone(phone);
+        if (user == null) {
+            System.out.println("手机号对应的用户不存在，自动创建新用户");
+            // 手机号首次登录，自动创建用户
+            user = createNewUserByPhone(phone);
+            if (user == null) {
+                return ResponseEntity.status(500).body("自动创建用户失败，请联系管理员");
+            }
+            System.out.println("新用户创建成功，用户ID: " + user.getUserId());
+        }
+        
+        // 检查账号状态
+        if (!"active".equals(user.getAccountStatus()) && !"正常".equals(user.getAccountStatus())) {
+            return ResponseEntity.badRequest().body("账号已被禁用");
+        }
+        
+        // 登录成功，创建Session
+        HttpSession session = request.getSession(true);
+        session.setAttribute("currentUser", user.getUserId());
+        
+        // 处理单点登录控制
+        boolean kickedOldSession = sessionManagementService.handleUserLogin(user.getUserId(), session);
+        if (kickedOldSession) {
+            System.out.println("用户 " + user.getAccount() + " 的旧会话已被踢出");
+        }
+        
+        // 返回登录成功信息
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);
+        
+        // 判断是否是新用户（通过remarks字段或创建时间判断）
+        boolean isNewUser = "通过手机号验证码登录自动创建".equals(user.getRemarks());
+        if (isNewUser) {
+            responseMap.put("message", "欢迎新用户！登录成功");
+            responseMap.put("isNewUser", true);
+        } else {
+            responseMap.put("message", "登录成功");
+            responseMap.put("isNewUser", false);
+        }
+        
+        responseMap.put("userId", user.getUserId());
+        responseMap.put("account", user.getAccount());
+        responseMap.put("userType", user.getUserType());
+        responseMap.put("phone", user.getPhone());
+        responseMap.put("nickname", user.getNickname());
+        
+        System.out.println("短信登录成功，用户ID: " + user.getUserId() + (isNewUser ? " (新用户)" : " (已有用户)"));
+        return ResponseEntity.ok(responseMap);
+    }
+
+    /**
      * 获取RSA公钥接口
      * 前端加密密码时需要先获取此公钥
+     * @deprecated 使用短信验证码登录方式，此接口已废弃
      */
+    @Deprecated
     @GetMapping("/public-key")
     public ResponseEntity<?> getPublicKey() {
         try {
@@ -182,7 +351,9 @@ public class UserController {
     /**
      * 用户登录验证接口（支持RSA加密密码）
      * 这个接口用来验证用户的用户名和加密密码是否正确
+     * @deprecated 已废弃，请使用短信验证码登录方式 /login-with-sms
      */
+    @Deprecated
     @PostMapping("/login")  // 告诉Spring这是一个POST请求，访问地址是 /api/users/login
     public ResponseEntity<?> login(@RequestBody Map<String, String> loginRequest, HttpServletRequest request,
                                  HttpServletResponse response) {

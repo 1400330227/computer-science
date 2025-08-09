@@ -32,6 +32,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public User findByPhone(String phone) {
+        if (!StringUtils.hasText(phone)) {
+            return null;
+        }
+        
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getPhone, phone);
+        
+        return getOne(queryWrapper);
+    }
+
+    @Override
     public IPage<User> findUserPage(Integer page, Integer size, String userType) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
         

@@ -33,6 +33,19 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     }
 
     @Override
+    public Corpus findByUserIdAndName(Integer userId, String collectionName) {
+        if (userId == null || !StringUtils.hasText(collectionName)) {
+            return null;
+        }
+        
+        LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Corpus::getCreatorId, userId)
+                   .eq(Corpus::getCollectionName, collectionName);
+        
+        return getOne(queryWrapper);
+    }
+
+    @Override
     public IPage<Corpus> findCorpusPage(Integer page, Integer size, String language, String classification) {
         LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
         
@@ -50,7 +63,7 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     }
 
     @Override
-    public IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification) {
+    public IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification, String collectionName, String country) {
         LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
         
         // 筛选当前用户的语料
@@ -62,6 +75,16 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
         
         if (StringUtils.hasText(classification)) {
             queryWrapper.eq(Corpus::getClassification, classification);
+        }
+        
+        // 根据语料集名称筛选（模糊查询）
+        if (StringUtils.hasText(collectionName)) {
+            queryWrapper.like(Corpus::getCollectionName, collectionName);
+        }
+        
+        // 根据国家筛选
+        if (StringUtils.hasText(country)) {
+            queryWrapper.eq(Corpus::getCountry, country);
         }
         
         queryWrapper.orderByDesc(Corpus::getCreatedAt);
@@ -113,9 +136,10 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     @Override
     @Transactional
     public boolean createCorpus(Corpus corpus) {
-        // 检查语料库名称是否已存在
-        Corpus existingCorpus = findByName(corpus.getCollectionName());
+        // 检查当前用户是否已有同名语料库
+        Corpus existingCorpus = findByUserIdAndName(corpus.getCreatorId(), corpus.getCollectionName());
         if (existingCorpus != null) {
+            System.out.println("用户 " + corpus.getCreatorId() + " 已存在同名语料库: " + corpus.getCollectionName());
             return false;
         }
         

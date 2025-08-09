@@ -19,6 +19,14 @@ public interface CorpusService extends IService<Corpus> {
     Corpus findByName(String collectionName);
     
     /**
+     * 根据用户ID和语料集名称查询语料库
+     * @param userId 用户ID
+     * @param collectionName 语料集名称
+     * @return 语料库信息
+     */
+    Corpus findByUserIdAndName(Integer userId, String collectionName);
+    
+    /**
      * 分页查询语料库列表
      * @param page 页码
      * @param size 每页大小
@@ -35,9 +43,11 @@ public interface CorpusService extends IService<Corpus> {
      * @param size 每页大小
      * @param language 语种（可选）
      * @param classification 数据分类（可选）
+     * @param collectionName 语料集名称（可选）
+     * @param country 国家（可选）
      * @return 分页语料库列表
      */
-    IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification);
+    IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification, String collectionName, String country);
     
     /**
      * [Admin] 分页查询所有语料库

@@ -17,6 +17,13 @@ public interface UserService extends IService<User> {
     User findByAccount(String account);
     
     /**
+     * 根据手机号查询用户
+     * @param phone 手机号
+     * @return 用户信息
+     */
+    User findByPhone(String phone);
+    
+    /**
      * 分页查询用户列表
      * @param page 页码
      * @param size 每页大小

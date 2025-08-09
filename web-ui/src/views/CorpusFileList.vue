@@ -11,6 +11,70 @@
         </p>
       </div>
 
+      <!-- 搜索区域 -->
+      <div class="search-container">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <el-input
+              v-model="searchForm.collectionName"
+              placeholder="请输入语料集名称"
+              prefix-icon="Search"
+              clearable
+              @keyup.enter="handleSearch"
+            />
+          </el-col>
+          <el-col :span="4">
+            <el-select
+              v-model="searchForm.country"
+              placeholder="选择国家"
+              clearable
+              style="width: 100%"
+            >
+              <el-option label="中国" value="中国" />
+              <el-option label="泰国" value="泰国" />
+              <el-option label="老挝" value="老挝" />
+              <el-option label="越南" value="越南" />
+              <el-option label="缅甸" value="缅甸" />
+              <el-option label="柬埔寨" value="柬埔寨" />
+              <el-option label="马来西亚" value="马来西亚" />
+              <el-option label="新加坡" value="新加坡" />
+              <el-option label="印度尼西亚" value="印度尼西亚" />
+              <el-option label="菲律宾" value="菲律宾" />
+              <el-option label="文莱" value="文莱" />
+            </el-select>
+          </el-col>
+          <el-col :span="4">
+            <el-select
+              v-model="searchForm.language"
+              placeholder="选择语种"
+              clearable
+              style="width: 100%"
+            >
+              <el-option label="中文" value="中文" />
+              <el-option label="泰国" value="泰国" />
+              <el-option label="老挝语言" value="老挝语言" />
+              <el-option label="英文" value="英文" />
+            </el-select>
+          </el-col>
+          <el-col :span="4">
+            <el-select
+              v-model="searchForm.classification"
+              placeholder="选择分类"
+              clearable
+              style="width: 100%"
+            >
+              <el-option label="预训练语料" value="预训练语料" />
+              <el-option label="基础语料" value="基础语料" />
+              <el-option label="专业语料" value="专业语料" />
+            </el-select>
+          </el-col>
+          <el-col :span="6">
+            <el-button type="primary" icon="Search" @click="handleSearch">搜索</el-button>
+            <el-button icon="Refresh" @click="handleReset">重置</el-button>
+          </el-col>
+        </el-row>
+      </div>
+
       <!-- 语料表格 -->
       <el-table v-loading="loading" :data="fileList" style="width: 100%">
         <el-table-column prop="country" label="国家" />
@@ -64,6 +128,14 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 const total = ref(0)
 
+// 搜索表单数据
+const searchForm = ref({
+  collectionName: '',
+  country: '',
+  language: '',
+  classification: ''
+})
+
 // 获取全局面包屑管理工具
 const breadcrumb = inject('breadcrumb')
 
@@ -82,6 +154,20 @@ function loadFileList() {
   const params = {
     page: currentPage.value,
     size: pageSize.value
+  }
+
+  // 添加搜索参数
+  if (searchForm.value.collectionName) {
+    params.collectionName = searchForm.value.collectionName
+  }
+  if (searchForm.value.country) {
+    params.country = searchForm.value.country
+  }
+  if (searchForm.value.language) {
+    params.language = searchForm.value.language
+  }
+  if (searchForm.value.classification) {
+    params.classification = searchForm.value.classification
   }
 
   api.get('/corpus/my-corpus', { params })
@@ -120,6 +206,24 @@ function handleSizeChange(newSize) {
 // 处理页码变化
 function handleCurrentChange(newPage) {
   currentPage.value = newPage
+  loadFileList()
+}
+
+// 处理搜索
+function handleSearch() {
+  currentPage.value = 1 // 搜索时重置到第一页
+  loadFileList()
+}
+
+// 处理重置
+function handleReset() {
+  searchForm.value = {
+    collectionName: '',
+    country: '',
+    language: '',
+    classification: ''
+  }
+  currentPage.value = 1
   loadFileList()
 }
 
@@ -175,6 +279,15 @@ function showDownloadMessage(row) {
 .highlight {
   color: #409eff;
   font-weight: bold;
+}
+
+/* 搜索区域 */
+.search-container {
+  background-color: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 /* 操作栏 */
