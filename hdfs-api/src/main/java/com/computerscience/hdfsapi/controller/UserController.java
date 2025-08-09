@@ -563,24 +563,24 @@ public class UserController {
     public ResponseEntity<?> heartbeat(HttpServletRequest request) {
         try {
             HttpSession session = request.getSession(false);
-            logger.debug("💓 心跳检测请求 - Session: {}", session != null ? session.getId() : "null");
+//            logger.debug("💓 心跳检测请求 - Session: {}", session != null ? session.getId() : "null");
             
             if (session == null) {
-                logger.debug("❌ 心跳检测失败 - 会话不存在");
+//                logger.debug("❌ 心跳检测失败 - 会话不存在");
                 return ResponseEntity.status(401).body("会话不存在");
             }
             
             Integer userId = (Integer) session.getAttribute("currentUser");
             if (userId == null) {
-                logger.debug("❌ 心跳检测失败 - 用户未登录");
+//                logger.debug("❌ 心跳检测失败 - 用户未登录");
                 return ResponseEntity.status(401).body("用户未登录");
             }
             
-            logger.debug("💓 心跳检测 - 用户ID: {}, SessionID: {}", userId, session.getId());
+//            logger.debug("💓 心跳检测 - 用户ID: {}, SessionID: {}", userId, session.getId());
             
             // 检查session是否被踢出
             boolean isValid = sessionManagementService.isSessionValid(session);
-            logger.debug("🔍 Session有效性检查结果: {}", isValid);
+//            logger.debug("🔍 Session有效性检查结果: {}", isValid);
             
             if (!isValid) {
                 String sessionId = session.getId();
@@ -588,20 +588,20 @@ public class UserController {
                 
                 // 从SessionManagementService获取踢出原因
                 String kickReason = sessionManagementService.getKickReason(sessionId);
-                logger.debug("📝 踢出原因: {}", kickReason);
+//                logger.debug("📝 踢出原因: {}", kickReason);
                 
                 if (kickReason == null) {
                     // 尝试从session获取（兼容处理）
                     try {
                         kickReason = (String) session.getAttribute("kick_reason");
-                        logger.debug("📝 从session获取踢出原因: {}", kickReason);
+//                        logger.debug("📝 从session获取踢出原因: {}", kickReason);
                     } catch (Exception e) {
                         // 忽略异常
                     }
                     
                     if (kickReason == null) {
                         kickReason = "您的账号在其他地方登录，当前会话已被强制下线";
-                        logger.debug("📝 使用默认踢出原因");
+//                        logger.debug("📝 使用默认踢出原因");
                     }
                 }
                 
@@ -625,7 +625,7 @@ public class UserController {
             response.put("userId", userId);
             response.put("timestamp", System.currentTimeMillis());
             
-            logger.debug("✅ 心跳检测正常 - 用户: {}", userId);
+//            logger.debug("✅ 心跳检测正常 - 用户: {}", userId);
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
