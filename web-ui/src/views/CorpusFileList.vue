@@ -6,7 +6,7 @@
           <el-input v-model="searchForm.collectionName" placeholder="请输入语料集名称" prefix-icon="Search" clearable
             @keyup.enter="handleSearch" />
         </el-form-item>
-        <el-form-item label="国家">
+        <!-- <el-form-item label="国家">
           <el-select v-model="searchForm.country" placeholder="选择国家" clearable style="width: 200px">
             <el-option label="中国" value="中国" />
             <el-option label="泰国" value="泰国" />
@@ -20,15 +20,15 @@
             <el-option label="菲律宾" value="菲律宾" />
             <el-option label="文莱" value="文莱" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="语种">
+        </el-form-item> -->
+        <!-- <el-form-item label="语种">
           <el-select v-model="searchForm.language" placeholder="选择语种" clearable style="width: 200px">
             <el-option label="中文" value="中文" />
             <el-option label="泰国" value="泰国" />
             <el-option label="老挝语言" value="老挝语言" />
             <el-option label="英文" value="英文" />
           </el-select>
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="分类">
           <el-select v-model="searchForm.classification" placeholder="选择分类" clearable style="width: 200px">
             <el-option label="预训练语料" value="预训练语料" />
@@ -59,9 +59,13 @@
           <el-table-column prop="dataFormat" label="数据形式" />
           <el-table-column prop="classification" label="数据分类" />
           <el-table-column prop="dataYear" label="数据年份" />
-          <!-- <el-table-column prop="sourceLocation" label="来源归属地" min-width="100" /> -->
+          <el-table-column prop="createdAt" label="上传时间" width="110">
+            <template #default="{ row }">
+              {{ formatDate(row.createdAt) }}
+            </template>
+          </el-table-column>
           <!-- <el-table-column prop="dataSource" label="数据来源" /> -->
-          <el-table-column prop="estimatedCapacityGb" label="容量估算GB" />
+          <el-table-column prop="estimatedCapacityGb" label="容量估算GB" width="110" />
           <!-- <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip /> -->
           <el-table-column label="操作" width="150" fixed="right">
             <template #default="{ row }">
@@ -203,7 +207,16 @@ function handleReset() {
   loadFileList()
 }
 
-
+// 日期格式化：YYYY-MM-DD
+function formatDate(value) {
+  if (!value) return '-'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '-'
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
 
 // 查看详情
 function viewDetails(corpus) {
@@ -232,16 +245,17 @@ function showDownloadMessage(row) {
 .file-list-page {
   max-width: 1200px;
   margin: 0 auto;
-
+  background-color: #fff;
+  padding: 20px;
 }
 
 .search-container {
-  padding: 20px;
+  /* padding: 20px; */
   background-color: #fff;
 }
 
 .file-list-container {
-  padding: 20px;
+  /* padding: 20px; */
   background-color: #fff;
 }
 

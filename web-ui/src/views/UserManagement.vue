@@ -22,6 +22,11 @@
             重置
           </el-button>
         </el-form-item>
+        <el-form-item>
+          <el-button type="success" @click="openCreateDialog">
+            新增用户
+          </el-button>
+        </el-form-item>
       </el-form>
     </div>
 
@@ -79,17 +84,60 @@
       </div>
     </div>
 
+    <!-- 新增用户对话框 -->
+    <el-dialog v-model="createDialogVisible" title="新增用户" width="520px">
+      <el-form :model="createForm" :rules="createRules" ref="createFormRef" label-width="90px">
+        <el-form-item label="账号" required>
+          <el-input v-model="createForm.account" placeholder="请输入账号" />
+        </el-form-item>
+        <el-form-item label="昵称" prop="nickname">
+          <el-input v-model="createForm.nickname" />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="createForm.phone" maxlength="11" placeholder="请输入11位手机号"
+                    @input="createForm.phone = createForm.phone.replace(/\D/g, '')" />
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-select v-model="createForm.gender" placeholder="请选择">
+            <el-option label="男" value="男" />
+            <el-option label="女" value="女" />
+            <el-option label="未知" value="未知" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="账号状态">
+          <el-select v-model="createForm.accountStatus">
+            <el-option label="正常" value="active" />
+            <el-option label="禁用" value="disabled" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="地址">
+          <el-input v-model="createForm.address" />
+        </el-form-item>
+        <el-form-item label="备注">
+          <el-input type="textarea" v-model="createForm.remarks" />
+        </el-form-item>
+        <el-alert type="info" :closable="false" show-icon title="默认密码：Gxu123456" />
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="createDialogVisible = false">取 消</el-button>
+          <el-button type="primary" :loading="creating" @click="saveCreateUser">保 存</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
     <!-- 编辑用户对话框 -->
     <el-dialog v-model="editDialogVisible" title="编辑用户" width="520px">
-      <el-form :model="editForm" label-width="90px">
+      <el-form :model="editForm" :rules="editRules" ref="editFormRef" label-width="90px">
         <el-form-item label="账号">
           <el-input v-model="editForm.account" />
         </el-form-item>
-        <el-form-item label="昵称">
+        <el-form-item label="昵称" prop="nickname">
           <el-input v-model="editForm.nickname" />
         </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="editForm.phone" />
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="editForm.phone" maxlength="11" placeholder="请输入11位手机号"
+                    @input="editForm.phone = editForm.phone.replace(/\D/g, '')" />
         </el-form-item>
         <el-form-item label="性别">
           <el-select v-model="editForm.gender" placeholder="请选择">
@@ -124,7 +172,7 @@
 <script>
 import { ref, onMounted, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { getUsers, updateUserRole, getUserDetail, updateUser, resetUserPassword } from '@/services/admin';
+import { getUsers, updateUserRole, getUserDetail, updateUser, resetUserPassword, createUser } from '@/services/admin';
 import { Search, Refresh, Document } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 
@@ -147,8 +195,29 @@ export default {
       account: '',
     });
 
+    const createDialogVisible = ref(false);
+    const creating = ref(false);
+    const createFormRef = ref();
+    const createForm = reactive({
+      account: '',
+      nickname: '',
+      phone: '',
+      gender: '未知',
+      accountStatus: 'active',
+      address: '',
+      remarks: '',
+    });
+    const createRules = reactive({
+      nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+      phone: [
+        { required: true, message: '请输入手机号', trigger: 'blur' },
+        { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: ['blur', 'change'] },
+      ],
+    });
+
     const editDialogVisible = ref(false);
     const saving = ref(false);
+    const editFormRef = ref();
     const editingUserId = ref(null);
     const editForm = reactive({
       account: '',
@@ -158,6 +227,13 @@ export default {
       accountStatus: '',
       address: '',
       remarks: '',
+    });
+    const editRules = reactive({
+      nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+      phone: [
+        { required: true, message: '请输入手机号', trigger: 'blur' },
+        { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: ['blur', 'change'] },
+      ],
     });
 
     const fetchUsers = async () => {
@@ -201,6 +277,41 @@ export default {
       fetchUsers();
     };
 
+    const openCreateDialog = () => {
+      createForm.account = '';
+      createForm.nickname = '';
+      createForm.phone = '';
+      createForm.gender = '未知';
+      createForm.accountStatus = 'active';
+      createForm.address = '';
+      createForm.remarks = '';
+      createDialogVisible.value = true;
+    };
+
+    const saveCreateUser = async () => {
+      try {
+        if (!createFormRef.value) return;
+        await createFormRef.value.validate();
+        creating.value = true;
+        await createUser({
+          account: createForm.account.trim(),
+          nickname: createForm.nickname,
+          phone: createForm.phone,
+          gender: createForm.gender,
+          accountStatus: createForm.accountStatus,
+          address: createForm.address,
+          remarks: createForm.remarks,
+        });
+        ElMessage.success('用户创建成功，默认密码为 Gxu123456');
+        createDialogVisible.value = false;
+        await fetchUsers();
+      } catch (e) {
+        console.error('创建用户失败', e);
+      } finally {
+        creating.value = false;
+      }
+    };
+
     const openEditDialog = async (row) => {
       try {
         const res = await getUserDetail(row.userId);
@@ -237,6 +348,8 @@ export default {
 
     const saveUser = async () => {
       try {
+        if (!editFormRef.value) return;
+        await editFormRef.value.validate();
         saving.value = true;
         const payload = {
           account: editForm.account,
@@ -335,6 +448,15 @@ export default {
       saveUser,
       saving,
       handleResetPassword,
+      createDialogVisible,
+      createForm,
+      createRules,
+      createFormRef,
+      openCreateDialog,
+      saveCreateUser,
+      creating,
+      editRules,
+      editFormRef,
     };
   },
 };

@@ -122,10 +122,22 @@ public class AdminController {
                 }
             }
             if (payload.containsKey("nickname")) {
-                user.setNickname((String) payload.get("nickname"));
+                String nickname = (String) payload.get("nickname");
+                if (!StringUtils.hasText(nickname)) {
+                    response.put("success", false);
+                    response.put("message", "昵称不能为空");
+                    return ResponseEntity.badRequest().body(response);
+                }
+                user.setNickname(nickname);
             }
             if (payload.containsKey("phone")) {
-                user.setPhone((String) payload.get("phone"));
+                String phone = (String) payload.get("phone");
+                if (!StringUtils.hasText(phone)) {
+                    response.put("success", false);
+                    response.put("message", "手机号不能为空");
+                    return ResponseEntity.badRequest().body(response);
+                }
+                user.setPhone(phone);
             }
             if (payload.containsKey("gender")) {
                 user.setGender((String) payload.get("gender"));
@@ -154,6 +166,76 @@ public class AdminController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "更新用户信息时发生错误: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/users")
+    public ResponseEntity<Map<String, Object>> createUserByAdmin(@RequestBody Map<String, Object> payload) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String account = payload.get("account") != null ? payload.get("account").toString().trim() : null;
+            if (!StringUtils.hasText(account)) {
+                response.put("success", false);
+                response.put("message", "账号不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String nickname = payload.get("nickname") != null ? payload.get("nickname").toString().trim() : null;
+            if (!StringUtils.hasText(nickname)) {
+                response.put("success", false);
+                response.put("message", "昵称不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String phone = payload.get("phone") != null ? payload.get("phone").toString().trim() : null;
+            if (!StringUtils.hasText(phone)) {
+                response.put("success", false);
+                response.put("message", "手机号不能为空");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 校验账号唯一性
+            LambdaQueryWrapper<User> dupCheck = new LambdaQueryWrapper<>();
+            dupCheck.eq(User::getAccount, account);
+            if (userService.count(dupCheck) > 0) {
+                response.put("success", false);
+                response.put("message", "账号已存在，请更换其他账号");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            User user = new User();
+            user.setAccount(account);
+            user.setNickname(nickname);
+            user.setPhone(phone);
+            user.setGender((String) payload.getOrDefault("gender", "未知"));
+            user.setAccountStatus((String) payload.getOrDefault("accountStatus", "active"));
+            user.setAddress((String) payload.getOrDefault("address", null));
+            user.setRemarks((String) payload.getOrDefault("remarks", null));
+            user.setUserType("user");
+            // 使用系统时间作为创建时间/更新时间
+            user.setCreatedAt(LocalDateTime.now());
+            user.setUpdatedAt(LocalDateTime.now());
+
+            // 设置默认密码（BCrypt）
+            String defaultPlainPassword = "Gxu123456";
+            String hashedPassword = cryptoService.encryptPasswordWithBCrypt(defaultPlainPassword);
+            user.setPassword(hashedPassword);
+
+            boolean saved = userService.save(user);
+            if (saved) {
+                response.put("success", true);
+                response.put("message", "用户创建成功，默认密码为 Gxu123456");
+                response.put("data", user);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "用户创建失败");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "创建用户时发生错误: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
     }

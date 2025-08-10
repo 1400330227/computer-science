@@ -7,7 +7,7 @@ class HeartbeatService {
   constructor() {
     this.intervalId = null
     this.isRunning = false
-    this.interval = 3000 // 3秒检测一次
+    this.interval = 60000 // 1分钟检测一次
     this.userStore = null
   }
 

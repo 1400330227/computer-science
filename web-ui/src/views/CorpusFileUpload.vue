@@ -704,13 +704,13 @@ const saveAndCreate = async () => {
     }
 
     // 重置表单
-    Object.keys(formData).forEach(key => {
-      formData[key] = ''
-    })
+    // Object.keys(formData).forEach(key => {
+    //   formData[key] = ''
+    // })
     fileList.value = []
 
     // 重置表单校验状态
-    uploadForm.value.resetFields()
+    // uploadForm.value.resetFields()
 
     // 延迟1秒后隐藏进度条
     setTimeout(() => {

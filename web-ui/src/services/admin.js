@@ -35,6 +35,14 @@ export const getUsers = (params) => {
 };
 
 /**
+ * Create a new user (admin)
+ * @param {object} data - { account, nickname, phone, gender, accountStatus, address, remarks }
+ */
+export const createUser = (data) => {
+  return handleApiResponse(api.post('/admin/users', data));
+};
+
+/**
  * Fetches a paginated list of corpora.
  * @param {object} params - Query parameters { page, size, collectionName, creatorAccount }.
  * @returns {Promise}
