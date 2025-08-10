@@ -9,61 +9,61 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: () => import('../views/AccountLogin.vue'),
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true, title: '登录' }
     },
     {
       path: '/register',
       name: 'register',
       component: () => import('../views/Register.vue'),
-      meta: { requiresGuest: true }
+      meta: { requiresGuest: true, title: '注册' }
     },
     {
       path: '/',
       name: 'home',
       component: () => import('../views/Home.vue'),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, title: '首页' },
       children: [
         {
           path: '',
           name: 'dashboard',
           component: Dashboard,
-          meta: { requiresAuth: true }
+          meta: { requiresAuth: true, title: '仪表盘' }
         },
         {
           path: '/file-list',
           name: 'file-list',
           component: () => import('../views/CorpusFileList.vue'),
-          meta: { requiresAuth: true }
+          meta: { requiresAuth: true, title: '语料清单' }
         },
         {
           path: '/file-upload',
           name: 'file-upload',
           component: () => import('../views/CorpusFileUpload.vue'),
-          meta: { requiresAuth: true }
+          meta: { requiresAuth: true, title: '语料上传' }
         },
         {
           path: 'corpus-details/:id',
           name: 'corpus-details',
           component: () => import('../views/corpusFileDetails.vue'),
-          meta: { requiresAuth: true }
+          meta: { requiresAuth: true, title: '语料详情' }
         },
         {
           path: '/my-files',
           name: 'my-files',
           component: () => import('../views/MyFileList.vue'),
-          meta: { requiresAuth: true }
+          meta: { requiresAuth: true, title: '我的语料' }
         },
         {
           path: '/user-management',
           name: 'user-management',
           component: () => import('../views/UserManagement.vue'),
-          meta: { requiresAuth: true, requiresAdmin: true }
+          meta: { requiresAuth: true, requiresAdmin: true, title: '用户管理' }
         },
         {
           path: '/corpus-management',
           name: 'corpus-management',
           component: () => import('../views/CorpusManagement.vue'),
-          meta: { requiresAuth: true, requiresAdmin: true }
+          meta: { requiresAuth: true, requiresAdmin: true, title: '语料管理' }
         }
       ]
     },
@@ -71,7 +71,7 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: true, title: '关于' }
     },
 
   ]

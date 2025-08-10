@@ -33,9 +33,8 @@
     <div class="upload-form">
       <div class="form-container">
         <el-form ref="uploadForm" :model="formData" :rules="rules" label-width="140px" class="upload-form">
-          <h3>语料集信息</h3>
+          <h3>提示信息</h3>
           <div class="divider"></div>
-
           <div class="info-box">
             <p class="info-text">
               <strong>国家：</strong>填写相关国家，如老挝、泰国
@@ -80,6 +79,8 @@
               <strong>数据提供方联系方式：</strong>联系人（联系电话）
             </p>
           </div>
+          <h3>语料集信息</h3>
+          <div class="divider"></div>
           <div class="form-content">
             <!-- 左侧表单 -->
             <div class="form-column">
@@ -90,13 +91,9 @@
                     :value="country.name"></el-option>
                 </el-select> -->
               </el-form-item>
-
               <el-form-item label="语料集名称" prop="collectionName">
-                <el-input 
-                  v-model="formData.collectionName" 
-                  placeholder="请填写语料集名称"
-                  @blur="checkCollectionNameDuplicate"
-                ></el-input>
+                <el-input v-model="formData.collectionName" placeholder="请填写语料集名称"
+                  @blur="checkCollectionNameDuplicate"></el-input>
                 <div v-if="collectionNameStatus.show" class="name-check-status">
                   <span :class="collectionNameStatus.type">
                     {{ collectionNameStatus.message }}
@@ -184,7 +181,7 @@
             <div class="file-upload-container">
               <div class="upload-area">
                 <el-upload class="upload-demo" drag :auto-upload="false" :before-upload="beforeUpload"
-                  :on-change="handleFileChange" :file-list="fileList" multiple>
+                  :on-change="handleFileChange" :file-list="fileList" multiple :on-remove="removeFile">
                   <el-icon class="el-icon--upload"><upload-filled /></el-icon>
                   <div class="el-upload__text">
                     可同时选择多个文件，上限 10.00GB
@@ -222,6 +219,7 @@ const domains = corpus.domains
 const classifications = corpus.classifications
 const volumeUnits = corpus.volumeUnits
 const dataFormats = corpus.dataFormats
+const validCountryNames = new Set(countries.map(country => country.name))
 // 上传进度状态
 const uploadProgress = reactive({
   show: false,
@@ -253,7 +251,22 @@ onMounted(() => {
 // 表单验证规则
 const rules = {
   country: [
-    { required: true, message: '请输入国家', trigger: 'blur' }
+    { required: true, message: '请输入国家', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (!value) {
+          callback()
+          return
+        }
+        const isValid = validCountryNames.has(String(value).trim())
+        if (!isValid) {
+          callback(new Error('请输入合法国家名称'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'change'
+    }
   ],
   collectionName: [
     { required: true, message: '请输入语料集名称', trigger: 'blur' }
@@ -361,6 +374,16 @@ const beforeUpload = (file) => {
   return true
 }
 
+// 计算并更新容量估算（GB）
+const updateEstimatedCapacity = (files) => {
+  let totalSizeInBytes = 0
+  files.forEach(f => {
+    totalSizeInBytes += f.size
+  })
+  const totalSizeInGB = (totalSizeInBytes / (1024 * 1024 * 1024)).toFixed(2)
+  formData.estimatedCapacityGb = totalSizeInGB
+}
+
 // 处理文件变更
 const handleFileChange = (file, uploadFileList) => {
   // 更新文件列表，只保留文件信息，不进行上传
@@ -370,46 +393,43 @@ const handleFileChange = (file, uploadFileList) => {
     raw: uploadFile.raw  // 保存原始文件对象，用于后续上传
   }))
 
-  // 计算所有文件的总大小（以GB为单位）
-  let totalSizeInBytes = 0
-  uploadFileList.forEach(file => {
-    totalSizeInBytes += file.size
-  })
-
-  // 转换为GB并保留2位小数
-  const totalSizeInGB = (totalSizeInBytes / (1024 * 1024 * 1024)).toFixed(2)
-
-  // 自动填充容量估算字段
-  formData.estimatedCapacityGb = totalSizeInGB
+  // 更新容量估算
+  updateEstimatedCapacity(fileList.value)
 }
 
 // 移除文件
-const removeFile = (file) => {
-  const index = fileList.value.indexOf(file)
-  if (index !== -1) {
-    fileList.value.splice(index, 1)
-  }
+const removeFile = (file, uploadFiles) => {
+  // 使用上传组件当前的文件列表重建本地 fileList
+  fileList.value = uploadFiles.map(uploadFile => ({
+    name: uploadFile.name,
+    size: uploadFile.size,
+    raw: uploadFile.raw
+  }))
+
+  // 更新容量估算
+  updateEstimatedCapacity(fileList.value)
 }
 
 // 检查语料集名称是否重复
 const checkCollectionNameDuplicate = async () => {
   const collectionName = formData.collectionName?.trim()
-  
+
   if (!collectionName) {
     collectionNameStatus.show = false
     return
   }
-  
+
   try {
     // 调用后端接口检查是否重复
     const response = await api.get(`/corpus/my-corpus`, {
       params: {
         page: 1,
         size: 1,
-        collectionName: collectionName
+        collectionName: collectionName,
+        searchType: 'accurate'
       }
     })
-    
+
     if (response.data && response.data.records && response.data.records.length > 0) {
       // 找到重复的语料
       collectionNameStatus.show = true
@@ -417,9 +437,9 @@ const checkCollectionNameDuplicate = async () => {
       collectionNameStatus.message = '⚠️ 该语料集名称已存在，请使用其他名称'
     } else {
       // 名称可用
-      collectionNameStatus.show = true
+      collectionNameStatus.show = false
       collectionNameStatus.type = 'success'
-      collectionNameStatus.message = '✅ 语料集名称可用'
+      // collectionNameStatus.message = '✅ 语料集名称可用'
     }
   } catch (error) {
     console.error('检查语料名称失败:', error)
@@ -436,6 +456,13 @@ const saveForm = async () => {
   try {
     // 表单验证
     await uploadForm.value.validate()
+
+    // 校验是否选择附件
+    if (!fileList.value || fileList.value.length === 0) {
+      ElMessage.warning('请至少选择一个附件')
+      isSubmitting.value = false
+      return
+    }
 
     // 初始化进度条
     const totalFiles = fileList.value.length
@@ -533,12 +560,21 @@ const saveForm = async () => {
     uploadProgress.show = false
     console.error('上传失败:', error)
 
+
     if (error.name === 'AbortError') {
       ElMessage.info('上传已取消')
+    } else if (error.response == null) {
+      let errorMessage = '请检查填写信息'
+      ElMessage({
+        message: errorMessage,
+        type: 'error',
+        duration: 5000, // 延长显示时间到5秒
+        showClose: true // 允许手动关闭
+      })
     } else if (error.response?.status !== 401) {
       // 改进错误消息显示逻辑
       let errorMessage = '上传失败，请稍后重试'
-      
+
       if (error.response?.data) {
         // 如果后端返回了具体错误信息
         errorMessage = error.response.data
@@ -546,7 +582,7 @@ const saveForm = async () => {
         // 如果是前端抛出的错误（如语料创建失败）
         errorMessage = error.message
       }
-      
+
       // 显示更明确的错误提示
       ElMessage({
         message: errorMessage,
@@ -579,6 +615,13 @@ const saveAndCreate = async () => {
   try {
     // 表单验证
     await uploadForm.value.validate()
+
+    // 校验是否选择附件
+    if (!fileList.value || fileList.value.length === 0) {
+      ElMessage.warning('请至少选择一个附件')
+      isSubmitting.value = false
+      return
+    }
 
     // 初始化进度条
     const totalFiles = fileList.value.length
@@ -686,7 +729,7 @@ const saveAndCreate = async () => {
     } else if (error.response?.status !== 401) {
       // 改进错误消息显示逻辑
       let errorMessage = '上传失败，请稍后重试'
-      
+
       if (error.response?.data) {
         // 如果后端返回了具体错误信息
         errorMessage = error.response.data
@@ -694,7 +737,7 @@ const saveAndCreate = async () => {
         // 如果是前端抛出的错误（如语料创建失败）
         errorMessage = error.message
       }
-      
+
       // 显示更明确的错误提示
       ElMessage({
         message: errorMessage,

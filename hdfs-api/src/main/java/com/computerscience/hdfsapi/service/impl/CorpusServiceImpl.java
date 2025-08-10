@@ -63,7 +63,7 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     }
 
     @Override
-    public IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification, String collectionName, String country) {
+    public IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification, String collectionName, String country, String searchType) {
         LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
         
         // 筛选当前用户的语料
@@ -77,9 +77,13 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
             queryWrapper.eq(Corpus::getClassification, classification);
         }
         
-        // 根据语料集名称筛选（模糊查询）
+        // 根据语料集名称筛选（根据 searchType 决定模糊或精确）
         if (StringUtils.hasText(collectionName)) {
-            queryWrapper.like(Corpus::getCollectionName, collectionName);
+            if ("like".equalsIgnoreCase(searchType)) {
+                queryWrapper.like(Corpus::getCollectionName, collectionName);
+            } else {
+                queryWrapper.eq(Corpus::getCollectionName, collectionName);
+            }
         }
         
         // 根据国家筛选

@@ -10,12 +10,68 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
 
 // 注入全局面包屑状态
 const breadcrumbState = inject('breadcrumb', { items: [] })
 const route = useRoute()
+const router = useRouter()
+
+// 从路由表生成 path->title 映射
+const routeTitleMap = computed(() => {
+    const map = {}
+    router.getRoutes().forEach(r => {
+        if (r.path) {
+            const title = r.meta && r.meta.title ? r.meta.title : r.name || r.path
+            map[r.path.startsWith('/') ? r.path : `/${r.path}`] = title
+        }
+    })
+    return map
+})
+
+function buildMatchedBreadcrumb() {
+    const items = []
+    const baseCrumb = { title: '首页', path: '/' }
+
+    // 首页特殊处理
+    if (route.path === '/') {
+        items.push(baseCrumb)
+        return items
+    }
+
+    items.push(baseCrumb)
+
+    // 使用 route.matched 构建层级
+    route.matched.forEach((rec) => {
+        if (!rec.path) return
+        // 规范化路径
+        let fullPath = rec.path
+        if (!fullPath.startsWith('/')) fullPath = `/${fullPath}`
+
+        // 处理动态参数占位符，尽可能用当前参数替换
+        Object.entries(route.params || {}).forEach(([key, val]) => {
+            const value = Array.isArray(val) ? val[0] : val
+            fullPath = fullPath.replace(`:${key}`, String(value))
+        })
+
+        // 标题优先使用 meta.title
+        const title = rec.meta && rec.meta.title ? rec.meta.title : (rec.name || routeTitleMap.value[fullPath] || fullPath)
+
+        // 避免重复首页
+        if (fullPath !== '/' && title) {
+            items.push({ title, path: fullPath })
+        }
+    })
+
+    // 若 matched 为空，尝试使用完整 path 的映射
+    if (items.length === 1) {
+        const title = routeTitleMap.value[route.path]
+        if (title) items.push({ title, path: route.path })
+    }
+
+    return items
+}
 
 // 根据当前路由生成面包屑数据
 const breadcrumbItems = computed(() => {
@@ -24,22 +80,7 @@ const breadcrumbItems = computed(() => {
         return breadcrumbState.items
     }
 
-    // 否则根据路由自动生成
-    const routePath = route.path
-    const baseCrumb = [{ title: '首页', path: '/' }]
-
-    if (routePath === '/') {
-        return baseCrumb
-    }
-
-    // 路由映射到面包屑
-    const pathMap = {
-        '/file-list': [{ title: '语料清单', path: '/file-list' }],
-        '/upload': [{ title: '语料上传', path: '/upload' }],
-        '/about': [{ title: '关于', path: '/about' }],
-    }
-
-    return [...baseCrumb, ...(pathMap[routePath] || [])]
+    return buildMatchedBreadcrumb()
 })
 </script>
 

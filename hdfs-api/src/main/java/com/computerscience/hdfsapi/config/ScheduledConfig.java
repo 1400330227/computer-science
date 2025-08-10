@@ -26,9 +26,9 @@ public class ScheduledConfig {
     @Scheduled(fixedRate = 300000) // 5分钟 = 300000毫秒
     public void cleanExpiredVerificationCodes() {
         try {
-            logger.debug("开始清理过期的验证码...");
+//            logger.debug("开始清理过期的验证码...");
             smsVerificationService.cleanExpiredCodes();
-            logger.debug("过期验证码清理完成");
+//            logger.debug("过期验证码清理完成");
         } catch (Exception e) {
             logger.error("清理过期验证码时发生错误", e);
         }

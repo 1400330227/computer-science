@@ -146,10 +146,12 @@ public class CorpusController {
             @RequestParam(required = false) String language,
             @RequestParam(required = false) String classification,
             @RequestParam(required = false) String collectionName,
-            @RequestParam(required = false) String country) {
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false, defaultValue = "like") String searchType
+    ) {
         try {
             User currentUser = UserContext.getCurrentUser();
-            return ResponseEntity.ok(corpusService.findUserCorpusPage(currentUser.getUserId(), page, size, language, classification, collectionName, country));
+            return ResponseEntity.ok(corpusService.findUserCorpusPage(currentUser.getUserId(), page, size, language, classification, collectionName, country, searchType));
         } catch (Exception e) {
             return ResponseEntity.status(500).body("获取语料列表失败: " + e.getMessage());
         }

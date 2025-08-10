@@ -47,7 +47,7 @@ public interface CorpusService extends IService<Corpus> {
      * @param country 国家（可选）
      * @return 分页语料库列表
      */
-    IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification, String collectionName, String country);
+    IPage<Corpus> findUserCorpusPage(Integer userId, Integer page, Integer size, String language, String classification, String collectionName, String country, String searchType);
     
     /**
      * [Admin] 分页查询所有语料库

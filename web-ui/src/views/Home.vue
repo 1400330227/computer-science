@@ -6,6 +6,7 @@ import { useBreadcrumbStore } from '../stores/breadcrumb'
 import { useUserStore } from '../stores/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import heartbeatService from '@/services/heartbeat'
+import { template } from 'lodash-es'
 
 
 const router = useRouter()
@@ -87,13 +88,12 @@ const handleLogout = async () => {
           <el-menu-item index="/file-upload">上传语料集</el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/my-files" class="nav-item">我的文件</el-menu-item>
-        
+
         <!-- Admin Menu -->
-        <el-sub-menu index="admin" class="nav-item" v-if="userStore.user?.userType === 'admin'">
-          <template #title>后台管理</template>
-          <el-menu-item index="/user-management">用户管理</el-menu-item>
-          <el-menu-item index="/corpus-management">语料库管理</el-menu-item>
-        </el-sub-menu>
+        <template v-if="userStore.user?.userType === 'admin'">
+          <el-menu-item class="nav-item" index="/user-management">用户管理</el-menu-item>
+          <el-menu-item class="nav-item" index="/corpus-management">语料库管理</el-menu-item>
+        </template>
 
       </el-menu>
       <!-- 添加平台标题 -->
