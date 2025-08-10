@@ -125,10 +125,30 @@ public class UserController {
      */
     @PostMapping
     public ResponseEntity<?> createUser(@RequestBody User user) {
-        if (userService.createUser(user)) {
-            return ResponseEntity.ok(user);
-        } else {
-            return ResponseEntity.badRequest().body("创建用户失败，账号可能已存在");
+        try {
+            String incomingPassword = user.getPassword();
+            if (incomingPassword == null || incomingPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("密码不能为空");
+            }
+
+            // 使用RSA解密前端传来的密码，然后使用BCrypt加密存储
+            String decryptedPassword = cryptoService.decryptWithRSA(incomingPassword);
+            if (decryptedPassword == null || decryptedPassword.isEmpty()) {
+                return ResponseEntity.badRequest().body("密码解密失败");
+            }
+
+            String hashedPassword = cryptoService.encryptPasswordWithBCrypt(decryptedPassword);
+            user.setPassword(hashedPassword);
+            user.setUserType("user");
+
+            if (userService.createUser(user)) {
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.badRequest().body("创建用户失败，账号可能已存在");
+            }
+        } catch (Exception e) {
+            System.err.println("创建用户时密码处理失败: " + e.getMessage());
+            return ResponseEntity.badRequest().body("创建用户失败：密码处理异常");
         }
     }
 
