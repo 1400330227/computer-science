@@ -141,7 +141,7 @@
             <!-- 右侧表单 -->
             <div class="form-column">
               <el-form-item label="容量估算 (GB)" prop="estimatedCapacityGb">
-                <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"></el-input>
+                <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="数据年份" prop="dataYear">
@@ -204,7 +204,7 @@
 
 <script setup>
 import { ref, reactive, inject, onMounted, computed } from 'vue'
-import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
 import api from '../services/api'
@@ -752,10 +752,6 @@ const saveAndCreate = async () => {
   }
 }
 
-// 返回上一页
-const goBack = () => {
-  router.go(-1)
-}
 </script>
 
 <style scoped>
