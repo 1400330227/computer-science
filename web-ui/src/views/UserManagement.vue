@@ -34,7 +34,10 @@
       <el-table :data="users" v-loading="loading" style="width: 100%">
         <!-- <el-table-column prop="userId" label="用户ID" width="100" /> -->
         <el-table-column prop="account" label="账号" min-width="120" />
-        <el-table-column prop="nickname" label="姓名" min-width="100" />
+        <el-table-column prop="nickname" label="姓名" width="100" />
+        <el-table-column prop="college" label="学院" />
+        <el-table-column prop="title" label="职称"  />
+        <el-table-column prop="major" label="专业"  />
         <el-table-column prop="userType" label="用户类型" width="120">
           <template #default="scope">
             <el-select v-model="scope.row.userType" size="small" @change="handleUserTypeChange(scope.row)"
@@ -44,7 +47,7 @@
             </el-select>
           </template>
         </el-table-column>
-        <el-table-column prop="phone" label="手机号" min-width="120" />
+        <el-table-column prop="phone" label="手机号" width="120" />
         <el-table-column prop="gender" label="性别" width="80">
           <template #default="scope">
             <el-tag :type="scope.row.gender === '男' ? 'primary' : 'warning'" size="small">
@@ -52,24 +55,23 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="accountStatus" label="账号状态" width="100">
+        <el-table-column prop="accountStatus" label="账号状态" width="90">
           <template #default="scope">
             <el-tag :type="scope.row.accountStatus === 'active' ? 'success' : 'danger'" size="small">
               {{ scope.row.accountStatus === 'active' ? '正常' : '禁用' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="180">
+        <el-table-column label="创建时间" width="100">
           <template #default="scope">
             {{ formatDate(scope.row.createdAt) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="160">
           <template #default="scope">
             <el-button type="primary" link @click="openEditDialog(scope.row)">
               编辑
             </el-button>
-            <!-- <el-divider direction="vertical" /> -->
             <el-button type="primary" link @click="handleResetPassword(scope.row)">
               密码重置
             </el-button>
@@ -96,6 +98,15 @@
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="createForm.phone" maxlength="11" placeholder="请输入11位手机号"
                     @input="createForm.phone = createForm.phone.replace(/\D/g, '')" />
+        </el-form-item>
+        <el-form-item label="学院">
+          <el-input v-model="createForm.college" />
+        </el-form-item>
+        <el-form-item label="职称">
+          <el-input v-model="createForm.title" />
+        </el-form-item>
+        <el-form-item label="专业">
+          <el-input v-model="createForm.major" />
         </el-form-item>
         <el-form-item label="性别">
           <el-select v-model="createForm.gender" placeholder="请选择">
@@ -138,6 +149,15 @@
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="editForm.phone" maxlength="11" placeholder="请输入11位手机号"
                     @input="editForm.phone = editForm.phone.replace(/\D/g, '')" />
+        </el-form-item>
+        <el-form-item label="学院">
+          <el-input v-model="editForm.college" />
+        </el-form-item>
+        <el-form-item label="职称">
+          <el-input v-model="editForm.title" />
+        </el-form-item>
+        <el-form-item label="专业">
+          <el-input v-model="editForm.major" />
         </el-form-item>
         <el-form-item label="性别">
           <el-select v-model="editForm.gender" placeholder="请选择">
@@ -202,6 +222,9 @@ export default {
       account: '',
       nickname: '',
       phone: '',
+      college: '',
+      title: '',
+      major: '',
       gender: '未知',
       accountStatus: 'active',
       address: '',
@@ -223,6 +246,9 @@ export default {
       account: '',
       nickname: '',
       phone: '',
+      college: '',
+      title: '',
+      major: '',
       gender: '',
       accountStatus: '',
       address: '',
@@ -281,6 +307,9 @@ export default {
       createForm.account = '';
       createForm.nickname = '';
       createForm.phone = '';
+      createForm.college = '';
+      createForm.title = '';
+      createForm.major = '';
       createForm.gender = '未知';
       createForm.accountStatus = 'active';
       createForm.address = '';
@@ -297,6 +326,9 @@ export default {
           account: createForm.account.trim(),
           nickname: createForm.nickname,
           phone: createForm.phone,
+          college: createForm.college,
+          title: createForm.title,
+          major: createForm.major,
           gender: createForm.gender,
           accountStatus: createForm.accountStatus,
           address: createForm.address,
@@ -320,6 +352,9 @@ export default {
         editForm.account = data.account;
         editForm.nickname = data.nickname;
         editForm.phone = data.phone;
+        editForm.college = data.college || '';
+        editForm.title = data.title || '';
+        editForm.major = data.major || '';
         editForm.gender = data.gender || '';
         editForm.accountStatus = data.accountStatus || 'active';
         editForm.address = data.address || '';
@@ -355,6 +390,9 @@ export default {
           account: editForm.account,
           nickname: editForm.nickname,
           phone: editForm.phone,
+          college: editForm.college,
+          title: editForm.title,
+          major: editForm.major,
           gender: editForm.gender,
           accountStatus: editForm.accountStatus,
           address: editForm.address,

@@ -39,6 +39,21 @@
           <el-input v-model="registerForm.phone" placeholder="请输入手机号" prefix-icon="Phone" clearable />
         </el-form-item>
 
+        <!-- 学院 -->
+        <el-form-item label="学院" prop="college">
+          <el-input v-model="registerForm.college" placeholder="请输入学院（可选）" clearable />
+        </el-form-item>
+
+        <!-- 职称 -->
+        <el-form-item label="职称" prop="title">
+          <el-input v-model="registerForm.title" placeholder="请输入职称（可选）" clearable />
+        </el-form-item>
+
+        <!-- 专业 -->
+        <el-form-item label="专业" prop="major">
+          <el-input v-model="registerForm.major" placeholder="请输入专业（可选）" clearable />
+        </el-form-item>
+
         <!-- 性别选择 -->
         <el-form-item label="性别" prop="gender">
           <el-radio-group v-model="registerForm.gender">
@@ -104,6 +119,9 @@ const registerForm = reactive({
   password: '',
   confirmPassword: '',
   phone: '',
+  college: '',
+  title: '',
+  major: '',
   gender: '男',
   remarks: ''
 })
@@ -263,6 +281,9 @@ const handleRegister = async () => {
       account: registerForm.account,
       password: "*** RSA加密密码 ***",
       phone: registerForm.phone,
+      college: registerForm.college,
+      title: registerForm.title,
+      major: registerForm.major,
       gender: registerForm.gender,
       remarks: registerForm.remarks
     })
@@ -271,6 +292,9 @@ const handleRegister = async () => {
       account: registerForm.account,
       password: encryptedPassword,  // 使用加密后的密码
       phone: registerForm.phone,
+      college: registerForm.college,
+      title: registerForm.title,
+      major: registerForm.major,
       gender: registerForm.gender,
       remarks: registerForm.remarks
     })

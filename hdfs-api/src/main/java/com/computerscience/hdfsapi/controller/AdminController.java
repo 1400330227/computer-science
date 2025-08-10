@@ -142,6 +142,15 @@ public class AdminController {
             if (payload.containsKey("gender")) {
                 user.setGender((String) payload.get("gender"));
             }
+            if (payload.containsKey("college")) {
+                user.setCollege((String) payload.get("college"));
+            }
+            if (payload.containsKey("title")) {
+                user.setTitle((String) payload.get("title"));
+            }
+            if (payload.containsKey("major")) {
+                user.setMajor((String) payload.get("major"));
+            }
             if (payload.containsKey("accountStatus")) {
                 user.setAccountStatus((String) payload.get("accountStatus"));
             }
@@ -209,6 +218,9 @@ public class AdminController {
             user.setNickname(nickname);
             user.setPhone(phone);
             user.setGender((String) payload.getOrDefault("gender", "未知"));
+            user.setCollege((String) payload.getOrDefault("college", null));
+            user.setTitle((String) payload.getOrDefault("title", null));
+            user.setMajor((String) payload.getOrDefault("major", null));
             user.setAccountStatus((String) payload.getOrDefault("accountStatus", "active"));
             user.setAddress((String) payload.getOrDefault("address", null));
             user.setRemarks((String) payload.getOrDefault("remarks", null));

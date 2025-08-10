@@ -27,7 +27,7 @@
                placeholder="请输入用户名" 输入框提示文字
                prefix-icon="User" 输入框前面的用户图标
           -->
-          <el-input v-model="loginForm.username" placeholder="请输入用户名" prefix-icon="User" clearable />
+          <el-input v-model="loginForm.username" placeholder="请输入账号" prefix-icon="User" clearable />
         </el-form-item>
 
         <!-- 密码输入框 -->
@@ -38,7 +38,7 @@
                @keyup.enter="handleLogin" 按回车键时触发登录
           -->
           <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" prefix-icon="Lock" show-password
-                    clearable @keyup.enter="handleLogin" />
+            clearable @keyup.enter="handleLogin" />
         </el-form-item>
 
         <!-- 记住用户名选项 -->
@@ -59,6 +59,14 @@
           <el-button type="primary" :loading="loading" @click="handleLogin" style="width: 100%">
             {{ loading ? '登录中...' : '登录' }}
           </el-button>
+        </el-form-item>
+
+        <!-- 注册引导 -->
+        <el-form-item>
+          <div class="signup-hint">
+            还没有账号？
+            <a @click.prevent="router.push({ name: 'register' })" href="#">去注册</a>
+          </div>
         </el-form-item>
 
       </el-form>
@@ -355,5 +363,23 @@ const handleLogin = async () => {
     max-width: 100%;
     /* 小屏幕上占满宽度 */
   }
+}
+
+.signup-hint {
+  width: 100%;
+  text-align: center;
+  color: #606266;
+  font-size: 14px;
+}
+
+.signup-hint a {
+  color: #4169e1;
+  cursor: pointer;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.signup-hint a:hover {
+  text-decoration: underline;
 }
 </style>

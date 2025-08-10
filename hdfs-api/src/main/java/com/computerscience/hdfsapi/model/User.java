@@ -84,4 +84,13 @@ public class User implements Serializable {
      * 地址
      */
     private String address;
+
+    /** 学院 */
+    private String college;
+
+    /** 职称 */
+    private String title;
+
+    /** 专业 */
+    private String major;
 }

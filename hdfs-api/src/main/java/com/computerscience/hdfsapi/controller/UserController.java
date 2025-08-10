@@ -103,6 +103,9 @@ public class UserController {
         response.put("userType", user.getUserType());
         response.put("phone", user.getPhone());
         response.put("gender", user.getGender());
+        response.put("college", user.getCollege());
+        response.put("title", user.getTitle());
+        response.put("major", user.getMajor());
         response.put("accountStatus", user.getAccountStatus());
         response.put("address", user.getAddress());
         
@@ -471,6 +474,9 @@ public class UserController {
         responseMap.put("userType", user.getUserType()); // 用户类型（如：管理员、普通用户）
         responseMap.put("phone", user.getPhone());       // 用户手机号
         responseMap.put("nickname", user.getNickname());       // 用户手机号
+        responseMap.put("college", user.getCollege());
+        responseMap.put("title", user.getTitle());
+        responseMap.put("major", user.getMajor());
         // 注意：这里故意不返回密码，保护用户隐私安全
         
         // 返回200成功状态码和用户信息
