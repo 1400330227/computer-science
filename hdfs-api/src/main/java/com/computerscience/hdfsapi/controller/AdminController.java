@@ -29,6 +29,9 @@ public class AdminController {
     @Autowired
     private CorpusService corpusService;
 
+    @Autowired
+    private com.computerscience.hdfsapi.service.CryptoService cryptoService;
+
     // 测试端点 - 用于验证Controller是否正常工作
     @GetMapping("/test")
     public ResponseEntity<Map<String, Object>> test() {
@@ -63,6 +66,130 @@ public class AdminController {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "获取用户列表失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserDetail(@PathVariable Integer userId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = userService.getById(userId);
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "用户不存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+            response.put("success", true);
+            response.put("data", user);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "获取用户信息失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PutMapping("/users/{userId}")
+    public ResponseEntity<Map<String, Object>> updateUserByAdmin(@PathVariable Integer userId, @RequestBody Map<String, Object> payload) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = userService.getById(userId);
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "用户不存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 允许更新的字段（不允许通过此接口修改password和userType）
+            if (payload.containsKey("account")) {
+                Object accountVal = payload.get("account");
+                if (accountVal instanceof String && StringUtils.hasText((String) accountVal)) {
+                    String newAccount = ((String) accountVal).trim();
+                    // 若修改了账号，则校验唯一性
+                    if (!newAccount.equals(user.getAccount())) {
+                        LambdaQueryWrapper<User> dupCheck = new LambdaQueryWrapper<>();
+                        dupCheck.eq(User::getAccount, newAccount);
+                        dupCheck.ne(User::getUserId, userId);
+                        long count = userService.count(dupCheck);
+                        if (count > 0) {
+                            response.put("success", false);
+                            response.put("message", "账号已存在，请更换其他账号");
+                            return ResponseEntity.badRequest().body(response);
+                        }
+                    }
+                    user.setAccount(newAccount);
+                }
+            }
+            if (payload.containsKey("nickname")) {
+                user.setNickname((String) payload.get("nickname"));
+            }
+            if (payload.containsKey("phone")) {
+                user.setPhone((String) payload.get("phone"));
+            }
+            if (payload.containsKey("gender")) {
+                user.setGender((String) payload.get("gender"));
+            }
+            if (payload.containsKey("accountStatus")) {
+                user.setAccountStatus((String) payload.get("accountStatus"));
+            }
+            if (payload.containsKey("address")) {
+                user.setAddress((String) payload.get("address"));
+            }
+            if (payload.containsKey("remarks")) {
+                user.setRemarks((String) payload.get("remarks"));
+            }
+
+            boolean success = userService.updateById(user);
+            if (success) {
+                response.put("success", true);
+                response.put("message", "用户信息更新成功");
+                response.put("data", user);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "用户信息更新失败");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "更新用户信息时发生错误: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/users/{userId}/reset-password")
+    public ResponseEntity<Map<String, Object>> resetUserPassword(@PathVariable Integer userId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = userService.getById(userId);
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "用户不存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String defaultPlainPassword = "Gxu123456";
+            String hashedPassword = cryptoService.encryptPasswordWithBCrypt(defaultPlainPassword);
+            user.setPassword(hashedPassword);
+
+            boolean success = userService.updateById(user);
+            if (success) {
+                response.put("success", true);
+                response.put("message", "密码已重置为默认值");
+                Map<String, Object> data = new HashMap<>();
+                data.put("userId", user.getUserId());
+                data.put("account", user.getAccount());
+                response.put("data", data);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "密码重置失败");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "密码重置时发生错误: " + e.getMessage());
             return ResponseEntity.status(500).body(response);
         }
     }

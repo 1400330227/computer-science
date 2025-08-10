@@ -65,4 +65,29 @@ export const updateUserRole = (userId, userType) => {
   return handleApiResponse(
     api.post(`/admin/users/${userId}/update-role`, { userType })
   );
+};
+
+/**
+ * Get a user's detail by id (admin)
+ * @param {number} userId
+ */
+export const getUserDetail = (userId) => {
+  return handleApiResponse(api.get(`/admin/users/${userId}`));
+};
+
+/**
+ * Update a user's fields by admin (excluding password and userType)
+ * @param {number} userId
+ * @param {object} data
+ */
+export const updateUser = (userId, data) => {
+  return handleApiResponse(api.put(`/admin/users/${userId}`, data));
+};
+
+/**
+ * Reset user's password to default value (admin)
+ * @param {number} userId
+ */
+export const resetUserPassword = (userId) => {
+  return handleApiResponse(api.post(`/admin/users/${userId}/reset-password`));
 }; 

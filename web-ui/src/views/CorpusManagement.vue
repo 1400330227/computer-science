@@ -1,163 +1,86 @@
 <template>
   <div class="corpus-management">
-    <el-card class="page-header">
-      <h2>语料管理</h2>
-      <p>管理系统中的所有语料清单，支持转移语料所有权</p>
-    </el-card>
+    <div class="search-card">
+      <el-form :inline="true" :model="filters" class="search-toolbar">
+        <el-form-item label="语料名称">
+          <el-input v-model="filters.collectionName" placeholder="按语料名称搜索" style="width: 200px;"
+            @keyup.enter="fetchCorpora" clearable @clear="fetchCorpora">
+            <template #prefix>
+              <el-icon>
+                <Search />
+              </el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="用户账号">
+          <el-input v-model="filters.creatorAccount" placeholder="按用户账号搜索" style="width: 200px;"
+            @keyup.enter="fetchCorpora" clearable @clear="fetchCorpora">
+            <template #prefix>
+              <el-icon>
+                <User />
+              </el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="fetchCorpora" :icon="Search">搜索</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="resetFilters" :icon="Refresh">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
 
-    <el-card class="search-card">
-      <div class="search-toolbar">
-        <el-input
-          v-model="filters.collectionName"
-          placeholder="按语料名称搜索"
-          style="width: 200px; margin-right: 16px;"
-          @keyup.enter="fetchCorpora"
-          clearable
-          @clear="fetchCorpora"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-        <el-input
-          v-model="filters.creatorAccount"
-          placeholder="按用户账号搜索"
-          style="width: 200px; margin-right: 16px;"
-          @keyup.enter="fetchCorpora"
-          clearable
-          @clear="fetchCorpora"
-        >
-          <template #prefix>
-            <el-icon><User /></el-icon>
-          </template>
-        </el-input>
-        <el-button type="primary" @click="fetchCorpora" :icon="Search">
-          搜索
-        </el-button>
-        <el-button @click="resetFilters" :icon="Refresh">
-          重置
-        </el-button>
-      </div>
-    </el-card>
-
-    <el-card class="action-card">
-      <div class="action-toolbar">
-        <el-button 
-          type="warning" 
-          @click="showTransferDialog = true" 
-          :disabled="selectedCorpora.length === 0"
-          :icon="Switch"
-        >
-          转移选中的语料 ({{ selectedCorpora.length }})
-        </el-button>
-        <div class="selection-info">
-          <el-tag v-if="selectedCorpora.length > 0" type="info">
-            已选择 {{ selectedCorpora.length }} 个语料
-          </el-tag>
-        </div>
-      </div>
-    </el-card>
-
-    <el-card class="table-card">
-      <el-table 
-        :data="corpora" 
-        v-loading="loading"
-        style="width: 100%"
-        stripe
-        border
-        @selection-change="handleSelectionChange"
-      >
-        <el-table-column type="selection" width="55" />
-        <el-table-column prop="corpusId" label="语料ID" width="100" align="center" />
-        <el-table-column prop="collectionName" label="语料名称" min-width="200">
+    <div class="table-card">
+      <el-table :data="corpora" v-loading="loading" style="width: 100%">
+        <el-table-column prop="country" label="国家" width="100" />
+        <el-table-column prop="collectionName" label="语料名称" min-width="200" />
+        <el-table-column label="所有者">
           <template #default="scope">
-            <el-tag type="primary">{{ scope.row.collectionName }}</el-tag>
+            <el-tag type="success">{{ scope.row.creatorAccount || '未知用户' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="所有者" min-width="150" align="center">
-          <template #default="scope">
-            <div class="owner-info">
-              <div>
-                <el-tag type="success" size="small">{{ scope.row.creatorAccount || '未知用户' }}</el-tag>
-              </div>
-              <div class="owner-id">ID: {{ scope.row.creatorId }}</div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="language" label="语种" width="100" align="center">
-          <template #default="scope">
-            <el-tag size="small">{{ scope.row.language || '未设置' }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="dataFormat" label="数据格式" width="120" align="center">
-          <template #default="scope">
-            <el-tag type="info" size="small">{{ scope.row.dataFormat || '未设置' }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="dataVolume" label="数据量" width="120" align="center">
+        <el-table-column prop="language" label="语种" width="100" />
+        <el-table-column prop="dataFormat" label="数据格式" width="120" />
+        <el-table-column prop="dataVolume" label="数据量" width="120">
           <template #default="scope">
             {{ scope.row.dataVolume ? `${scope.row.dataVolume} ${scope.row.volumeUnit || ''}` : '未设置' }}
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="180" align="center">
+        <el-table-column label="创建时间" width="180">
           <template #default="scope">
-            {{ new Date(scope.row.createdAt).toLocaleString() }}
+            {{ formatDate(scope.row.createdAt) }}
           </template>
         </el-table-column>
       </el-table>
 
       <div class="pagination-wrapper">
-        <el-pagination
-          background
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="total"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="pageSize"
-          :current-page="currentPage"
-          @current-change="handlePageChange"
-          @size-change="handleSizeChange"
-        />
+        <el-pagination background layout="total, sizes, prev, pager, next, jumper" :total="total"
+          :page-sizes="[10, 20, 50, 100]" :page-size="pageSize" :current-page="currentPage"
+          @current-change="handlePageChange" @size-change="handleSizeChange" />
       </div>
-    </el-card>
+    </div>
 
     <!-- 转移对话框 -->
-    <el-dialog
-      v-model="showTransferDialog"
-      title="转移语料所有权"
-      width="600px"
-      :before-close="handleCloseTransferDialog"
-    >
+    <el-dialog v-model="showTransferDialog" title="转移语料所有权" width="600px" :before-close="handleCloseTransferDialog">
       <div class="transfer-content">
-        <el-alert
-          :title="`您即将转移 ${selectedCorpora.length} 个语料的所有权`"
-          type="warning"
-          show-icon
-          :closable="false"
-          style="margin-bottom: 20px;"
-        />
+        <el-alert :title="`您即将转移 ${selectedCorpora.length} 个语料的所有权`" type="warning" show-icon :closable="false"
+          style="margin-bottom: 20px;" />
 
         <div class="user-select-section">
           <label class="form-label">选择目标用户：</label>
-          <el-input
-            v-model="userSearchQuery"
-            placeholder="输入用户账号进行搜索..."
-            @input="searchUsers"
-            clearable
-            style="margin-bottom: 10px;"
-          >
+          <el-input v-model="userSearchQuery" placeholder="输入用户账号进行搜索..." @input="searchUsers" clearable
+            style="margin-bottom: 10px;">
             <template #prefix>
-              <el-icon><Search /></el-icon>
+              <el-icon>
+                <Search />
+              </el-icon>
             </template>
           </el-input>
 
           <div v-if="searchedUsers.length > 0" class="user-list">
-            <div 
-              v-for="user in searchedUsers" 
-              :key="user.userId"
-              class="user-item"
-              :class="{ selected: targetUser && targetUser.userId === user.userId }"
-              @click="selectUser(user)"
-            >
+            <div v-for="user in searchedUsers" :key="user.userId" class="user-item"
+              :class="{ selected: targetUser && targetUser.userId === user.userId }" @click="selectUser(user)">
               <div class="user-info">
                 <span class="user-account">{{ user.account }}</span>
                 <span class="user-id">(ID: {{ user.userId }})</span>
@@ -171,12 +94,8 @@
           </div>
 
           <div v-if="targetUser" class="selected-user">
-            <el-alert
-              :title="`已选择用户: ${targetUser.account} (ID: ${targetUser.userId})`"
-              type="success"
-              show-icon
-              :closable="false"
-            />
+            <el-alert :title="`已选择用户: ${targetUser.account} (ID: ${targetUser.userId})`" type="success" show-icon
+              :closable="false" />
           </div>
         </div>
       </div>
@@ -184,12 +103,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="handleCloseTransferDialog">取消</el-button>
-          <el-button 
-            type="primary" 
-            @click="handleTransfer" 
-            :disabled="!targetUser"
-            :loading="transferLoading"
-          >
+          <el-button type="primary" @click="handleTransfer" :disabled="!targetUser" :loading="transferLoading">
             确认转移
           </el-button>
         </span>
@@ -327,7 +241,7 @@ export default {
 
         transferLoading.value = true;
         const response = await transferCorpus(selectedCorpora.value, targetUser.value.userId);
-        
+
         ElMessage.success(response.data.message || '语料转移成功！');
         handleCloseTransferDialog();
         fetchCorpora();
@@ -340,6 +254,17 @@ export default {
       } finally {
         transferLoading.value = false;
       }
+    };
+
+    // 日期格式化：YYYY-MM-DD
+    const formatDate = (value) => {
+      if (!value) return '-';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '-';
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     };
 
     // 监听路由查询参数
@@ -381,6 +306,7 @@ export default {
       selectUser,
       handleCloseTransferDialog,
       handleTransfer,
+      formatDate,
     };
   },
 };
@@ -388,8 +314,10 @@ export default {
 
 <style scoped>
 .corpus-management {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
+  background-color: #fff;
+  padding: 20px;
 }
 
 .page-header {
@@ -409,11 +337,14 @@ export default {
   font-size: 14px;
 }
 
-.search-card, .action-card, .table-card {
+.search-card,
+.action-card,
+.table-card {
   margin-bottom: 20px;
 }
 
-.search-toolbar, .action-toolbar {
+.search-toolbar,
+.action-toolbar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -515,4 +446,4 @@ export default {
   font-size: 12px;
   color: #909399;
 }
-</style> 
+</style>

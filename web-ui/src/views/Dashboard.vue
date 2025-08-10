@@ -8,8 +8,8 @@
       <div class="card" @click="navigateTo('/file-list')">
         <div class="card-icon">📁</div>
         <div class="card-content">
-          <h2>语料管理</h2>
-          <p>浏览、上传、下载和管理您的文件</p>
+          <h2>我的语料集</h2>
+          <p>浏览、上传、下载和管理您的语料集</p>
         </div>
       </div>
 
@@ -29,29 +29,84 @@
         </div>
       </div>
     </div>
-
-    <div>
-      <el-table>
-        
-      </el-table>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
-
+import { onMounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import api from '../services/api'
+import { useUserStore } from '../stores/user'
 const router = useRouter()
-const username = localStorage.getItem('username') || '用户'
+const userStore = useUserStore()
+// 列表与分页
+const tableData = ref([])
+const loading = ref(false)
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
+const loadCorpora = () => {
+  loading.value = true
+  const params = { page: currentPage.value, size: pageSize.value }
+  api
+    .get('/corpus', { params })
+    .then((response) => {
+      if (response.data && response.data.records) {
+        tableData.value = response.data.records
+        total.value = response.data.total || 0
+      } else if (Array.isArray(response.data)) {
+        tableData.value = response.data
+        total.value = response.data.length
+      } else {
+        tableData.value = []
+        total.value = 0
+        ElMessage.warning('返回数据格式不正确')
+      }
+    })
+    .catch(() => {
+      tableData.value = []
+      total.value = 0
+      ElMessage.error('获取语料列表失败，请稍后重试')
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
+
+function handlePageChange(page) {
+  currentPage.value = page
+  loadCorpora()
+}
+
+function getDownloadUrl(corpus) {
+  return `/api/corpus/download/${corpus.corpusId}`;
+}
+
+function handleSizeChange(size) {
+  pageSize.value = size
+  currentPage.value = 1
+  loadCorpora()
+}
 
 onMounted(() => {
-  // 页面加载时的初始化操作
+  // loadCorpora()
 })
 
 // 导航到指定路由
 function navigateTo(path) {
   router.push(path)
+}
+
+const formatDate = (value) => {
+  if (!value) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 </script>
 
@@ -60,6 +115,13 @@ function navigateTo(path) {
   max-width: 1200px;
   margin: 0 auto;
   /* padding: 20px; */
+}
+
+.dashboard-table {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .welcome-banner {
@@ -87,6 +149,7 @@ function navigateTo(path) {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
+  margin-bottom: 30px;
 }
 
 .card {
@@ -126,6 +189,12 @@ function navigateTo(path) {
   font-size: 14px;
   color: #606266;
   margin: 0;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
 }
 
 /* 响应式调整 */

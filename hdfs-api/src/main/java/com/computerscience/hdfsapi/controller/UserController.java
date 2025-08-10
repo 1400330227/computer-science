@@ -412,9 +412,15 @@ public class UserController {
             // 检查数据库中的密码是否是BCrypt格式
             String storedPassword = user.getPassword();
             if (storedPassword.startsWith("$2")) {
-                // 数据库中是BCrypt哈希密码，使用新的验证方式
-                passwordValid = cryptoService.verifyEncryptedPassword(password, storedPassword);
-                System.out.println("使用BCrypt验证方式，验证结果: " + passwordValid);
+                // 数据库中是BCrypt哈希密码
+                try {
+                    String plainPassword = cryptoService.decryptWithRSA(password);
+                    passwordValid = cryptoService.verifyPasswordWithBCrypt(plainPassword, storedPassword);
+                    System.out.println("使用BCrypt验证方式，验证结果: " + passwordValid);
+                } catch (RuntimeException decryptEx) {
+                    // RSA解密失败，多发生于服务重启后公钥变化导致前端使用了过期公钥
+                    return ResponseEntity.badRequest().body("密码解密失败，请刷新页面后重试");
+                }
             } else {
                 // 数据库中是明文密码（兼容旧数据），先解密RSA密码然后比较
                 String decryptedPassword = cryptoService.decryptWithRSA(password);

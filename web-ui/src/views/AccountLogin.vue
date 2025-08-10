@@ -203,6 +203,8 @@ const handleLogin = async () => {
   loading.value = true
 
   try {
+    // 每次登录前刷新一次公钥，避免使用过期公钥导致解密失败
+    await fetchPublicKey()
     // 检查是否有公钥
     if (!publicKey.value) {
       ElMessage.error('加密密钥未准备就绪，请刷新页面重试')
@@ -266,6 +268,8 @@ const handleLogin = async () => {
         ElMessage.error('用户不存在，请检查用户名')
       } else if (errorMessage.includes('密码错误')) {
         ElMessage.error('密码错误，请重新输入')
+      } else if (errorMessage.includes('密码解密失败')) {
+        ElMessage.error('密码解密失败，请刷新页面后重试')
       } else if (errorMessage.includes('账号已被禁用')) {
         ElMessage.error('账号已被禁用，请联系管理员')
       } else {

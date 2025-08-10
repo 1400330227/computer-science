@@ -84,7 +84,7 @@ const handleLogout = async () => {
         <el-menu-item index="/" class="nav-item">首页</el-menu-item>
         <el-sub-menu index="2" class="nav-item">
           <template #title>语料清单</template>
-          <el-menu-item index="/file-list">语料集列表</el-menu-item>
+          <el-menu-item index="/file-list">我的语料集</el-menu-item>
           <el-menu-item index="/file-upload">上传语料集</el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/my-files" class="nav-item">我的文件</el-menu-item>

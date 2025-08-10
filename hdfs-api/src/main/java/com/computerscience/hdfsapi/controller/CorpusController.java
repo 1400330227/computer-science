@@ -31,6 +31,9 @@ import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import com.computerscience.hdfsapi.service.UserService;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * 语料库控制器
@@ -52,6 +55,9 @@ public class CorpusController {
 
     @Value("${hadoop.hdfs.user}")
     private String user;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 根据ID查询语料库
@@ -133,7 +139,59 @@ public class CorpusController {
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String language,
             @RequestParam(required = false) String classification) {
-        return ResponseEntity.ok(corpusService.findCorpusPage(page, size, language, classification));
+        IPage<Corpus> corpusPage = corpusService.findCorpusPage(page, size, language, classification);
+
+        // 回填创建者信息映射
+        Set<Integer> creatorIds = new HashSet<>();
+        for (Corpus c : corpusPage.getRecords()) {
+            if (c.getCreatorId() != null) creatorIds.add(c.getCreatorId());
+        }
+
+        Map<Integer, User> userMap = new HashMap<>();
+        if (!creatorIds.isEmpty() && userService != null) {
+            List<User> users = userService.listByIds(creatorIds);
+            for (User u : users) {
+                userMap.put(u.getUserId(), u);
+            }
+        }
+
+        // 将结果转换为包含创建者信息的结构，但保持分页结构不变
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", corpusPage.getTotal());
+        result.put("size", corpusPage.getSize());
+        result.put("current", corpusPage.getCurrent());
+        List<Map<String, Object>> records = new java.util.ArrayList<>();
+        for (Corpus c : corpusPage.getRecords()) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("corpusId", c.getCorpusId());
+            item.put("country", c.getCountry());
+            item.put("collectionName", c.getCollectionName());
+            item.put("domain", c.getDomain());
+            item.put("language", c.getLanguage());
+            item.put("dataFormat", c.getDataFormat());
+            item.put("classification", c.getClassification());
+            item.put("dataVolume", c.getDataVolume());
+            item.put("volumeUnit", c.getVolumeUnit());
+            item.put("estimatedCapacityGb", c.getEstimatedCapacityGb());
+            item.put("dataYear", c.getDataYear());
+            item.put("sourceLocation", c.getSourceLocation());
+            item.put("dataSource", c.getDataSource());
+            item.put("provider", c.getProvider());
+            item.put("providerContact", c.getProviderContact());
+            item.put("remarks", c.getRemarks());
+            item.put("creatorId", c.getCreatorId());
+            item.put("createdAt", c.getCreatedAt());
+
+            User creator = userMap.get(c.getCreatorId());
+            if (creator != null) {
+                item.put("creatorAccount", creator.getAccount());
+                item.put("creatorNickname", creator.getNickname());
+                item.put("creatorUserType", creator.getUserType());
+            }
+            records.add(item);
+        }
+        result.put("records", records);
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -303,12 +361,6 @@ public class CorpusController {
         try {
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
-            if (currentUser == null) {
-                response.setStatus(401);
-                response.getWriter().write("用户未登录");
-                return;
-            }
-
             // 验证语料库是否存在且属于当前用户
             Corpus corpus = corpusService.getById(corpusId);
             if (corpus == null) {

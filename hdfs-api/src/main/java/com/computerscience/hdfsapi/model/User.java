@@ -2,6 +2,7 @@ package com.computerscience.hdfsapi.model;
 
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -44,6 +45,7 @@ public class User implements Serializable {
     /**
      * 密码
      */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     /**
