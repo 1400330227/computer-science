@@ -1,115 +1,91 @@
 <template>
   <div class="file-list-page">
-    <div class="file-list-container">
-      <!-- 提示信息区域 -->
-      <div class="info-box">
-        <p class="info-text">
-          <strong>满足以下检索条件的语料信息</strong>，可在表格中显示相关内容。如有问题，可拨打电话：<span class="highlight">13761230066</span>
-        </p>
-        <p class="info-text">
-          <strong>检索内容：</strong>展示所有语料文件，语料包括地理、数学、历史、科学、物理、体育、社会科学的语料。
-        </p>
-      </div>
+    <div class="search-container">
+      <el-form :model="searchForm" :inline="true" label-position="left" label-width="auto" @submit.prevent>
+        <el-form-item label="语料集">
+          <el-input v-model="searchForm.collectionName" placeholder="请输入语料集名称" prefix-icon="Search" clearable
+            @keyup.enter="handleSearch" />
+        </el-form-item>
+        <el-form-item label="国家">
+          <el-select v-model="searchForm.country" placeholder="选择国家" clearable style="width: 200px">
+            <el-option label="中国" value="中国" />
+            <el-option label="泰国" value="泰国" />
+            <el-option label="老挝" value="老挝" />
+            <el-option label="越南" value="越南" />
+            <el-option label="缅甸" value="缅甸" />
+            <el-option label="柬埔寨" value="柬埔寨" />
+            <el-option label="马来西亚" value="马来西亚" />
+            <el-option label="新加坡" value="新加坡" />
+            <el-option label="印度尼西亚" value="印度尼西亚" />
+            <el-option label="菲律宾" value="菲律宾" />
+            <el-option label="文莱" value="文莱" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="语种">
+          <el-select v-model="searchForm.language" placeholder="选择语种" clearable style="width: 200px">
+            <el-option label="中文" value="中文" />
+            <el-option label="泰国" value="泰国" />
+            <el-option label="老挝语言" value="老挝语言" />
+            <el-option label="英文" value="英文" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="分类">
+          <el-select v-model="searchForm.classification" placeholder="选择分类" clearable style="width: 200px">
+            <el-option label="预训练语料" value="预训练语料" />
+            <el-option label="基础语料" value="基础语料" />
+            <el-option label="专业语料" value="专业语料" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleSearch">搜索</el-button>
+          <el-button icon="Refresh" @click="handleReset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+    <div>
+      <div class="file-list-container">
+        <!-- 语料表格 -->
+        <el-table v-loading="loading" :data="fileList" style="width: 100%">
+          <el-table-column prop="country" label="国家" />
+          <el-table-column prop="collectionName" label="语料集名称" min-width="140">
+            <template #default="{ row }">
+              <router-link :to="`/corpus-details/${row.corpusId}`">
+                {{ row.collectionName }}
+              </router-link>
+            </template>
+          </el-table-column>
+          <el-table-column prop="domain" label="所属领域" />
+          <el-table-column prop="language" label="语种" />
+          <el-table-column prop="dataFormat" label="数据形式" />
+          <el-table-column prop="classification" label="数据分类" />
+          <el-table-column prop="dataYear" label="数据年份" />
+          <!-- <el-table-column prop="sourceLocation" label="来源归属地" min-width="100" /> -->
+          <!-- <el-table-column prop="dataSource" label="数据来源" /> -->
+          <el-table-column prop="estimatedCapacityGb" label="容量估算GB" />
+          <!-- <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip /> -->
+          <el-table-column label="操作" width="150" fixed="right">
+            <template #default="{ row }">
+              <a :href="getDownloadUrl(row)" class="download-link" @click="showDownloadMessage(row)" title="下载语料"
+                download>
+                下载
+              </a>
+              <!-- <el-button link type="primary" @click="viewDetails(row)">详情</el-button> -->
+            </template>
+          </el-table-column>
 
-      <!-- 搜索区域 -->
-      <div class="search-container">
-        <el-row :gutter="20">
-          <el-col :span="6">
-            <el-input
-              v-model="searchForm.collectionName"
-              placeholder="请输入语料集名称"
-              prefix-icon="Search"
-              clearable
-              @keyup.enter="handleSearch"
-            />
-          </el-col>
-          <el-col :span="4">
-            <el-select
-              v-model="searchForm.country"
-              placeholder="选择国家"
-              clearable
-              style="width: 100%"
-            >
-              <el-option label="中国" value="中国" />
-              <el-option label="泰国" value="泰国" />
-              <el-option label="老挝" value="老挝" />
-              <el-option label="越南" value="越南" />
-              <el-option label="缅甸" value="缅甸" />
-              <el-option label="柬埔寨" value="柬埔寨" />
-              <el-option label="马来西亚" value="马来西亚" />
-              <el-option label="新加坡" value="新加坡" />
-              <el-option label="印度尼西亚" value="印度尼西亚" />
-              <el-option label="菲律宾" value="菲律宾" />
-              <el-option label="文莱" value="文莱" />
-            </el-select>
-          </el-col>
-          <el-col :span="4">
-            <el-select
-              v-model="searchForm.language"
-              placeholder="选择语种"
-              clearable
-              style="width: 100%"
-            >
-              <el-option label="中文" value="中文" />
-              <el-option label="泰国" value="泰国" />
-              <el-option label="老挝语言" value="老挝语言" />
-              <el-option label="英文" value="英文" />
-            </el-select>
-          </el-col>
-          <el-col :span="4">
-            <el-select
-              v-model="searchForm.classification"
-              placeholder="选择分类"
-              clearable
-              style="width: 100%"
-            >
-              <el-option label="预训练语料" value="预训练语料" />
-              <el-option label="基础语料" value="基础语料" />
-              <el-option label="专业语料" value="专业语料" />
-            </el-select>
-          </el-col>
-          <el-col :span="6">
-            <el-button type="primary" icon="Search" @click="handleSearch">搜索</el-button>
-            <el-button icon="Refresh" @click="handleReset">重置</el-button>
-          </el-col>
-        </el-row>
-      </div>
-
-      <!-- 语料表格 -->
-      <el-table v-loading="loading" :data="fileList" style="width: 100%">
-        <el-table-column prop="country" label="国家" />
-        <el-table-column prop="collectionName" label="语料集名称" min-width="100" />
-        <el-table-column prop="domain" label="所属领域" />
-        <el-table-column prop="language" label="语种" />
-        <el-table-column prop="dataFormat" label="数据形式" />
-        <el-table-column prop="classification" label="数据分类" />
-        <el-table-column prop="dataYear" label="数据年份" />
-        <!-- <el-table-column prop="sourceLocation" label="来源归属地" min-width="100" /> -->
-        <!-- <el-table-column prop="dataSource" label="数据来源" /> -->
-        <el-table-column prop="estimatedCapacityGb" label="容量估算GB" />
-        <!-- <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip /> -->
-        <el-table-column label="操作" width="150" fixed="right">
-          <template #default="{ row }">
-            <a :href="getDownloadUrl(row)" class="download-link" @click="showDownloadMessage(row)" title="下载语料"
-              download>
-              下载
-            </a>
-            <el-button link type="primary" @click="viewDetails(row)">详情</el-button>
+          <template #empty>
+            <el-empty description="暂无数据">
+              <el-button type="primary" @click="goToUpload">上传文件</el-button>
+            </el-empty>
           </template>
-        </el-table-column>
+        </el-table>
 
-        <template #empty>
-          <el-empty description="暂无数据">
-            <el-button type="primary" @click="goToUpload">上传文件</el-button>
-          </el-empty>
-        </template>
-      </el-table>
-
-      <!-- 分页组件 -->
-      <div class="pagination-container" v-if="total > 0">
-        <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper" :total="total" @size-change="handleSizeChange"
-          @current-change="handleCurrentChange" />
+        <!-- 分页组件 -->
+        <div class="pagination-container" v-if="total > 0">
+          <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper" :total="total" @size-change="handleSizeChange"
+            @current-change="handleCurrentChange" />
+        </div>
       </div>
     </div>
   </div>
@@ -253,9 +229,18 @@ function showDownloadMessage(row) {
 </script>
 
 <style scoped>
-.file-list-container {
+.file-list-page {
   max-width: 1200px;
   margin: 0 auto;
+
+}
+
+.search-container {
+  padding: 20px;
+  background-color: #fff;
+}
+
+.file-list-container {
   padding: 20px;
   background-color: #fff;
 }
@@ -283,10 +268,10 @@ function showDownloadMessage(row) {
 
 /* 搜索区域 */
 .search-container {
-  background-color: #f5f7fa;
-  border: 1px solid #e4e7ed;
-  border-radius: 6px;
-  padding: 20px;
+  /* background-color: #f5f7fa; */
+  /* border: 1px solid #e4e7ed; */
+  /* border-radius: 6px; */
+  /* padding: 20px; */
   margin-bottom: 20px;
 }
 
