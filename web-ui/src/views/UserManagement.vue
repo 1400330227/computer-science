@@ -34,7 +34,7 @@
       <el-table :data="users" v-loading="loading" style="width: 100%">
         <!-- <el-table-column prop="userId" label="用户ID" width="100" /> -->
         <el-table-column prop="account" label="账号" min-width="120" />
-        <el-table-column prop="nickname" label="昵称" min-width="100" />
+        <el-table-column prop="nickname" label="姓名" min-width="100" />
         <el-table-column prop="userType" label="用户类型" width="120">
           <template #default="scope">
             <el-select v-model="scope.row.userType" size="small" @change="handleUserTypeChange(scope.row)"
@@ -90,7 +90,7 @@
         <el-form-item label="账号" required>
           <el-input v-model="createForm.account" placeholder="请输入账号" />
         </el-form-item>
-        <el-form-item label="昵称" prop="nickname">
+        <el-form-item label="姓名" prop="nickname">
           <el-input v-model="createForm.nickname" />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
@@ -132,7 +132,7 @@
         <el-form-item label="账号">
           <el-input v-model="editForm.account" />
         </el-form-item>
-        <el-form-item label="昵称" prop="nickname">
+        <el-form-item label="姓名" prop="nickname">
           <el-input v-model="editForm.nickname" />
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
@@ -208,7 +208,7 @@ export default {
       remarks: '',
     });
     const createRules = reactive({
-      nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+      nickname: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
       phone: [
         { required: true, message: '请输入手机号', trigger: 'blur' },
         { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: ['blur', 'change'] },
@@ -229,7 +229,7 @@ export default {
       remarks: '',
     });
     const editRules = reactive({
-      nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+      nickname: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
       phone: [
         { required: true, message: '请输入手机号', trigger: 'blur' },
         { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: ['blur', 'change'] },

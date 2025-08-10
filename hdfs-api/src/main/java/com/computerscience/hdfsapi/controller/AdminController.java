@@ -125,7 +125,7 @@ public class AdminController {
                 String nickname = (String) payload.get("nickname");
                 if (!StringUtils.hasText(nickname)) {
                     response.put("success", false);
-                    response.put("message", "昵称不能为空");
+                    response.put("message", "姓名不能为空");
                     return ResponseEntity.badRequest().body(response);
                 }
                 user.setNickname(nickname);
@@ -184,7 +184,7 @@ public class AdminController {
             String nickname = payload.get("nickname") != null ? payload.get("nickname").toString().trim() : null;
             if (!StringUtils.hasText(nickname)) {
                 response.put("success", false);
-                response.put("message", "昵称不能为空");
+                response.put("message", "姓名不能为空");
                 return ResponseEntity.badRequest().body(response);
             }
 

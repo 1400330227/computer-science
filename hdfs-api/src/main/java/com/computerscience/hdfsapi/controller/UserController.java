@@ -233,7 +233,7 @@ public class UserController {
             // 设置基本信息
             newUser.setPhone(phone);
             newUser.setAccount(phone); // 默认账号为手机号
-            newUser.setNickname("用户" + phone.substring(7)); // 默认昵称：用户+后4位手机号
+            newUser.setNickname("用户" + phone.substring(7)); // 默认姓名：用户+后4位手机号
             newUser.setUserType("user"); // 默认为普通用户
             newUser.setAccountStatus("active"); // 默认状态为激活
             newUser.setGender("未知"); // 默认性别
@@ -250,7 +250,7 @@ public class UserController {
                 System.out.println("手机号: " + phone);
                 System.out.println("用户ID: " + newUser.getUserId());
                 System.out.println("账号: " + newUser.getAccount());
-                System.out.println("昵称: " + newUser.getNickname());
+                System.out.println("姓名: " + newUser.getNickname());
                 System.out.println("========================");
                 return newUser;
             } else {
