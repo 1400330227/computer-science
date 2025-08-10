@@ -373,7 +373,7 @@ function formatDateTime(dateTime) {
 // 加载文件列表
 function loadFileList() {
     filesLoading.value = true
-    api.get(`/files/corpus/${corpusId.value}`)
+    api.get(`/files/${corpusId.value}`)
         .then(response => {
             // 直接设置文件列表
             fileList.value = response.data || []

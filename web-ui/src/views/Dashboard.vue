@@ -29,6 +29,12 @@
         </div>
       </div>
     </div>
+
+    <div>
+      <el-table>
+        
+      </el-table>
+    </div>
   </div>
 </template>
 

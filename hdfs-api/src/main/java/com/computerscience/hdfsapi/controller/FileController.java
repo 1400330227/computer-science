@@ -190,7 +190,7 @@ public class FileController {
     /**
      * 根据语料库ID查询文件列表（需要用户权限）
      */
-    @GetMapping("/corpus/{corpusId}")
+    @GetMapping("/{corpusId}")
     public ResponseEntity<?> getFilesByCorpusId(@PathVariable Integer corpusId) {
         try {
             // 调试信息
