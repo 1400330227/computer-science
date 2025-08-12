@@ -35,11 +35,7 @@
       <el-table :data="corpora" v-loading="loading" style="width: 100%">
         <el-table-column prop="country" label="国家" width="100" />
         <el-table-column prop="collectionName" label="语料名称" min-width="200" />
-        <el-table-column label="所有者">
-          <template #default="scope">
-            <el-tag type="success">{{ scope.row.creatorAccount || '未知用户' }}</el-tag>
-          </template>
-        </el-table-column>
+        <el-table-column prop="creatorAccount" label="所有者" />
         <el-table-column prop="language" label="语种" width="100" />
         <el-table-column prop="dataFormat" label="数据格式" width="120" />
         <el-table-column prop="dataVolume" label="数据量" width="120">
@@ -47,9 +43,17 @@
             {{ scope.row.dataVolume ? `${scope.row.dataVolume} ${scope.row.volumeUnit || ''}` : '未设置' }}
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="180">
+        <el-table-column label="创建时间" width="110">
           <template #default="scope">
             {{ formatDate(scope.row.createdAt) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="120">
+          <template #default="scope">
+            <!-- <el-button type="primary" @click="handleDownload(scope.row.corpusId)" link>下载</el-button> -->
+            <a :href="getDownloadUrl(scope.row.corpusId)" class="download-link" title="下载语料" download>
+                下载
+              </a>
           </template>
         </el-table-column>
       </el-table>
@@ -60,55 +64,6 @@
           @current-change="handlePageChange" @size-change="handleSizeChange" />
       </div>
     </div>
-
-    <!-- 转移对话框 -->
-    <el-dialog v-model="showTransferDialog" title="转移语料所有权" width="600px" :before-close="handleCloseTransferDialog">
-      <div class="transfer-content">
-        <el-alert :title="`您即将转移 ${selectedCorpora.length} 个语料的所有权`" type="warning" show-icon :closable="false"
-          style="margin-bottom: 20px;" />
-
-        <div class="user-select-section">
-          <label class="form-label">选择目标用户：</label>
-          <el-input v-model="userSearchQuery" placeholder="输入用户账号进行搜索..." @input="searchUsers" clearable
-            style="margin-bottom: 10px;">
-            <template #prefix>
-              <el-icon>
-                <Search />
-              </el-icon>
-            </template>
-          </el-input>
-
-          <div v-if="searchedUsers.length > 0" class="user-list">
-            <div v-for="user in searchedUsers" :key="user.userId" class="user-item"
-              :class="{ selected: targetUser && targetUser.userId === user.userId }" @click="selectUser(user)">
-              <div class="user-info">
-                <span class="user-account">{{ user.account }}</span>
-                <span class="user-id">(ID: {{ user.userId }})</span>
-              </div>
-              <div class="user-meta">
-                <el-tag :type="user.userType === 'admin' ? 'danger' : 'success'" size="small">
-                  {{ user.userType === 'admin' ? '管理员' : '普通用户' }}
-                </el-tag>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="targetUser" class="selected-user">
-            <el-alert :title="`已选择用户: ${targetUser.account} (ID: ${targetUser.userId})`" type="success" show-icon
-              :closable="false" />
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="handleCloseTransferDialog">取消</el-button>
-          <el-button type="primary" @click="handleTransfer" :disabled="!targetUser" :loading="transferLoading">
-            确认转移
-          </el-button>
-        </span>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -256,6 +211,11 @@ export default {
       }
     };
 
+    // 管理员下载语料
+    const getDownloadUrl = (corpusId) => {
+      return `/api/admin/corpus/${corpusId}/download`;
+    };
+
     // 日期格式化：YYYY-MM-DD
     const formatDate = (value) => {
       if (!value) return '-';
@@ -306,6 +266,7 @@ export default {
       selectUser,
       handleCloseTransferDialog,
       handleTransfer,
+      getDownloadUrl,
       formatDate,
     };
   },

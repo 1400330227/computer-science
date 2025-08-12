@@ -122,11 +122,11 @@
                     <el-upload class="upload-inline" :auto-upload="false" :file-list="uploadFiles"
                         :on-change="handleUploadChange" :on-remove="handleUploadRemove" multiple>
                         <template #trigger>
-                            <el-button type="primary">继续上传</el-button>
+                            <el-button type="primary">继续上传文件</el-button>
                         </template>
                         <el-button type="success" :disabled="uploadFiles.length === 0" :loading="uploading"
                             @click.stop="uploadSelectedFiles"
-                            style="margin-left: 20px;top: -2px;position: relative;">开始上传</el-button>
+                            style="margin-left: 20px;top: -2px;position: relative;">上传</el-button>
                     </el-upload>
 
                 </div>
@@ -143,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject, computed } from 'vue'
+import { ref, onMounted, inject, computed, watch } from 'vue'
 import { Download, Back, Document, Folder, Headset, VideoCamera, Picture } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -188,7 +188,8 @@ const domains = corpus.domains
 const classifications = corpus.classifications
 const volumeUnits = corpus.volumeUnits
 const dataFormats = corpus.dataFormats
-
+// 基于国家名称到语言的映射
+const countryNameToLanguage = new Map(corpus.countries.map(c => [c.name, c.language]))
 
 // 校验相关（与上传页保持一致的校验方式）
 const countries = corpus.countries.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
@@ -314,6 +315,20 @@ function parseDataFormatToArray(value) {
     const parts = String(value).split(/[、,，|]/).map(s => s.trim()).filter(Boolean)
     return parts
 }
+
+watch(
+    () => editForm.value.country,
+    (newCountry) => {
+        if (!newCountry) return
+        const languageByCountry = countryNameToLanguage.get(newCountry)
+        if (!languageByCountry) return
+
+        // 若语言为空或当前语言不属于所选国家，才进行覆盖
+        if (!editForm.value.language || editForm.value.language !== languageByCountry) {
+            editForm.value.language = languageByCountry
+        }
+    }
+)
 
 // 加载语料详情
 function loadCorpusDetails() {
@@ -445,7 +460,27 @@ function formatDateTime(dateTime) {
         minute: '2-digit'
     })
 }
-
+// 基于当前文件列表自动计算数据量与容量估算（GB）
+function updateDataMetricsFromFiles() {
+    try {
+        const files = Array.isArray(fileList.value) ? fileList.value : []
+        // 数据量 = 文件数量
+        editForm.value.dataVolume = files.length
+        // 容量估算 = fileSize 求和（字节）转 GB
+        let totalBytes = 0
+        for (const f of files) {
+            if (typeof f.fileSize === 'number' && !Number.isNaN(f.fileSize)) {
+                totalBytes += f.fileSize
+            }
+        }
+        if (totalBytes > 0) {
+            const gb = (totalBytes / (1024 * 1024 * 1024)).toFixed(2)
+            editForm.value.estimatedCapacityGb = gb
+        }
+    } catch (e) {
+        console.warn('自动更新数据量失败：', e)
+    }
+}
 // 加载文件列表
 function loadFileList() {
     filesLoading.value = true
@@ -454,6 +489,7 @@ function loadFileList() {
             // 直接设置文件列表
             fileList.value = response.data || []
             filesLoading.value = false
+            updateDataMetricsFromFiles()
         })
         .catch(error => {
             console.error('获取文件列表失败:', error)

@@ -3,8 +3,10 @@ package com.computerscience.hdfsapi.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.computerscience.hdfsapi.model.Corpus;
-import com.computerscience.hdfsapi.model.User;
+import com.computerscience.hdfsapi.dto.CorpusTransferRequest;
+import com.computerscience.hdfsapi.dto.CorpusWithUserInfo;
+import com.computerscience.hdfsapi.dto.UpdateUserRoleRequest;
+import com.computerscience.hdfsapi.model.*;
 import com.computerscience.hdfsapi.service.CorpusService;
 import com.computerscience.hdfsapi.service.UserService;
 import com.computerscience.hdfsapi.utils.DPage;
@@ -17,7 +19,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import com.computerscience.hdfsapi.service.FileService;
+import com.computerscience.hdfsapi.api.HdfsApi;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("/admin")
@@ -31,6 +46,16 @@ public class AdminController {
 
     @Autowired
     private com.computerscience.hdfsapi.service.CryptoService cryptoService;
+
+    @Autowired
+    private FileService fileService;
+
+    @Autowired
+    @Qualifier("conf")
+    private Configuration conf;
+
+    @Value("${hadoop.hdfs.user}")
+    private String hdfsUser;
 
     // 测试端点 - 用于验证Controller是否正常工作
     @GetMapping("/test")
@@ -532,111 +557,106 @@ public class AdminController {
     }
 
     // DTO类用于返回包含用户信息的语料数据
-    public static class CorpusWithUserInfo {
-        private Integer corpusId;
-        private String country;
-        private String collectionName;
-        private String domain;
-        private String language;
-        private String dataFormat;
-        private String classification;
-        private Double dataVolume;
-        private String volumeUnit;
-        private Double estimatedCapacityGb;
-        private String dataYear;
-        private String sourceLocation;
-        private String dataSource;
-        private String provider;
-        private String providerContact;
-        private String remarks;
-        private Integer creatorId;
-        private LocalDateTime createdAt;
-        
-        // 用户信息字段
-        private String creatorAccount;
-        private String creatorNickname;
-        private String creatorUserType;
 
-        // Getters and Setters
-        public Integer getCorpusId() { return corpusId; }
-        public void setCorpusId(Integer corpusId) { this.corpusId = corpusId; }
 
-        public String getCountry() { return country; }
-        public void setCountry(String country) { this.country = country; }
 
-        public String getCollectionName() { return collectionName; }
-        public void setCollectionName(String collectionName) { this.collectionName = collectionName; }
-
-        public String getDomain() { return domain; }
-        public void setDomain(String domain) { this.domain = domain; }
-
-        public String getLanguage() { return language; }
-        public void setLanguage(String language) { this.language = language; }
-
-        public String getDataFormat() { return dataFormat; }
-        public void setDataFormat(String dataFormat) { this.dataFormat = dataFormat; }
-
-        public String getClassification() { return classification; }
-        public void setClassification(String classification) { this.classification = classification; }
-
-        public Double getDataVolume() { return dataVolume; }
-        public void setDataVolume(Double dataVolume) { this.dataVolume = dataVolume; }
-
-        public String getVolumeUnit() { return volumeUnit; }
-        public void setVolumeUnit(String volumeUnit) { this.volumeUnit = volumeUnit; }
-
-        public Double getEstimatedCapacityGb() { return estimatedCapacityGb; }
-        public void setEstimatedCapacityGb(Double estimatedCapacityGb) { this.estimatedCapacityGb = estimatedCapacityGb; }
-
-        public String getDataYear() { return dataYear; }
-        public void setDataYear(String dataYear) { this.dataYear = dataYear; }
-
-        public String getSourceLocation() { return sourceLocation; }
-        public void setSourceLocation(String sourceLocation) { this.sourceLocation = sourceLocation; }
-
-        public String getDataSource() { return dataSource; }
-        public void setDataSource(String dataSource) { this.dataSource = dataSource; }
-
-        public String getProvider() { return provider; }
-        public void setProvider(String provider) { this.provider = provider; }
-
-        public String getProviderContact() { return providerContact; }
-        public void setProviderContact(String providerContact) { this.providerContact = providerContact; }
-
-        public String getRemarks() { return remarks; }
-        public void setRemarks(String remarks) { this.remarks = remarks; }
-
-        public Integer getCreatorId() { return creatorId; }
-        public void setCreatorId(Integer creatorId) { this.creatorId = creatorId; }
-
-        public LocalDateTime getCreatedAt() { return createdAt; }
-        public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-        public String getCreatorAccount() { return creatorAccount; }
-        public void setCreatorAccount(String creatorAccount) { this.creatorAccount = creatorAccount; }
-
-        public String getCreatorNickname() { return creatorNickname; }
-        public void setCreatorNickname(String creatorNickname) { this.creatorNickname = creatorNickname; }
-
-        public String getCreatorUserType() { return creatorUserType; }
-        public void setCreatorUserType(String creatorUserType) { this.creatorUserType = creatorUserType; }
-    }
-
-    public static class CorpusTransferRequest {
-        private List<Integer> corpusIds;
-        private Integer targetUserId;
-
-        public List<Integer> getCorpusIds() { return corpusIds; }
-        public void setCorpusIds(List<Integer> corpusIds) { this.corpusIds = corpusIds; }
-        public Integer getTargetUserId() { return targetUserId; }
-        public void setTargetUserId(Integer targetUserId) { this.targetUserId = targetUserId; }
-    }
 
     // 修改用户权限请求类
-    public static class UpdateUserRoleRequest {
-        private String userType;
 
-        public String getUserType() { return userType; }
-        public void setUserType(String userType) { this.userType = userType; }
+    /**
+     * 管理员根据语料ID下载文件（单文件直下，多文件打包ZIP）
+     */
+    @GetMapping("/corpus/{corpusId}/download")
+    public void adminDownloadCorpus(@PathVariable Integer corpusId, HttpServletResponse response) {
+        try {
+            Corpus corpus = corpusService.getById(corpusId);
+            if (corpus == null) {
+                response.setStatus(404);
+                response.getWriter().write("语料库不存在");
+                return;
+            }
+
+            List<FileEntity> files = fileService.findByCorpusId(corpusId);
+            if (files == null || files.isEmpty()) {
+                response.setStatus(404);
+                response.getWriter().write("该语料库下暂无文件");
+                return;
+            }
+
+            if (files.size() == 1) {
+                FileEntity file = files.get(0);
+                String hdfsPath = file.getFilePath();
+                String fileName = file.getFileName();
+
+                response.setContentType("application/octet-stream");
+                response.setHeader("Content-Disposition",
+                        "attachment;filename=" + URLEncoder.encode(fileName, StandardCharsets.UTF_8));
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                response.setHeader("Pragma", "no-cache");
+                response.setHeader("Expires", "0");
+
+                HdfsApi hdfsApi = new HdfsApi(conf, hdfsUser);
+                long fileSize = hdfsApi.getFileSize(hdfsPath);
+                if (fileSize < 0) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在: " + hdfsPath);
+                    hdfsApi.close();
+                    return;
+                }
+                response.setContentLengthLong(fileSize);
+
+                hdfsApi.downLoadFile(hdfsPath, response, true);
+                hdfsApi.close();
+            } else {
+                String[] filePaths = files.stream().map(FileEntity::getFilePath).toArray(String[]::new);
+                HdfsApi hdfsApi = new HdfsApi(conf, hdfsUser);
+                long totalSize = hdfsApi.getFileSizes(filePaths);
+                if (totalSize < 0) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在");
+                    hdfsApi.close();
+                    return;
+                }
+
+                String zipFileName = corpus.getCollectionName() + ".zip";
+                response.setContentType("application/zip");
+                response.setHeader("Content-Disposition",
+                        "attachment;filename=" + URLEncoder.encode(zipFileName, "UTF-8"));
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                response.setHeader("Pragma", "no-cache");
+                response.setHeader("Expires", "0");
+                response.setContentLengthLong(totalSize);
+
+                ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                for (FileEntity file : files) {
+                    try {
+                        String hdfsPath = file.getFilePath();
+                        String fileName = file.getFileName();
+                        ZipEntry zipEntry = new ZipEntry(fileName);
+                        zipOut.putNextEntry(zipEntry);
+
+                        Path sPath = new Path(hdfsPath);
+                        InputStream inputStream = hdfsApi.getFs().open(sPath);
+                        byte[] buffer = new byte[1024];
+                        int length;
+                        while ((length = inputStream.read(buffer)) > 0) {
+                            zipOut.write(buffer, 0, length);
+                        }
+                        inputStream.close();
+                        zipOut.closeEntry();
+                    } catch (Exception e) {
+                        // 继续打包其他文件
+                    }
+                }
+                zipOut.close();
+                hdfsApi.close();
+            }
+        } catch (Exception e) {
+            try {
+                response.setStatus(500);
+                response.getWriter().write("下载失败: " + e.getMessage());
+            } catch (IOException ioException) {
+                // ignore
+            }
+        }
     }
+
 } 
