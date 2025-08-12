@@ -8,7 +8,19 @@ export const useUserStore = defineStore('user', () => {
     username: '',
     account: '',
     userType: '',
-    phone: ''
+    phone: '',
+    nickname: '',
+    gender: '',
+    college: '',
+    title: '',
+    major: '',
+    accountStatus: '',
+    address: '',
+    creator: '',
+    createdAt: '',
+    updatedBy: '',
+    updatedAt: '',
+    remarks: ''
   })
   
   // 登录状态
@@ -19,6 +31,9 @@ export const useUserStore = defineStore('user', () => {
   
   // 计算属性：用户显示名称
   const displayName = computed(() => userInfo.value.nickname || userInfo.value.account || '未知用户')
+
+  // 计算属性：学院
+  const college = computed(() => userInfo.value.college || localStorage.getItem('college') || '')
   
   // 登录方法
   const login = (userData) => {
@@ -28,7 +43,18 @@ export const useUserStore = defineStore('user', () => {
       account: userData.account || '',
       userType: userData.userType || '',
       phone: userData.phone || '',
-      nickname: userData.nickname || ''
+      nickname: userData.nickname || '',
+      gender: userData.gender || '',
+      college: userData.college || '',
+      title: userData.title || '',
+      major: userData.major || '',
+      accountStatus: userData.accountStatus || '',
+      address: userData.address || '',
+      creator: userData.creator || '',
+      createdAt: userData.createdAt || '',
+      updatedBy: userData.updatedBy || '',
+      updatedAt: userData.updatedAt || '',
+      remarks: userData.remarks || ''
     }
     isLoggedIn.value = true
     
@@ -39,6 +65,17 @@ export const useUserStore = defineStore('user', () => {
     localStorage.setItem('userType', userData.userType || '')
     localStorage.setItem('phone', userData.phone || '')
     localStorage.setItem('nickname', userData.nickname || '')
+    localStorage.setItem('gender', userData.gender || '')
+    localStorage.setItem('college', userData.college || '')
+    localStorage.setItem('title', userData.title || '')
+    localStorage.setItem('major', userData.major || '')
+    localStorage.setItem('accountStatus', userData.accountStatus || '')
+    localStorage.setItem('address', userData.address || '')
+    localStorage.setItem('creator', userData.creator || '')
+    localStorage.setItem('createdAt', userData.createdAt || '')
+    localStorage.setItem('updatedBy', userData.updatedBy || '')
+    localStorage.setItem('updatedAt', userData.updatedAt || '')
+    localStorage.setItem('remarks', userData.remarks || '')
   }
   
   // 登出方法
@@ -49,7 +86,18 @@ export const useUserStore = defineStore('user', () => {
       account: '',
       userType: '',
       phone: '',
-      nickname: ''
+      nickname: '',
+      gender: '',
+      college: '',
+      title: '',
+      major: '',
+      accountStatus: '',
+      address: '',
+      creator: '',
+      createdAt: '',
+      updatedBy: '',
+      updatedAt: '',
+      remarks: ''
     } 
     isLoggedIn.value = false
     
@@ -59,9 +107,20 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('userId')
     localStorage.removeItem('userType')
     localStorage.removeItem('phone')
+    localStorage.removeItem('nickname')
+    localStorage.removeItem('gender')
+    localStorage.removeItem('college')
+    localStorage.removeItem('title')
+    localStorage.removeItem('major')
+    localStorage.removeItem('accountStatus')
+    localStorage.removeItem('address')
+    localStorage.removeItem('creator')
+    localStorage.removeItem('createdAt')
+    localStorage.removeItem('updatedBy')
+    localStorage.removeItem('updatedAt')
+    localStorage.removeItem('remarks')
     // 确保清除任何可能残留的token
     localStorage.removeItem('token')
-    localStorage.removeItem('nickname')
   }
   
   // 从 localStorage 恢复用户状态
@@ -75,8 +134,19 @@ export const useUserStore = defineStore('user', () => {
         username: localStorage.getItem('username') || '',
         account: localStorage.getItem('username') || '', // 使用 username 作为 account
         userType: localStorage.getItem('userType') || '',
-        phone: localStorage.getItem('phone') || '', 
-        nickname: localStorage.getItem('nickname') || ''
+        phone: localStorage.getItem('phone') || '',
+        nickname: localStorage.getItem('nickname') || '',
+        gender: localStorage.getItem('gender') || '',
+        college: localStorage.getItem('college') || '',
+        title: localStorage.getItem('title') || '',
+        major: localStorage.getItem('major') || '',
+        accountStatus: localStorage.getItem('accountStatus') || '',
+        address: localStorage.getItem('address') || '',
+        creator: localStorage.getItem('creator') || '',
+        createdAt: localStorage.getItem('createdAt') || '',
+        updatedBy: localStorage.getItem('updatedBy') || '',
+        updatedAt: localStorage.getItem('updatedAt') || '',
+        remarks: localStorage.getItem('remarks') || ''
       }
     } else {
       // 确保状态为false
@@ -90,6 +160,7 @@ export const useUserStore = defineStore('user', () => {
     isLoggedIn,
     isAuthenticated,
     displayName,
+    college,
     login,
     logout,
     restoreFromStorage

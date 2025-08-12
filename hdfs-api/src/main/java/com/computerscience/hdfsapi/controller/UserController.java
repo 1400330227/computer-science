@@ -333,11 +333,25 @@ public class UserController {
             responseMap.put("isNewUser", false);
         }
         
+        // 基本信息
         responseMap.put("userId", user.getUserId());
         responseMap.put("account", user.getAccount());
         responseMap.put("userType", user.getUserType());
         responseMap.put("phone", user.getPhone());
         responseMap.put("nickname", user.getNickname());
+        
+        // 扩展资料
+        responseMap.put("gender", user.getGender());
+        responseMap.put("college", user.getCollege());
+        responseMap.put("title", user.getTitle());
+        responseMap.put("major", user.getMajor());
+        responseMap.put("accountStatus", user.getAccountStatus());
+        responseMap.put("address", user.getAddress());
+        responseMap.put("creator", user.getCreator());
+        responseMap.put("createdAt", user.getCreatedAt());
+        responseMap.put("updatedBy", user.getUpdatedBy());
+        responseMap.put("updatedAt", user.getUpdatedAt());
+        responseMap.put("remarks", user.getRemarks());
         
         System.out.println("短信登录成功，用户ID: " + user.getUserId() + (isNewUser ? " (新用户)" : " (已有用户)"));
         return ResponseEntity.ok(responseMap);
@@ -469,14 +483,27 @@ public class UserController {
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("success", true);                // 告诉前端登录成功了
         responseMap.put("message", "登录成功");           // 成功消息
-        responseMap.put("userId", user.getUserId());     // 用户ID
-        responseMap.put("account", user.getAccount());   // 用户账号
-        responseMap.put("userType", user.getUserType()); // 用户类型（如：管理员、普通用户）
-        responseMap.put("phone", user.getPhone());       // 用户手机号
-        responseMap.put("nickname", user.getNickname());       // 用户手机号
+
+        // 基本信息
+        responseMap.put("userId", user.getUserId());
+        responseMap.put("account", user.getAccount());
+        responseMap.put("userType", user.getUserType());
+        responseMap.put("phone", user.getPhone());
+        responseMap.put("nickname", user.getNickname());
+
+        // 扩展资料
+        responseMap.put("gender", user.getGender());
         responseMap.put("college", user.getCollege());
         responseMap.put("title", user.getTitle());
         responseMap.put("major", user.getMajor());
+        responseMap.put("accountStatus", user.getAccountStatus());
+        responseMap.put("address", user.getAddress());
+        responseMap.put("creator", user.getCreator());
+        responseMap.put("createdAt", user.getCreatedAt());
+        responseMap.put("updatedBy", user.getUpdatedBy());
+        responseMap.put("updatedAt", user.getUpdatedAt());
+        responseMap.put("remarks", user.getRemarks());
+
         // 注意：这里故意不返回密码，保护用户隐私安全
         
         // 返回200成功状态码和用户信息

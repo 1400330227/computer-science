@@ -85,11 +85,21 @@
             <!-- 左侧表单 -->
             <div class="form-column">
               <el-form-item label="国家" prop="country">
-                <el-input v-model="formData.country" placeholder="请填写国家"></el-input>
-                <!-- <el-select v-model="formData.country" filterable placeholder="请选择国家">
-                  <el-option v-for="country in countries" :key="country.code" :label="country.name"
-                    :value="country.name"></el-option>
-                </el-select> -->
+                <!-- <el-input v-model="formData.country" placeholder="请填写国家"></el-input> -->
+                <el-select v-model="formData.country" filterable placeholder="请选择国家">
+                  <el-option-group label="默认">
+                    <el-option v-for="country in defaultCountries" :key="country.code" :label="country.name"
+                      :value="country.name" />
+                  </el-option-group>
+                  <el-option-group label="东盟">
+                    <el-option v-for="country in aseanCountries" :key="country.code" :label="country.name"
+                      :value="country.name" />
+                  </el-option-group>
+                  <el-option-group label="其他">
+                    <el-option v-for="country in otherCountries" :key="country.code" :label="country.name"
+                      :value="country.name" />
+                  </el-option-group>
+                </el-select>
               </el-form-item>
               <el-form-item label="语料集名称" prop="collectionName">
                 <el-input v-model="formData.collectionName" placeholder="请填写语料集名称"
@@ -127,7 +137,7 @@
               </el-form-item>
 
               <el-form-item label="数据量" prop="dataVolume">
-                <el-input v-model="formData.dataVolume" type="number" placeholder="请填写数据量"></el-input>
+                <el-input v-model="formData.dataVolume" type="number" placeholder="请填写数据量" disabled></el-input>
               </el-form-item>
 
               <el-form-item label="数据量单位" prop="volumeUnit">
@@ -141,7 +151,8 @@
             <!-- 右侧表单 -->
             <div class="form-column">
               <el-form-item label="容量估算 (GB)" prop="estimatedCapacityGb">
-                <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算" disabled></el-input>
+                <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"
+                  disabled></el-input>
               </el-form-item>
 
               <el-form-item label="数据年份" prop="dataYear">
@@ -209,12 +220,33 @@ import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
 import api from '../services/api'
 import corpus from '../assets/corpus.json'
+import { useUserStore } from '@/stores/user'
 
 
 const router = useRouter()
+const userStore = useUserStore()
 const uploadForm = ref(null)
 const isSubmitting = ref(false)
 const countries = corpus.countries.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+// 添加分组所需的常量与计算属性
+const DEFAULT_COUNTRY_NAME = '中国'
+const ASEAN_COUNTRY_NAMES = new Set([
+  '文莱',
+  '柬埔寨',
+  '印度尼西亚',
+  '印尼',
+  '老挝',
+  '马来西亚',
+  '缅甸',
+  '菲律宾',
+  '新加坡',
+  '泰国',
+  '越南'
+])
+
+const defaultCountries = computed(() => countries.filter(c => c.name === DEFAULT_COUNTRY_NAME))
+const aseanCountries = computed(() => countries.filter(c => c.name !== DEFAULT_COUNTRY_NAME && ASEAN_COUNTRY_NAMES.has(c.name)))
+const otherCountries = computed(() => countries.filter(c => c.name !== DEFAULT_COUNTRY_NAME && !ASEAN_COUNTRY_NAMES.has(c.name)))
 const domains = corpus.domains
 const classifications = corpus.classifications
 const volumeUnits = corpus.volumeUnits
@@ -246,6 +278,11 @@ onMounted(() => {
     { title: '语料清单', path: '/file-list' },
     { title: '语料详细信息', path: '/upload' }
   ])
+
+  // 若“数据提供方”为空，则尝试用当前用户的学院填充
+  if (!formData.sourceLocation && userStore.college) {
+    formData.sourceLocation = userStore.college
+  }
 })
 
 // 表单验证规则
@@ -284,7 +321,7 @@ const rules = {
     { required: true, message: '请输入数据分类', trigger: 'blur' }
   ],
   dataVolume: [
-    { required: true, message: '请填写数据量', trigger: 'blur' }
+    { required: false, message: '请填写数据量', trigger: 'blur' }
   ],
   volumeUnit: [
     { required: true, message: '请填写数据量单位', trigger: 'blur' }
@@ -293,19 +330,19 @@ const rules = {
     { required: false, message: '请填写容量估算', trigger: 'blur' }
   ],
   dataYear: [
-    { required: true, message: '请输入数据年份', trigger: 'blur' }
+    { required: false, message: '请输入数据年份', trigger: 'blur' }
   ],
   sourceLocation: [
-    { required: true, message: '请输入来源归属地', trigger: 'blur' }
+    { required: false, message: '请输入来源归属地', trigger: 'blur' }
   ],
   dataSource: [
-    { required: true, message: '请输入数据来源', trigger: 'blur' }
+    { required: false, message: '请输入数据来源', trigger: 'blur' }
   ],
   provider: [
     { required: true, message: '请输入数据提供方', trigger: 'blur' }
   ],
   providerContact: [
-    { required: true, message: '请输入数据提供方联系方式', trigger: 'blur' },
+    { required: false, message: '请输入数据提供方联系方式', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
         // 匹配中国大陆手机号码 (11位数字，以1开头)
@@ -327,16 +364,16 @@ const rules = {
 }
 
 const formData = reactive({
-  country: '',
+  country: '中国',
   collectionName: '',
-  domain: '',
+  domain: '教育',
   language: '',
-  dataFormat: [],
+  dataFormat: ['文本'],
   classification: '',
-  dataVolume: null,
-  volumeUnit: '',
+  dataVolume: 0,
+  volumeUnit: '份',
   estimatedCapacityGb: '0.00',
-  dataYear: '',
+  dataYear: new Date().getFullYear().toString(),
   sourceLocation: '',
   dataSource: '',
   provider: '',
@@ -395,6 +432,9 @@ const handleFileChange = (file, uploadFileList) => {
 
   // 更新容量估算
   updateEstimatedCapacity(fileList.value)
+
+  // 根据上传文件数量，自动填充数据量（默认0）
+  formData.dataVolume = fileList.value.length || 0
 }
 
 // 移除文件
@@ -408,6 +448,9 @@ const removeFile = (file, uploadFiles) => {
 
   // 更新容量估算
   updateEstimatedCapacity(fileList.value)
+
+  // 根据上传文件数量，自动填充数据量（默认0）
+  formData.dataVolume = fileList.value.length || 0
 }
 
 // 检查语料集名称是否重复

@@ -41,7 +41,14 @@
 
         <!-- 学院 -->
         <el-form-item label="学院" prop="college">
-          <el-input v-model="registerForm.college" placeholder="请输入学院（可选）" clearable />
+          <el-select v-model="registerForm.college" placeholder="请选择学院" clearable filterable>
+            <el-option v-for="name in collegeOptions" :key="name" :label="name" :value="name" />
+          </el-select>
+        </el-form-item>
+
+        <!-- 姓名输入框 -->
+        <el-form-item label="姓名" prop="nickname">
+          <el-input v-model="registerForm.nickname" placeholder="请输入姓名" prefix-icon="User" clearable />
         </el-form-item>
 
         <!-- 职称 -->
@@ -116,15 +123,46 @@ const registerFormRef = ref()
 // 创建响应式的表单数据对象
 const registerForm = reactive({
   account: '',
+  nickname: '',
   password: '',
   confirmPassword: '',
   phone: '',
-  college: '',
+  college: '计算机与电子信息学院',
   title: '',
   major: '',
   gender: '男',
   remarks: ''
 })
+
+// 学院选项
+const collegeOptions = [
+  '计算机与电子信息学院',
+  '中国—东盟经济学院',
+  '机械工程学院',
+  '电气工程学院',
+  '土木建筑工程学院',
+  '化学化工学院',
+  '资源环境与材料学院',
+  '轻工与食品工程学院',
+  '海洋学院',
+  '生命科学与技术学院',
+  '农学院',
+  '动物科学技术学院',
+  '林学院',
+  '数学与信息科学学院',
+  '物理科学与工程技术学院',
+  '文学院',
+  '新闻与传播学院',
+  '外国语学院',
+  '艺术学院',
+  '公共管理学院',
+  '工商管理学院',
+  '法学院',
+  '马克思主义学院',
+  '体育学院',
+  '医学院',
+  '继续教育学院'
+]
 
 // ======= 表单验证规则 =======
 const validatePassword = (rule, value, callback) => {
@@ -168,6 +206,9 @@ const formRules = reactive({
     { required: true, message: '请输入账号', trigger: 'blur' },
     { min: 3, max: 20, message: '账号长度在3-20个字符', trigger: 'blur' }
   ],
+  nickname: [
+    { required: true, message: '请输入姓名', trigger: 'blur' }
+  ],
   password: [
     { required: true, validator: validatePassword, trigger: 'blur' }
   ],
@@ -176,6 +217,9 @@ const formRules = reactive({
   ],
   phone: [
     { required: true, validator: validatePhone, trigger: 'blur' }
+  ],
+  college: [
+    { required: true, message: '请选择学院', trigger: 'change' }
   ],
   gender: [
     { required: true, message: '请选择性别', trigger: 'change' }
@@ -279,6 +323,7 @@ const handleRegister = async () => {
     // 向后端发送注册请求
     console.log("正在向后端发送注册请求:", {
       account: registerForm.account,
+      nickname: registerForm.nickname,
       password: "*** RSA加密密码 ***",
       phone: registerForm.phone,
       college: registerForm.college,
@@ -290,6 +335,7 @@ const handleRegister = async () => {
 
     const response = await api.post('/users', {
       account: registerForm.account,
+      nickname: registerForm.nickname,
       password: encryptedPassword,  // 使用加密后的密码
       phone: registerForm.phone,
       college: registerForm.college,

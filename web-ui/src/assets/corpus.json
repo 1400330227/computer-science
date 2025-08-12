@@ -1069,10 +1069,7 @@
     ],
     "dataFormats": [
         {
-            "dataFormat": "可编辑电子文本"
-        },
-        {
-            "dataFormat": "扫描电子文本"
+            "dataFormat": "文本"
         },
         {
             "dataFormat": "音频"
