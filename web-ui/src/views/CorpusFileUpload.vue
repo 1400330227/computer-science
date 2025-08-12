@@ -33,7 +33,7 @@
     <div class="upload-form">
       <div class="form-container">
         <el-form ref="uploadForm" :model="formData" :rules="rules" label-width="140px" class="upload-form">
-          <h3>提示信息</h3>
+          <!-- <h3>提示信息</h3>
           <div class="divider"></div>
           <div class="info-box">
             <p class="info-text">
@@ -78,7 +78,7 @@
             <p class="info-text">
               <strong>数据提供方联系方式：</strong>联系人（联系电话）
             </p>
-          </div>
+          </div> -->
           <h3>语料集信息</h3>
           <div class="divider"></div>
           <div class="form-content">
@@ -102,7 +102,7 @@
                 </el-select>
               </el-form-item>
               <el-form-item label="语料集名称" prop="collectionName">
-                <el-input v-model="formData.collectionName" placeholder="请填写语料集名称"
+                <el-input v-model="formData.collectionName" placeholder="如：中国国家图书馆书籍电子文本语料"
                   @blur="checkCollectionNameDuplicate"></el-input>
                 <div v-if="collectionNameStatus.show" class="name-check-status">
                   <span :class="collectionNameStatus.type">
@@ -119,7 +119,7 @@
               </el-form-item>
 
               <el-form-item label="语种" prop="language">
-                <el-input v-model="formData.language" placeholder="请填写语种"></el-input>
+                <el-input v-model="formData.language" placeholder="如：中文、老挝语、泰国语"></el-input>
               </el-form-item>
 
               <el-form-item label="数据形式" prop="dataFormat">
@@ -162,19 +162,19 @@
               </el-form-item>
 
               <el-form-item label="来源归属地" prop="sourceLocation">
-                <el-input v-model="formData.sourceLocation" placeholder="请填写来源归属地"></el-input>
+                <el-input v-model="formData.sourceLocation" placeholder="如：广西xxx、老挝xx部、xx学院，注明数据来源地"></el-input>
               </el-form-item>
 
               <el-form-item label="数据来源" prop="dataSource">
-                <el-input v-model="formData.dataSource" placeholder="请填写数据来源"></el-input>
+                <el-input v-model="formData.dataSource" placeholder="如：文本来源于老挝公开网站，语音由XX录制"></el-input>
               </el-form-item>
 
               <el-form-item label="数据提供方" prop="provider">
-                <el-input v-model="formData.provider" placeholder="请填写数据提供方"></el-input>
+                <el-input v-model="formData.provider" placeholder="如：广西大学，填写本条数据集的提供单位名称"></el-input>
               </el-form-item>
 
               <el-form-item label="提供方联系方式" prop="providerContact">
-                <el-input v-model="formData.providerContact" placeholder="联系方式（手机号或座机号：区号-电话号码）">
+                <el-input v-model="formData.providerContact" placeholder="填写人联系方式（手机号或座机号：区号-电话号码）">
                 </el-input>
               </el-form-item>
 
@@ -214,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, inject, onMounted, computed } from 'vue'
+import { ref, reactive, inject, onMounted, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { UploadFilled } from '@element-plus/icons-vue'
@@ -252,6 +252,8 @@ const classifications = corpus.classifications
 const volumeUnits = corpus.volumeUnits
 const dataFormats = corpus.dataFormats
 const validCountryNames = new Set(countries.map(country => country.name))
+// 基于国家名称到语言的映射
+const countryNameToLanguage = new Map(corpus.countries.map(c => [c.name, c.language]))
 // 上传进度状态
 const uploadProgress = reactive({
   show: false,
@@ -280,8 +282,26 @@ onMounted(() => {
   ])
 
   // 若“数据提供方”为空，则尝试用当前用户的学院填充
-  if (!formData.sourceLocation && userStore.college) {
-    formData.sourceLocation = userStore.college
+  if (!formData.provider && userStore.college) {
+    formData.provider = userStore.college
+  }
+
+  // 若“提供方联系方式”为空，则尝试用当前用户的手机号填充
+  if (!formData.providerContact) {
+    const phoneFromStore = (userStore.userInfo && userStore.userInfo.phone) || ''
+    const phoneFromLocal = localStorage.getItem('phone') || ''
+    const phone = phoneFromStore || phoneFromLocal
+    if (phone) {
+      formData.providerContact = phone
+    }
+  }
+
+  // 初始化语言：根据默认国家填充
+  if (!formData.language && formData.country) {
+    const lang = countryNameToLanguage.get(formData.country)
+    if (lang) {
+      formData.language = lang
+    }
   }
 })
 
@@ -339,7 +359,7 @@ const rules = {
     { required: false, message: '请输入数据来源', trigger: 'blur' }
   ],
   provider: [
-    { required: true, message: '请输入数据提供方', trigger: 'blur' }
+    { required: false, message: '请输入数据提供方', trigger: 'blur' }
   ],
   providerContact: [
     { required: false, message: '请输入数据提供方联系方式', trigger: 'blur' },
@@ -369,7 +389,7 @@ const formData = reactive({
   domain: '教育',
   language: '',
   dataFormat: ['文本'],
-  classification: '',
+  classification: '基础语料',
   dataVolume: 0,
   volumeUnit: '份',
   estimatedCapacityGb: '0.00',
@@ -388,6 +408,22 @@ const dataFormatText = computed(() => {
   }
   return formData.dataFormat || '';
 })
+
+// 监听国家变化，自动填充语言（仅当当前语言为空或与国家不匹配时更新）
+// 注意：该 watcher 必须放在 formData 定义之后，避免 TDZ 错误
+watch(
+  () => formData.country,
+  (newCountry) => {
+    if (!newCountry) return
+    const languageByCountry = countryNameToLanguage.get(newCountry)
+    if (!languageByCountry) return
+
+    // 若语言为空或当前语言不属于所选国家，才进行覆盖
+    if (!formData.language || formData.language !== languageByCountry) {
+      formData.language = languageByCountry
+    }
+  }
+)
 
 const fileList = ref([])
 
