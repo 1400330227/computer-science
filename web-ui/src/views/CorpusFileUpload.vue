@@ -204,8 +204,8 @@
 
           <!-- 操作按钮 -->
           <div class="actions">
-            <el-button type="primary" @click="saveForm" :loading="isSubmitting">保存</el-button>
-            <el-button @click="saveAndCreate" :loading="isSubmitting">上传并新增</el-button>
+            <el-button type="primary" @click="saveForm" :loading="isSubmitting">上传</el-button>
+            <el-button @click="saveAndCreate" :loading="isSubmitting">上传并继续新增</el-button>
           </div>
         </el-form>
       </div>

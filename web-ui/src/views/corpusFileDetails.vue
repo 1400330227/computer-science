@@ -7,52 +7,89 @@
                 <div class="corpus-edit-form">
                     <el-form ref="editFormRef" :model="editForm" :rules="rules" label-width="140px"
                         class="edit-form-grid">
-                        <el-form-item label="国家" prop="country">
-                            <el-input v-model="editForm.country" placeholder="请填写国家" />
-                        </el-form-item>
-                        <el-form-item label="语料集名称" prop="collectionName">
-                            <el-input v-model="editForm.collectionName" placeholder="请填写语料集名称" />
-                        </el-form-item>
-                        <el-form-item label="所属领域" prop="domain">
-                            <el-input v-model="editForm.domain" placeholder="请输入所属领域" />
-                        </el-form-item>
-                        <el-form-item label="语种" prop="language">
-                            <el-input v-model="editForm.language" placeholder="请输入语种" />
-                        </el-form-item>
-                        <el-form-item label="数据形式" prop="dataFormat">
-                            <el-input v-model="editForm.dataFormat" placeholder="例如：文本、语音" />
-                        </el-form-item>
-                        <el-form-item label="数据分类" prop="classification">
-                            <el-input v-model="editForm.classification" placeholder="请输入数据分类" />
-                        </el-form-item>
-                        <el-form-item label="数据量" prop="dataVolume">
-                            <el-input v-model.number="editForm.dataVolume" type="number" placeholder="请输入数据量" />
-                        </el-form-item>
-                        <el-form-item label="数据量单位" prop="volumeUnit">
-                            <el-input v-model="editForm.volumeUnit" placeholder="如：条、份、GB、小时" />
-                        </el-form-item>
-                        <el-form-item label="容量估算(GB)" prop="estimatedCapacityGb">
-                            <el-input v-model="editForm.estimatedCapacityGb" type="number" placeholder="请输入容量估算" />
-                        </el-form-item>
-                        <el-form-item label="数据年份" prop="dataYear">
-                            <el-date-picker v-model="editForm.dataYear" type="year" placeholder="请选择数据年份" format="YYYY"
-                                value-format="YYYY" />
-                        </el-form-item>
-                        <el-form-item label="来源归属地" prop="sourceLocation">
-                            <el-input v-model="editForm.sourceLocation" placeholder="请输入来源归属地" />
-                        </el-form-item>
-                        <el-form-item label="数据来源" prop="dataSource">
-                            <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" />
-                        </el-form-item>
-                        <el-form-item label="数据提供方" prop="provider">
-                            <el-input v-model="editForm.provider" placeholder="请输入数据提供方" />
-                        </el-form-item>
-                        <el-form-item label="提供方联系方式" prop="providerContact">
-                            <el-input v-model="editForm.providerContact" placeholder="联系方式（手机号或座机号：区号-电话号码）" />
-                        </el-form-item>
-                        <el-form-item label="备注说明" class="full-row">
-                            <el-input v-model="editForm.remarks" type="textarea" :rows="3" placeholder="请输入备注说明" />
-                        </el-form-item>
+                        <div class="form-content">
+                            <div class="form-column">
+                                <el-form-item label="国家" prop="country">
+                                    <!-- <el-input v-model="editForm.country" placeholder="请填写国家" /> -->
+                                    <el-select v-model="editForm.country" filterable placeholder="请选择国家">
+                                        <el-option-group label="默认">
+                                            <el-option v-for="country in defaultCountries" :key="country.code"
+                                                :label="country.name" :value="country.name" />
+                                        </el-option-group>
+                                        <el-option-group label="东盟">
+                                            <el-option v-for="country in aseanCountries" :key="country.code"
+                                                :label="country.name" :value="country.name" />
+                                        </el-option-group>
+                                        <el-option-group label="其他">
+                                            <el-option v-for="country in otherCountries" :key="country.code"
+                                                :label="country.name" :value="country.name" />
+                                        </el-option-group>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="语料集名称" prop="collectionName">
+                                    <el-input v-model="editForm.collectionName" placeholder="请填写语料集名称" />
+                                </el-form-item>
+                                <el-form-item label="所属领域" prop="domain">
+                                    <!-- <el-input v-model="editForm.domain" placeholder="请输入所属领域" /> -->
+                                    <el-select v-model="editForm.domain" filterable placeholder="请选择所属领域">
+                                        <el-option v-for="domain in domains" :key="domain.domainName"
+                                            :label="domain.domainName" :value="domain.domainName"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="语种" prop="language">
+                                    <el-input v-model="editForm.language" placeholder="请输入语种" />
+                                </el-form-item>
+                                <el-form-item label="数据形式" prop="dataFormat">
+                                    <!-- <el-input v-model="editForm.dataFormat" placeholder="例如：文本、语音" /> -->
+                                    <el-select v-model="editForm.dataFormat" filterable placeholder="请选择数据形式" multiple>
+                                        <el-option v-for="dataFormat in dataFormats" :key="dataFormat.dataFormat"
+                                            :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="数据分类" prop="classification">
+                                    <!-- <el-input v-model="editForm.classification" placeholder="请输入数据分类" /> -->
+                                    <el-select v-model="editForm.classification" filterable placeholder="请选择数据分类">
+                                        <el-option v-for="classification in classifications"
+                                            :key="classification.classificationName"
+                                            :label="classification.classificationName"
+                                            :value="classification.classificationName"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="数据量" prop="dataVolume">
+                                    <el-input v-model.number="editForm.dataVolume" type="number" disabled
+                                        placeholder="请输入数据量" />
+                                </el-form-item>
+                                <el-form-item label="数据量单位" prop="volumeUnit">
+                                    <el-input v-model="editForm.volumeUnit" placeholder="如：条、份、GB、小时" />
+                                </el-form-item>
+                            </div>
+                            <div class="form-column">
+                                <el-form-item label="容量估算(GB)" prop="estimatedCapacityGb">
+                                    <el-input v-model="editForm.estimatedCapacityGb" type="number" disabled
+                                        placeholder="请输入容量估算" />
+                                </el-form-item>
+                                <el-form-item label="数据年份" prop="dataYear">
+                                    <el-date-picker v-model="editForm.dataYear" type="year" placeholder="请选择数据年份"
+                                        format="YYYY" value-format="YYYY" />
+                                </el-form-item>
+                                <el-form-item label="来源归属地" prop="sourceLocation">
+                                    <el-input v-model="editForm.sourceLocation" placeholder="请输入来源归属地" />
+                                </el-form-item>
+                                <el-form-item label="数据来源" prop="dataSource">
+                                    <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" />
+                                </el-form-item>
+                                <el-form-item label="数据提供方" prop="provider">
+                                    <el-input v-model="editForm.provider" placeholder="请输入数据提供方" />
+                                </el-form-item>
+                                <el-form-item label="提供方联系方式" prop="providerContact">
+                                    <el-input v-model="editForm.providerContact" placeholder="联系方式（手机号或座机号：区号-电话号码）" />
+                                </el-form-item>
+                                <el-form-item label="备注说明" class="full-row">
+                                    <el-input v-model="editForm.remarks" type="textarea" :rows="3"
+                                        placeholder="请输入备注说明" />
+                                </el-form-item>
+                            </div>
+                        </div>
                     </el-form>
                 </div>
             </div>
@@ -84,9 +121,12 @@
                 <div class="file-upload-bar">
                     <el-upload class="upload-inline" :auto-upload="false" :file-list="uploadFiles"
                         :on-change="handleUploadChange" :on-remove="handleUploadRemove" multiple>
-                        <el-button type="primary">选择文件</el-button>
+                        <template #trigger>
+                            <el-button type="primary">继续上传</el-button>
+                        </template>
                         <el-button type="success" :disabled="uploadFiles.length === 0" :loading="uploading"
-                            @click="uploadSelectedFiles">开始上传</el-button>
+                            @click.stop="uploadSelectedFiles"
+                            style="margin-left: 20px;top: -2px;position: relative;">开始上传</el-button>
                     </el-upload>
 
                 </div>
@@ -103,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, computed } from 'vue'
 import { Download, Back, Document, Folder, Headset, VideoCamera, Picture } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -123,6 +163,32 @@ const editing = ref(false)
 const saving = ref(false)
 const editForm = ref({})
 const editFormRef = ref(null)
+
+
+// 添加分组所需的常量与计算属性
+const DEFAULT_COUNTRY_NAME = '中国'
+const ASEAN_COUNTRY_NAMES = new Set([
+    '文莱',
+    '柬埔寨',
+    '印度尼西亚',
+    '印尼',
+    '老挝',
+    '马来西亚',
+    '缅甸',
+    '菲律宾',
+    '新加坡',
+    '泰国',
+    '越南'
+])
+
+const defaultCountries = computed(() => countries.filter(c => c.name === DEFAULT_COUNTRY_NAME))
+const aseanCountries = computed(() => countries.filter(c => c.name !== DEFAULT_COUNTRY_NAME && ASEAN_COUNTRY_NAMES.has(c.name)))
+const otherCountries = computed(() => countries.filter(c => c.name !== DEFAULT_COUNTRY_NAME && !ASEAN_COUNTRY_NAMES.has(c.name)))
+const domains = corpus.domains
+const classifications = corpus.classifications
+const volumeUnits = corpus.volumeUnits
+const dataFormats = corpus.dataFormats
+
 
 // 校验相关（与上传页保持一致的校验方式）
 const countries = corpus.countries.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
@@ -172,19 +238,19 @@ const rules = {
         { required: false, message: '请填写容量估算', trigger: 'blur' }
     ],
     dataYear: [
-        { required: true, message: '请输入数据年份', trigger: 'blur' }
+        { required: false, message: '请输入数据年份', trigger: 'blur' }
     ],
     sourceLocation: [
-        { required: true, message: '请输入来源归属地', trigger: 'blur' }
+        { required: false, message: '请输入来源归属地', trigger: 'blur' }
     ],
     dataSource: [
-        { required: true, message: '请输入数据来源', trigger: 'blur' }
+        { required: false, message: '请输入数据来源', trigger: 'blur' }
     ],
     provider: [
-        { required: true, message: '请输入数据提供方', trigger: 'blur' }
+        { required: false, message: '请输入数据提供方', trigger: 'blur' }
     ],
     providerContact: [
-        { required: true, message: '请输入数据提供方联系方式', trigger: 'blur' },
+        { required: false, message: '请输入数据提供方联系方式', trigger: 'blur' },
         {
             validator: (rule, value, callback) => {
                 const mobilePattern = /^1[3-9]\d{9}$/
@@ -241,6 +307,14 @@ function formatFileSize(size) {
     }
 }
 
+// 将 dataFormat 从字符串转换为数组供多选控件使用
+function parseDataFormatToArray(value) {
+    if (!value) return []
+    if (Array.isArray(value)) return value
+    const parts = String(value).split(/[、,，|]/).map(s => s.trim()).filter(Boolean)
+    return parts
+}
+
 // 加载语料详情
 function loadCorpusDetails() {
     loading.value = true
@@ -253,7 +327,7 @@ function loadCorpusDetails() {
                 collectionName: response.data.collectionName || '',
                 domain: response.data.domain || '',
                 language: response.data.language || '',
-                dataFormat: response.data.dataFormat || '',
+                dataFormat: parseDataFormatToArray(response.data.dataFormat),
                 classification: response.data.classification || '',
                 dataVolume: response.data.dataVolume ?? null,
                 volumeUnit: response.data.volumeUnit || '',
@@ -291,7 +365,7 @@ function startEdit() {
         collectionName: corpusData.value.collectionName || '',
         domain: corpusData.value.domain || '',
         language: corpusData.value.language || '',
-        dataFormat: corpusData.value.dataFormat || '',
+        dataFormat: parseDataFormatToArray(corpusData.value.dataFormat),
         classification: corpusData.value.classification || '',
         dataVolume: corpusData.value.dataVolume ?? null,
         volumeUnit: corpusData.value.volumeUnit || '',
@@ -309,6 +383,13 @@ function cancelEdit() {
     router.go(-1)
 }
 
+const dataFormatText = computed(() => {
+    if (Array.isArray(editForm.dataFormat)) {
+        return editForm.dataFormat.join('、');
+    }
+    return editForm.dataFormat || '';
+})
+
 async function saveCorpusDetails() {
     if (saving.value) return
 
@@ -322,30 +403,25 @@ async function saveCorpusDetails() {
 
     saving.value = true
     try {
-        const payload = { ...editForm.value }
+        const submitData = { ...editForm.value }
+        if (Array.isArray(submitData.dataFormat)) {
+            if (submitData.dataFormat.length > 0) {
+                submitData.dataFormat = submitData.dataFormat.join('、')
+            } else {
+                delete submitData.dataFormat
+            }
+        } else if (typeof submitData.dataFormat === 'string' && submitData.dataFormat.trim() === '') {
+            delete submitData.dataFormat
+        }
+        const payload = { ...submitData }
         // 尝试 RESTful 更新
         await api.put(`/corpus/${corpusId.value}`, payload)
         ElMessage.success('保存成功')
         editing.value = false
         loadCorpusDetails()
     } catch (error) {
-        // 兼容性：如果后端不支持 PUT，尝试 POST 到可能的更新地址
-        if (error.response?.status === 404) {
-            try {
-                await api.post('/corpus/update', { corpusId: corpusId.value, ...editForm.value })
-                ElMessage.success('保存成功')
-                editing.value = false
-                loadCorpusDetails()
-                saving.value = false
-                return
-            } catch (e2) {
-                console.error('更新失败:', e2)
-                ElMessage.error('更新失败，请稍后重试')
-            }
-        } else {
-            console.error('更新失败:', error)
-            ElMessage.error('更新失败，请稍后重试')
-        }
+        console.error('更新失败:', error)
+        ElMessage.error('更新失败，请稍后重试')
     } finally {
         saving.value = false
     }
@@ -569,7 +645,7 @@ function getFileIconClass(fileName) {
 
 /* 编辑表单布局 */
 .corpus-edit-form {
-    padding: 16px;
+    /* padding: 16px; */
 }
 
 .edit-form-grid>>>.el-form-item {
@@ -577,9 +653,9 @@ function getFileIconClass(fileName) {
 }
 
 .edit-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-    gap: 8px 24px;
+    /* display: grid; */
+    /* grid-template-columns: repeat(2, minmax(280px, 1fr)); */
+    /* gap: 8px 24px; */
 }
 
 .edit-form-grid .full-row {
@@ -660,5 +736,16 @@ function getFileIconClass(fileName) {
 
 .upload-inline {
     /* display: inline-block; */
+}
+
+.form-content {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.form-column {
+    flex: 1;
+    min-width: 300px;
+    padding: 0 15px;
 }
 </style>

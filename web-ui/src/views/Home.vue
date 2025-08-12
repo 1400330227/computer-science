@@ -101,7 +101,7 @@ const handleLogout = async () => {
       <!-- 右侧用户信息和登出按钮 -->
       <div class="nav-right">
         <span class="user-info">欢迎：{{ userStore.displayName }}</span>
-        <el-button type="danger" size="small" @click="handleLogout">注销</el-button>
+        <el-button type="danger" size="small" @click="handleLogout">退出</el-button>
       </div>
     </header>
     <!-- 使用全局面包屑组件 -->
