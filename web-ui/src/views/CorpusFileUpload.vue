@@ -33,52 +33,6 @@
     <div class="upload-form">
       <div class="form-container">
         <el-form ref="uploadForm" :model="formData" :rules="rules" label-width="140px" class="upload-form">
-          <!-- <h3>提示信息</h3>
-          <div class="divider"></div>
-          <div class="info-box">
-            <p class="info-text">
-              <strong>国家：</strong>填写相关国家，如老挝、泰国
-            </p>
-            <p class="info-text">
-              <strong>语料集名称：</strong>需要能间接明了反映出语料集的关键信息，如：老挝国家图书馆书籍电子文本语料
-            </p>
-            <p class="info-text">
-              <strong>所属领域：</strong>如：医疗、教育、民生、经济、环境、社会和政府政策、法律等
-            </p>
-            <p class="info-text">
-              <strong>语种：</strong>填写语料对应语言：如老挝语、泰国语、印尼语等东南亚国家语言
-            </p>
-            <p class="info-text">
-              <strong>数据模态：</strong>纸质、可编辑电子文本、扫描电子文本、语音、视频、图像
-            </p>
-            <p class="info-text">
-              <strong>数据分类：</strong>包括：基础语料、预训练语料、SFT语料、强化学习语料、平行语料、价值观语料、ASR语料、TTS语料，其中除原始语料之外的都属于加工语料。
-            </p>
-            <p class="info-text">
-              <strong>文件数量：</strong>对应的文件数量数字表述,如1000
-            </p>
-            <p class="info-text">
-              <strong>文件数量单位：</strong>对应的文件数量表述单位，如GB、条、份、本、小时、篇等
-            </p>
-            <p class="info-text">
-              <strong>容量估算（GB）：</strong>按电子格式存储的数据容量估算，此处按GB计算
-            </p>
-            <p class="info-text">
-              <strong>数据年份：</strong>数据归属的年份范围，如2000年以后
-            </p>
-            <p class="info-text">
-              <strong>数据来源机构：</strong>注明数据来源机构区，如广西xxx、老挝xx部、xx学院
-            </p>
-            <p class="info-text">
-              <strong>数据来源：</strong>说明数据的来源，如文本的，老挝公开网站，语音的应注明是什么地方什么类型人士录制
-            </p>
-            <p class="info-text">
-              <strong>数据提供方：</strong>填写本条数据集的提供单位名称，如广西民族大学
-            </p>
-            <p class="info-text">
-              <strong>数据提供方联系方式：</strong>联系人（联系电话）
-            </p>
-          </div> -->
           <h3>语料集信息</h3>
           <div class="divider"></div>
           <div class="form-content">
@@ -121,7 +75,10 @@
               </el-form-item>
 
               <el-form-item label="语种" prop="language">
-                <el-input v-model="formData.language" placeholder="如：中文、老挝语、泰国语"></el-input>
+                <el-select v-model="formData.language" filterable placeholder="请选择语种">
+                  <el-option v-for="language in languages" :key="language.language" :label="language.language"
+                    :value="language.language"></el-option>
+                </el-select>
               </el-form-item>
 
               <el-form-item label="数据模态" prop="dataFormat">
@@ -138,6 +95,10 @@
                 </el-select>
               </el-form-item>
 
+            </div>
+
+            <!-- 右侧表单 -->
+            <div class="form-column">
               <el-form-item label="文件数量" prop="dataVolume">
                 <el-input v-model="formData.dataVolume" type="number" placeholder="请填写文件数量" disabled></el-input>
               </el-form-item>
@@ -148,10 +109,6 @@
                     :label="volumeUnit.volumeUnit" :value="volumeUnit.volumeUnit"></el-option>
                 </el-select>
               </el-form-item>
-            </div>
-
-            <!-- 右侧表单 -->
-            <div class="form-column">
               <el-form-item label="容量估算 (GB)" prop="estimatedCapacityGb">
                 <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"
                   disabled></el-input>
@@ -168,7 +125,7 @@
               </el-form-item>
 
               <el-form-item label="数据来源渠道" prop="dataSource">
-                <el-input v-model="formData.dataSource" placeholder="如：文本来源于老挝公开网站，语音由XX录制"></el-input>
+                <el-input v-model="formData.dataSource" placeholder="如：文本来源于老挝公开网站(https://www.baidu.com)"></el-input>
               </el-form-item>
 
               <el-form-item label="数据提供方" prop="provider">
@@ -253,6 +210,7 @@ const domains = corpus.domains
 const classifications = corpus.classifications
 const volumeUnits = corpus.volumeUnits
 const dataFormats = corpus.dataFormats
+const languages = corpus.languages
 const validCountryNames = new Set(countries.map(country => country.name))
 // 基于国家名称到语言的映射
 const countryNameToLanguage = new Map(corpus.countries.map(c => [c.name, c.language]))

@@ -30,14 +30,23 @@
                                     <el-input v-model="editForm.collectionName" placeholder="请填写语料集名称" />
                                 </el-form-item>
                                 <el-form-item label="所属领域" prop="domain">
-                                    <!-- <el-input v-model="editForm.domain" placeholder="请输入所属领域" /> -->
-                                    <el-select v-model="editForm.domain" filterable placeholder="请选择所属领域">
+                                    <el-radio-group v-model="editForm.domain" class="domain-radio-group">
+                                        <el-radio v-for="domain in domains" :key="domain.domainName"
+                                            :label="domain.domainName" class="domain-radio-item">
+                                            {{ domain.domainName }}
+                                        </el-radio>
+                                    </el-radio-group>
+                                    <!-- <el-select v-model="editForm.domain" filterable placeholder="请选择所属领域">
                                         <el-option v-for="domain in domains" :key="domain.domainName"
                                             :label="domain.domainName" :value="domain.domainName"></el-option>
-                                    </el-select>
+                                    </el-select> -->
                                 </el-form-item>
                                 <el-form-item label="语种" prop="language">
-                                    <el-input v-model="editForm.language" placeholder="请输入语种" />
+                                    <el-select v-model="editForm.language" filterable placeholder="请选择语种">
+                                        <el-option v-for="language in languages" :key="language.language"
+                                            :label="language.language" :value="language.language"></el-option>
+                                    </el-select>
+                                    <!-- <el-input v-model="editForm.language" placeholder="请输入语种" /> -->
                                 </el-form-item>
                                 <el-form-item label="数据模态" prop="dataFormat">
                                     <!-- <el-input v-model="editForm.dataFormat" placeholder="例如：文本、语音" /> -->
@@ -55,6 +64,9 @@
                                             :value="classification.classificationName"></el-option>
                                     </el-select>
                                 </el-form-item>
+
+                            </div>
+                            <div class="form-column">
                                 <el-form-item label="文件数量" prop="dataVolume">
                                     <el-input v-model.number="editForm.dataVolume" type="number" disabled
                                         placeholder="请输入文件数量" />
@@ -62,8 +74,6 @@
                                 <el-form-item label="文件数量单位" prop="volumeUnit">
                                     <el-input v-model="editForm.volumeUnit" placeholder="如：条、份、GB、小时" />
                                 </el-form-item>
-                            </div>
-                            <div class="form-column">
                                 <el-form-item label="容量估算(GB)" prop="estimatedCapacityGb">
                                     <el-input v-model="editForm.estimatedCapacityGb" type="number" disabled
                                         placeholder="请输入容量估算" />
@@ -97,6 +107,18 @@
             <!-- 文件详情信息 -->
             <div v-loading="filesLoading" class="section-container">
                 <h3 class="section-title">文件详情信息</h3>
+                <div class="file-upload-bar">
+                    <el-upload class="upload-inline" :auto-upload="false" :file-list="uploadFiles"
+                        :on-change="handleUploadChange" :on-remove="handleUploadRemove" multiple>
+                        <template #trigger>
+                            <el-button>继续上传文件</el-button>
+                        </template>
+                        <el-button type="success" :disabled="uploadFiles.length === 0" :loading="uploading"
+                            @click.stop="uploadSelectedFiles"
+                            style="margin-left: 20px;top: -2px;position: relative;">上传</el-button>
+                    </el-upload>
+
+                </div>
                 <div class="file-list" v-if="fileList.length > 0">
                     <div v-for="(file, index) in fileList" :key="index" class="file-item">
                         <div class="file-name">
@@ -118,18 +140,7 @@
                     </div>
                 </div>
                 <el-empty v-else description="暂无文件" />
-                <div class="file-upload-bar">
-                    <el-upload class="upload-inline" :auto-upload="false" :file-list="uploadFiles"
-                        :on-change="handleUploadChange" :on-remove="handleUploadRemove" multiple>
-                        <template #trigger>
-                            <el-button type="primary">继续上传文件</el-button>
-                        </template>
-                        <el-button type="success" :disabled="uploadFiles.length === 0" :loading="uploading"
-                            @click.stop="uploadSelectedFiles"
-                            style="margin-left: 20px;top: -2px;position: relative;">上传</el-button>
-                    </el-upload>
 
-                </div>
 
 
             </div>
@@ -190,6 +201,7 @@ const defaultCountries = computed(() => countries.filter(c => c.name === DEFAULT
 const aseanCountries = computed(() => countries.filter(c => c.name !== DEFAULT_COUNTRY_NAME && ASEAN_COUNTRY_NAMES.has(c.name)))
 const otherCountries = computed(() => countries.filter(c => c.name !== DEFAULT_COUNTRY_NAME && !ASEAN_COUNTRY_NAMES.has(c.name)))
 const domains = corpus.domains
+const languages = corpus.languages
 const classifications = corpus.classifications
 const volumeUnits = corpus.volumeUnits
 const dataFormats = corpus.dataFormats
@@ -235,7 +247,7 @@ const rules = {
         { required: true, message: '请输入数据分类', trigger: 'blur' }
     ],
     dataVolume: [
-        { required: true, message: '请填写文件数量', trigger: 'blur' }
+        { required: false, message: '请填写文件数量', trigger: 'blur' }
     ],
     volumeUnit: [
         { required: true, message: '请填写文件数量单位', trigger: 'blur' }
@@ -434,14 +446,14 @@ async function saveCorpusDetails() {
             delete submitData.dataFormat
         }
         const payload = { ...submitData }
-        
+
         // 调试信息：检查发送的数据
         console.log('=== 详情页面发送数据调试信息 ===')
         console.log('payload:', payload)
         console.log('estimatedCapacityGb值:', payload.estimatedCapacityGb)
         console.log('estimatedCapacityGb类型:', typeof payload.estimatedCapacityGb)
         console.log('================================')
-        
+
         // 尝试 RESTful 更新
         await api.put(`/corpus/${corpusId.value}`, payload)
         ElMessage.success('保存成功')
@@ -626,7 +638,7 @@ async function confirmDeleteCorpus() {
                 dangerouslyUseHTMLString: true
             }
         )
-        
+
         // 用户确认删除
         await deleteCorpusAction()
     } catch (error) {
@@ -639,11 +651,11 @@ async function confirmDeleteCorpus() {
 // 执行删除语料
 async function deleteCorpusAction() {
     if (deleting.value) return
-    
+
     deleting.value = true
     try {
         const response = await deleteCorpus(corpusId.value)
-        
+
         if (response.data.success) {
             ElMessage.success('语料删除成功')
             // 删除成功后跳转到语料列表页面
@@ -842,5 +854,80 @@ async function deleteCorpusAction() {
     flex: 1;
     min-width: 300px;
     padding: 0 15px;
+}
+
+.domain-radio-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    width: 100%;
+}
+
+.domain-radio-item {
+    margin: 0 !important;
+    padding: 3px 1px;
+    border: 1px solid #e4e7ed;
+    border-radius: 2px;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.domain-radio-item:hover {
+    background-color: #f0f9ff;
+    border-color: #409eff;
+}
+
+.domain-radio-item.is-checked {
+    background-color: #ecf5ff;
+    border-color: #409eff;
+    color: #409eff;
+}
+
+.domain-radio-item .el-radio__label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    font-size: 10px;
+    line-height: 1.0;
+    padding: 0;
+    margin-left: 0;
+}
+
+/* 隐藏默认的单选框样式 */
+.domain-radio-item .el-radio__input {
+    display: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .domain-radio-group {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3px;
+    }
+
+    .domain-radio-item {
+        padding: 2px 1px;
+        font-size: 9px;
+        min-height: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .domain-radio-group {
+        grid-template-columns: repeat(1, 1fr);
+        gap: 2px;
+    }
+
+    .domain-radio-item {
+        padding: 1px 1px;
+        font-size: 8px;
+        min-height: 14px;
+    }
 }
 </style>

@@ -1381,5 +1381,40 @@
         {
             "dataFormat": "其他"
         }
+    ],
+    "languages": [
+        {
+            "language": "中文"
+        },
+        {
+            "language": "英语"
+        },
+        {
+            "language": "越南语"
+        },
+        {
+            "language": "老挝语"
+        },
+        {
+            "language": "高棉语"
+        },
+        {
+            "language": "缅甸语"
+        },
+        {
+            "language": "泰语"
+        },
+        {
+            "language": "马来语"
+        },
+        {
+            "language": "泰米尔语"
+        },
+        {
+            "language": "印度尼西亚语"
+        },
+        {
+            "language": "菲律宾语"
+        }
     ]
 }
