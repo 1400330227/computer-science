@@ -71,4 +71,11 @@ public interface FileService extends IService<FileEntity> {
      * @return 是否删除成功
      */
     boolean deleteFile(Integer fileId);
+    
+    /**
+     * 根据语料库ID删除所有相关文件
+     * @param corpusId 语料库ID
+     * @return 是否删除成功
+     */
+    boolean deleteFilesByCorpusId(Integer corpusId);
 } 

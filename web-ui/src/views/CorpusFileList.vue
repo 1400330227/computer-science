@@ -67,13 +67,14 @@
           <!-- <el-table-column prop="dataSource" label="数据来源" /> -->
           <el-table-column prop="estimatedCapacityGb" label="容量估算GB" width="110" />
           <!-- <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip /> -->
-          <el-table-column label="操作" width="150" fixed="right">
+          <el-table-column label="操作" width="100" fixed="right">
             <template #default="{ row }">
               <a :href="getDownloadUrl(row)" class="download-link" @click="showDownloadMessage(row)" title="下载语料"
                 download>
                 下载
               </a>
-              <!-- <el-button link type="primary" @click="viewDetails(row)">详情</el-button> -->
+              <!-- <el-button link type="primary" @click="viewDetails(row)" style="margin-left: 10px;">详情</el-button>
+              <el-button link type="danger" @click="confirmDeleteCorpus(row)" style="margin-left: 10px;">删除</el-button> -->
             </template>
           </el-table-column>
 
@@ -98,8 +99,9 @@
 <script setup>
 import { ref, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '../services/api'
+import { deleteCorpus } from '../services/corpus'
 
 const router = useRouter()
 const fileList = ref([])
@@ -238,6 +240,47 @@ function getDownloadUrl(corpus) {
 function showDownloadMessage(row) {
   // 不使用 event.preventDefault()，让 <a> 标签的默认下载行为正常执行
   ElMessage.success(`正在下载语料: ${row.collectionName}`);
+}
+
+// 确认删除语料
+async function confirmDeleteCorpus(corpus) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除语料"${corpus.collectionName}"吗？\n\n删除后将无法恢复，包括所有相关文件。`,
+      '确认删除',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        dangerouslyUseHTMLString: true
+      }
+    )
+
+    // 用户确认删除
+    await deleteCorpusAction(corpus)
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除操作失败')
+    }
+  }
+}
+
+// 执行删除语料
+async function deleteCorpusAction(corpus) {
+  try {
+    const response = await deleteCorpus(corpus.corpusId)
+
+    if (response.data.success) {
+      ElMessage.success('语料删除成功')
+      // 删除成功后刷新列表
+      loadFileList()
+    } else {
+      ElMessage.error(response.data.message || '删除失败')
+    }
+  } catch (error) {
+    console.error('删除语料失败:', error)
+    ElMessage.error('删除语料失败，请稍后重试')
+  }
 }
 </script>
 

@@ -140,6 +140,16 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
     @Override
     @Transactional
     public boolean createCorpus(Corpus corpus) {
+        // 调试信息：检查estimatedCapacityGb字段
+        System.out.println("=== 服务层 estimatedCapacityGb 字段调试信息 ===");
+        System.out.println("服务层接收到的estimatedCapacityGb值: " + corpus.getEstimatedCapacityGb());
+        System.out.println("estimatedCapacityGb的类型: " + (corpus.getEstimatedCapacityGb() != null ? corpus.getEstimatedCapacityGb().getClass().getName() : "null"));
+        if (corpus.getEstimatedCapacityGb() != null) {
+            System.out.println("estimatedCapacityGb的字符串表示: " + corpus.getEstimatedCapacityGb().toString());
+            System.out.println("estimatedCapacityGb的double值: " + corpus.getEstimatedCapacityGb().doubleValue());
+        }
+        System.out.println("=============================================");
+
         // 检查当前用户是否已有同名语料库
         Corpus existingCorpus = findByUserIdAndName(corpus.getCreatorId(), corpus.getCollectionName());
         if (existingCorpus != null) {
@@ -150,7 +160,15 @@ public class CorpusServiceImpl extends ServiceImpl<CorpusMapper, Corpus> impleme
         // 设置创建时间
         corpus.setCreatedAt(LocalDateTime.now());
         
-        return save(corpus);
+        boolean result = save(corpus);
+        
+        // 调试信息：保存后的值
+        System.out.println("=== 保存后的 estimatedCapacityGb 字段调试信息 ===");
+        System.out.println("保存后的estimatedCapacityGb值: " + corpus.getEstimatedCapacityGb());
+        System.out.println("保存操作结果: " + result);
+        System.out.println("=============================================");
+        
+        return result;
     }
 
     @Override

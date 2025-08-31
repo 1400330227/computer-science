@@ -1,5 +1,7 @@
 package com.computerscience.hdfsapi.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.computerscience.hdfsapi.utils.DoubleDeserializer;
 import java.time.LocalDateTime;
 
 public class CorpusWithUserInfo {
@@ -12,6 +14,7 @@ public class CorpusWithUserInfo {
     private String classification;
     private Double dataVolume;
     private String volumeUnit;
+    @JsonDeserialize(using = DoubleDeserializer.class)
     private Double estimatedCapacityGb;
     private String dataYear;
     private String sourceLocation;

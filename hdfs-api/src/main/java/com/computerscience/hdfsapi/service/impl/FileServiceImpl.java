@@ -135,4 +135,17 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
         
         return removeById(fileId);
     }
+    
+    @Override
+    @Transactional
+    public boolean deleteFilesByCorpusId(Integer corpusId) {
+        if (corpusId == null) {
+            return false;
+        }
+        
+        LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FileEntity::getCorpusId, corpusId);
+        
+        return remove(queryWrapper);
+    }
 } 

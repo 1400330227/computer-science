@@ -36,9 +36,9 @@ export const useUserStore = defineStore('user', () => {
     const userType = userInfo.value.userType
     
     if (nickname) {
-      return `${userType === 'admin' ? '语料库管理员' : '用户'}-${nickname}`
+      return `${nickname}`
     } else if (account) {
-      return `${userType === 'admin' ? '语料库管理员' : '用户'}-${account}`
+      return `${account}`
     } else {
       return '未知用户'
     }

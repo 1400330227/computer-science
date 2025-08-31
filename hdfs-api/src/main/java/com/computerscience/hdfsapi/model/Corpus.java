@@ -1,6 +1,9 @@
 package com.computerscience.hdfsapi.model;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.computerscience.hdfsapi.utils.DoubleDeserializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -65,6 +68,7 @@ public class Corpus implements Serializable {
      * 容量估算（GB）
      */
     @TableField("estimated_capacity_gb")
+    @JsonDeserialize(using = DoubleDeserializer.class)
     private Double estimatedCapacityGb;
 
     /**

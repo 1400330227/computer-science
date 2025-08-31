@@ -137,6 +137,7 @@
             <div class="section-actions">
                 <el-button @click="cancelEdit">返回上一页</el-button>
                 <el-button type="primary" :loading="saving" @click="saveCorpusDetails">更新语料信息</el-button>
+                <el-button type="danger" :loading="deleting" @click="confirmDeleteCorpus">删除语料</el-button>
             </div>
         </div>
     </div>
@@ -146,8 +147,9 @@
 import { ref, onMounted, inject, computed, watch } from 'vue'
 import { Download, Back, Document, Folder, Headset, VideoCamera, Picture } from '@element-plus/icons-vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '../services/api'
+import { deleteCorpus } from '../services/corpus'
 import corpus from '../assets/corpus.json'
 
 const route = useRoute()
@@ -163,6 +165,9 @@ const editing = ref(false)
 const saving = ref(false)
 const editForm = ref({})
 const editFormRef = ref(null)
+
+// 删除相关
+const deleting = ref(false)
 
 
 // 添加分组所需的常量与计算属性
@@ -346,7 +351,7 @@ function loadCorpusDetails() {
                 classification: response.data.classification || '',
                 dataVolume: response.data.dataVolume ?? null,
                 volumeUnit: response.data.volumeUnit || '',
-                estimatedCapacityGb: response.data.estimatedCapacityGb || '',
+                estimatedCapacityGb: response.data.estimatedCapacityGb || 0,
                 dataYear: response.data.dataYear || '',
                 sourceLocation: response.data.sourceLocation || '',
                 dataSource: response.data.dataSource || '',
@@ -384,7 +389,7 @@ function startEdit() {
         classification: corpusData.value.classification || '',
         dataVolume: corpusData.value.dataVolume ?? null,
         volumeUnit: corpusData.value.volumeUnit || '',
-        estimatedCapacityGb: corpusData.value.estimatedCapacityGb || '',
+        estimatedCapacityGb: corpusData.value.estimatedCapacityGb || 0,
         dataYear: corpusData.value.dataYear || '',
         sourceLocation: corpusData.value.sourceLocation || '',
         dataSource: corpusData.value.dataSource || '',
@@ -429,6 +434,14 @@ async function saveCorpusDetails() {
             delete submitData.dataFormat
         }
         const payload = { ...submitData }
+        
+        // 调试信息：检查发送的数据
+        console.log('=== 详情页面发送数据调试信息 ===')
+        console.log('payload:', payload)
+        console.log('estimatedCapacityGb值:', payload.estimatedCapacityGb)
+        console.log('estimatedCapacityGb类型:', typeof payload.estimatedCapacityGb)
+        console.log('================================')
+        
         // 尝试 RESTful 更新
         await api.put(`/corpus/${corpusId.value}`, payload)
         ElMessage.success('保存成功')
@@ -474,8 +487,8 @@ function updateDataMetricsFromFiles() {
             }
         }
         if (totalBytes > 0) {
-            const gb = (totalBytes / (1024 * 1024 * 1024)).toFixed(6)
-            editForm.value.estimatedCapacityGb = gb
+            const gb = totalBytes / (1024 * 1024 * 1024)
+            editForm.value.estimatedCapacityGb = parseFloat(gb.toFixed(6))
         }
     } catch (e) {
         console.warn('自动更新文件数量失败：', e)
@@ -597,6 +610,52 @@ function getFileIconClass(fileName) {
         return 'el-icon-picture';
     } else {
         return 'el-icon-document'; // 默认图标
+    }
+}
+
+// 确认删除语料
+async function confirmDeleteCorpus() {
+    try {
+        await ElMessageBox.confirm(
+            `确定要删除语料"${corpusData.value.collectionName}"吗？\n\n删除后将无法恢复，包括所有相关文件。`,
+            '确认删除',
+            {
+                confirmButtonText: '确定删除',
+                cancelButtonText: '取消',
+                type: 'warning',
+                dangerouslyUseHTMLString: true
+            }
+        )
+        
+        // 用户确认删除
+        await deleteCorpusAction()
+    } catch (error) {
+        if (error !== 'cancel') {
+            ElMessage.error('删除操作失败')
+        }
+    }
+}
+
+// 执行删除语料
+async function deleteCorpusAction() {
+    if (deleting.value) return
+    
+    deleting.value = true
+    try {
+        const response = await deleteCorpus(corpusId.value)
+        
+        if (response.data.success) {
+            ElMessage.success('语料删除成功')
+            // 删除成功后跳转到语料列表页面
+            router.push('/file-list')
+        } else {
+            ElMessage.error(response.data.message || '删除失败')
+        }
+    } catch (error) {
+        console.error('删除语料失败:', error)
+        ElMessage.error('删除语料失败，请稍后重试')
+    } finally {
+        deleting.value = false
     }
 }
 </script>

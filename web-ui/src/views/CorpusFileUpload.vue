@@ -394,7 +394,7 @@ const formData = reactive({
   classification: '基础语料',
   dataVolume: 0,
   volumeUnit: '份',
-  estimatedCapacityGb: '0.000000',
+  estimatedCapacityGb: 0.000000,
   dataYear: new Date().getFullYear().toString(),
   sourceLocation: '',
   dataSource: '',
@@ -455,8 +455,8 @@ const updateEstimatedCapacity = (files) => {
   files.forEach(f => {
     totalSizeInBytes += f.size
   })
-  const totalSizeInGB = (totalSizeInBytes / (1024 * 1024 * 1024)).toFixed(6)
-  formData.estimatedCapacityGb = totalSizeInGB
+  const totalSizeInGB = totalSizeInBytes / (1024 * 1024 * 1024)
+  formData.estimatedCapacityGb = parseFloat(totalSizeInGB.toFixed(6))
 }
 
 // 处理文件变更
@@ -556,6 +556,13 @@ const saveForm = async () => {
 
     // 创建提交数据副本，将dataFormat转换为文本
     const submitData = { ...formData, dataFormat: dataFormatText.value }
+
+    // 调试信息：检查发送的数据
+    console.log('=== 前端发送数据调试信息 ===')
+    console.log('submitData:', submitData)
+    console.log('estimatedCapacityGb值:', submitData.estimatedCapacityGb)
+    console.log('estimatedCapacityGb类型:', typeof submitData.estimatedCapacityGb)
+    console.log('============================')
 
     // 第一步：创建语料记录
     const corpusResponse = await api.post('/corpus', submitData)

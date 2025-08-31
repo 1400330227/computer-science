@@ -231,6 +231,22 @@ public class CorpusController {
             System.out.println("用户对象: " + (currentUser != null ? currentUser.getAccount() : "null"));
             System.out.println("认证成功，用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
 
+            // 调试信息：检查estimatedCapacityGb字段
+            System.out.println("=== estimatedCapacityGb 字段调试信息 ===");
+            System.out.println("接收到的estimatedCapacityGb值: " + corpus.getEstimatedCapacityGb());
+            System.out.println("estimatedCapacityGb的类型: " + (corpus.getEstimatedCapacityGb() != null ? corpus.getEstimatedCapacityGb().getClass().getName() : "null"));
+            if (corpus.getEstimatedCapacityGb() != null) {
+                System.out.println("estimatedCapacityGb的字符串表示: " + corpus.getEstimatedCapacityGb().toString());
+                System.out.println("estimatedCapacityGb的double值: " + corpus.getEstimatedCapacityGb().doubleValue());
+            }
+            
+            // 如果值为null或0，尝试从请求体中重新解析
+            if (corpus.getEstimatedCapacityGb() == null || corpus.getEstimatedCapacityGb() == 0.0) {
+                System.out.println("检测到estimatedCapacityGb为null或0，尝试手动解析...");
+                // 这里可以添加手动解析逻辑
+            }
+            System.out.println("=====================================");
+
             // 设置创建者ID
             corpus.setCreatorId(currentUser.getUserId());
 
@@ -274,10 +290,101 @@ public class CorpusController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCorpus(@PathVariable Integer id) {
-        if (corpusService.deleteCorpus(id)) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.badRequest().body("删除语料库失败，语料库可能不存在");
+        try {
+            // 获取当前登录用户
+            User currentUser = UserContext.getCurrentUser();
+            if (currentUser == null) {
+                return ResponseEntity.status(401).body("用户未登录");
+            }
+
+            // 验证语料库是否存在且属于当前用户
+            Corpus corpus = corpusService.getById(id);
+            if (corpus == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (!corpus.getCreatorId().equals(currentUser.getUserId())) {
+                return ResponseEntity.status(403).body("无权限删除该语料库");
+            }
+
+            System.out.println("=== 语料删除开始 ===");
+            System.out.println("语料ID: " + id);
+            System.out.println("语料名称: " + corpus.getCollectionName());
+            System.out.println("删除用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
+
+            // 获取语料库下的所有文件
+            List<FileEntity> files = fileService.findByCorpusId(id);
+            System.out.println("关联文件数量: " + (files != null ? files.size() : 0));
+
+            // 删除HDFS上的文件
+            if (files != null && !files.isEmpty()) {
+                HdfsApi hdfsApi = new HdfsApi(conf, user);
+                try {
+                    for (FileEntity file : files) {
+                        String hdfsPath = file.getFilePath();
+                        System.out.println("删除HDFS文件: " + hdfsPath);
+                        
+                        // 检查文件是否存在
+                        if (hdfsApi.existFile(hdfsPath)) {
+                            // 删除文件（递归删除，跳过回收站）
+                            boolean deleted = hdfsApi.rmdir(hdfsPath, false, true);
+                            if (deleted) {
+                                System.out.println("HDFS文件删除成功: " + hdfsPath);
+                            } else {
+                                System.out.println("HDFS文件删除失败: " + hdfsPath);
+                            }
+                        } else {
+                            System.out.println("HDFS文件不存在，跳过删除: " + hdfsPath);
+                        }
+                    }
+                    
+                    // 尝试删除语料库目录
+                    String corpusDir = "/corpus/" + currentUser.getAccount() + id;
+                    if (hdfsApi.exists(corpusDir)) {
+                        boolean dirDeleted = hdfsApi.rmdir(corpusDir, true, true);
+                        if (dirDeleted) {
+                            System.out.println("语料库目录删除成功: " + corpusDir);
+                        } else {
+                            System.out.println("语料库目录删除失败: " + corpusDir);
+                        }
+                    } else {
+                        System.out.println("语料库目录不存在，跳过删除: " + corpusDir);
+                    }
+                } finally {
+                    hdfsApi.close();
+                }
+            }
+
+            // 删除数据库中的文件记录
+            boolean filesDeleted = fileService.deleteFilesByCorpusId(id);
+            System.out.println("数据库文件记录删除结果: " + filesDeleted);
+
+            // 删除语料库记录
+            boolean corpusDeleted = corpusService.deleteCorpus(id);
+            System.out.println("数据库语料库记录删除结果: " + corpusDeleted);
+
+            if (corpusDeleted) {
+                System.out.println("=== 语料删除完成 ===");
+                System.out.println("==================");
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "语料库删除成功");
+                response.put("corpusId", id);
+                response.put("corpusName", corpus.getCollectionName());
+                response.put("deletedFilesCount", files != null ? files.size() : 0);
+                
+                return ResponseEntity.ok(response);
+            } else {
+                System.out.println("=== 语料删除失败 ===");
+                System.out.println("==================");
+                return ResponseEntity.badRequest().body("删除语料库失败，语料库可能不存在");
+            }
+
+        } catch (Exception e) {
+            System.err.println("删除语料库异常: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("删除语料库失败: " + e.getMessage());
         }
     }
 
