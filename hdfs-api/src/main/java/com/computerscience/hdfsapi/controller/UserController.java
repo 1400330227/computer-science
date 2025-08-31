@@ -696,4 +696,220 @@ public class UserController {
             return ResponseEntity.status(500).body(response);
         }
     }
+    
+    /**
+     * 更新个人信息接口
+     */
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody Map<String, Object> profileData, 
+                                         HttpServletRequest request) {
+        try {
+            // 检查用户是否登录
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("currentUser") == null) {
+                return ResponseEntity.status(401).body("用户未登录");
+            }
+            
+            Integer userId = (Integer) session.getAttribute("currentUser");
+            User currentUser = userService.getById(userId);
+            if (currentUser == null) {
+                return ResponseEntity.status(401).body("用户不存在，请重新登录");
+            }
+            
+            // 验证必填字段
+            String nickname = (String) profileData.get("nickname");
+            String phone = (String) profileData.get("phone");
+            String college = (String) profileData.get("college");
+            String gender = (String) profileData.get("gender");
+            
+            if (nickname == null || nickname.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("姓名不能为空");
+            }
+            
+            if (phone == null || phone.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("手机号不能为空");
+            }
+            
+            if (college == null || college.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("学院不能为空");
+            }
+            
+            if (gender == null || gender.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("性别不能为空");
+            }
+            
+            // 验证手机号格式
+            if (!phone.matches("^1[3-9]\\d{9}$")) {
+                return ResponseEntity.badRequest().body("手机号格式不正确");
+            }
+            
+            // 检查手机号是否被其他用户使用（排除当前用户）
+            User existingUserWithPhone = userService.findByPhone(phone);
+            if (existingUserWithPhone != null && !existingUserWithPhone.getUserId().equals(userId)) {
+                return ResponseEntity.badRequest().body("该手机号已被其他用户使用");
+            }
+            
+            // 更新用户信息
+            User updateUser = new User();
+            updateUser.setUserId(userId);
+            updateUser.setNickname(nickname.trim());
+            updateUser.setPhone(phone.trim());
+            updateUser.setCollege(college.trim());
+            updateUser.setGender(gender.trim());
+            
+            // 可选字段
+            String title = (String) profileData.get("title");
+            if (title != null) {
+                updateUser.setTitle(title.trim());
+            }
+            
+            String major = (String) profileData.get("major");
+            if (major != null) {
+                updateUser.setMajor(major.trim());
+            }
+            
+            String remarks = (String) profileData.get("remarks");
+            if (remarks != null) {
+                updateUser.setRemarks(remarks.trim());
+            }
+            
+            // 设置更新者信息
+            updateUser.setUpdatedBy(currentUser.getAccount());
+            
+            // 执行更新
+            boolean updateSuccess = userService.updateUser(updateUser);
+            if (!updateSuccess) {
+                return ResponseEntity.status(500).body("更新个人信息失败");
+            }
+            
+            // 返回成功响应
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "个人信息更新成功");
+            response.put("userId", userId);
+            
+            logger.info("用户 {} 更新个人信息成功", currentUser.getAccount());
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("更新个人信息时发生异常", e);
+            return ResponseEntity.status(500).body("更新个人信息失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 修改密码接口
+     */
+    @PutMapping("/password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> passwordData, 
+                                          HttpServletRequest request) {
+        try {
+            // 检查用户是否登录
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("currentUser") == null) {
+                return ResponseEntity.status(401).body("用户未登录");
+            }
+            
+            Integer userId = (Integer) session.getAttribute("currentUser");
+            User currentUser = userService.getById(userId);
+            if (currentUser == null) {
+                return ResponseEntity.status(401).body("用户不存在，请重新登录");
+            }
+            
+            // 获取密码参数
+            String encryptedOldPassword = passwordData.get("oldPassword");
+            String encryptedNewPassword = passwordData.get("newPassword");
+            
+            if (encryptedOldPassword == null || encryptedOldPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("当前密码不能为空");
+            }
+            
+            if (encryptedNewPassword == null || encryptedNewPassword.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("新密码不能为空");
+            }
+            
+            // 解密并验证当前密码
+            String oldPassword;
+            try {
+                oldPassword = cryptoService.decryptWithRSA(encryptedOldPassword);
+            } catch (Exception e) {
+                logger.error("解密当前密码失败", e);
+                return ResponseEntity.badRequest().body("当前密码解密失败");
+            }
+            
+            // 验证当前密码是否正确
+            String storedPassword = currentUser.getPassword();
+            boolean isOldPasswordCorrect = false;
+            
+            if (storedPassword.startsWith("$2")) {
+                // 数据库中是BCrypt哈希密码
+                isOldPasswordCorrect = cryptoService.verifyPasswordWithBCrypt(oldPassword, storedPassword);
+            } else {
+                // 数据库中是明文密码（兼容旧数据）
+                isOldPasswordCorrect = oldPassword.equals(storedPassword);
+            }
+            
+            if (!isOldPasswordCorrect) {
+                return ResponseEntity.badRequest().body("当前密码错误");
+            }
+            
+            // 解密新密码
+            String newPassword;
+            try {
+                newPassword = cryptoService.decryptWithRSA(encryptedNewPassword);
+            } catch (Exception e) {
+                logger.error("解密新密码失败", e);
+                return ResponseEntity.badRequest().body("新密码解密失败");
+            }
+            
+            // 验证新密码格式
+            if (newPassword.length() < 8) {
+                return ResponseEntity.badRequest().body("新密码长度不能少于8位");
+            }
+            
+            if (!newPassword.matches(".*[A-Z].*")) {
+                return ResponseEntity.badRequest().body("新密码需包含大写字母");
+            }
+            
+            if (!newPassword.matches(".*[a-z].*")) {
+                return ResponseEntity.badRequest().body("新密码需包含小写字母");
+            }
+            
+            if (!newPassword.matches(".*[0-9].*")) {
+                return ResponseEntity.badRequest().body("新密码需包含数字");
+            }
+            
+            // 检查新密码是否与当前密码相同
+            if (oldPassword.equals(newPassword)) {
+                return ResponseEntity.badRequest().body("新密码不能与当前密码相同");
+            }
+            
+            // 使用BCrypt加密新密码
+            String hashedNewPassword = cryptoService.encryptPasswordWithBCrypt(newPassword);
+            
+            // 更新密码
+            User updateUser = new User();
+            updateUser.setUserId(userId);
+            updateUser.setPassword(hashedNewPassword);
+            updateUser.setUpdatedBy(currentUser.getAccount());
+            
+            boolean updateSuccess = userService.updateUser(updateUser);
+            if (!updateSuccess) {
+                return ResponseEntity.status(500).body("密码修改失败");
+            }
+            
+            // 返回成功响应
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "密码修改成功");
+            response.put("userId", userId);
+            
+            logger.info("用户 {} 修改密码成功", currentUser.getAccount());
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("修改密码时发生异常", e);
+            return ResponseEntity.status(500).body("修改密码失败：" + e.getMessage());
+        }
+    }
 } 

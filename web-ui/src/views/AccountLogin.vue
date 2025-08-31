@@ -27,7 +27,7 @@
                placeholder="请输入用户名" 输入框提示文字
                prefix-icon="User" 输入框前面的用户图标
           -->
-          <el-input v-model="loginForm.username" placeholder="请输入账号" prefix-icon="User" clearable />
+          <el-input v-model="loginForm.username" placeholder="请输入用户名" prefix-icon="User" clearable />
         </el-form-item>
 
         <!-- 密码输入框 -->
@@ -65,12 +65,37 @@
         <el-form-item>
           <div class="signup-hint">
             还没有账号？
-            <a @click.prevent="router.push({ name: 'register' })" href="#">去注册</a>
+            <!-- <a @click.prevent="router.push({ name: 'register' })" href="#">去注册</a>
+            <span class="divider">|</span> -->
+            <a @click.prevent="showRegistrationInfo" href="#">去注册</a>
           </div>
         </el-form-item>
 
       </el-form>
     </el-card>
+
+    <!-- 登记信息弹出框 -->
+    <el-dialog v-model="registrationDialogVisible" title="用户信息登记" width="500px" :close-on-click-modal="false"
+      :close-on-press-escape="true">
+      <div class="registration-content">
+        <p>请通过以下链接登记您的信息：</p>
+        <div class="link-container">
+          <a href="https://www.kdocs.cn/l/caFGYN3GHWIe" target="_blank" class="registration-link">
+            https://www.kdocs.cn/l/caFGYN3GHWIe
+          </a>
+        </div>
+        <p class="note">点击链接将在新窗口中打开金山文档，请按照文档要求填写相关信息。</p>
+      </div>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="registrationDialogVisible = false">关闭</el-button>
+          <el-button type="primary" @click="openRegistrationLink">
+            打开链接
+          </el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -95,6 +120,7 @@ const userStore = useUserStore()  // 创建用户状态管理对象
 const loading = ref(false)     // 控制登录按钮的加载状态
 const rememberMe = ref(false)  // 控制是否记住用户名的复选框状态
 const publicKey = ref('')      // 存储从服务器获取的RSA公钥
+const registrationDialogVisible = ref(false)  // 控制登记信息弹出框的显示状态
 
 // 创建表单引用，用于调用表单的验证方法
 const loginFormRef = ref()
@@ -146,6 +172,17 @@ const fetchPublicKey = async () => {
     console.error('获取RSA公钥失败:', error)
     ElMessage.error('获取加密密钥失败，请刷新页面重试')
   }
+}
+
+// ======= 显示登记信息弹出框函数 =======
+const showRegistrationInfo = () => {
+  registrationDialogVisible.value = true
+}
+
+// ======= 打开登记链接函数 =======
+const openRegistrationLink = () => {
+  window.open('https://www.kdocs.cn/l/caFGYN3GHWIe', '_blank')
+  registrationDialogVisible.value = false
 }
 
 // ======= 页面加载时执行的函数 =======
@@ -381,5 +418,51 @@ const handleLogin = async () => {
 
 .signup-hint a:hover {
   text-decoration: underline;
+}
+
+.divider {
+  margin: 0 8px;
+  color: #dcdfe6;
+}
+
+/* 登记信息弹出框样式 */
+.registration-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.registration-content p {
+  margin: 10px 0;
+  color: #606266;
+  line-height: 1.6;
+}
+
+.link-container {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border-radius: 6px;
+  border: 1px solid #e4e7ed;
+}
+
+.registration-link {
+  color: #409eff;
+  text-decoration: none;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.registration-link:hover {
+  text-decoration: underline;
+}
+
+.note {
+  font-size: 13px;
+  color: #909399;
+  margin-top: 15px;
+}
+
+.dialog-footer {
+  text-align: right;
 }
 </style>

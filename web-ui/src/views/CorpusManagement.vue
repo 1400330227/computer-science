@@ -38,7 +38,7 @@
         <el-table-column prop="creatorAccount" label="所有者" />
         <el-table-column prop="language" label="语种" width="100" />
         <el-table-column prop="dataFormat" label="数据格式" width="120" />
-        <el-table-column prop="dataVolume" label="数据量" width="120">
+        <el-table-column prop="dataVolume" label="文件数量" width="120">
           <template #default="scope">
             {{ scope.row.dataVolume ? `${scope.row.dataVolume} ${scope.row.volumeUnit || ''}` : '未设置' }}
           </template>
@@ -52,8 +52,8 @@
           <template #default="scope">
             <!-- <el-button type="primary" @click="handleDownload(scope.row.corpusId)" link>下载</el-button> -->
             <a :href="getDownloadUrl(scope.row.corpusId)" class="download-link" title="下载语料" download>
-                下载
-              </a>
+              下载
+            </a>
           </template>
         </el-table-column>
       </el-table>

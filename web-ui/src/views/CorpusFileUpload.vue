@@ -49,16 +49,16 @@
               <strong>语种：</strong>填写语料对应语言：如老挝语、泰国语、印尼语等东南亚国家语言
             </p>
             <p class="info-text">
-              <strong>数据形式：</strong>纸质、可编辑电子文本、扫描电子文本、语音、视频、图像
+              <strong>数据模态：</strong>纸质、可编辑电子文本、扫描电子文本、语音、视频、图像
             </p>
             <p class="info-text">
               <strong>数据分类：</strong>包括：基础语料、预训练语料、SFT语料、强化学习语料、平行语料、价值观语料、ASR语料、TTS语料，其中除原始语料之外的都属于加工语料。
             </p>
             <p class="info-text">
-              <strong>数据量：</strong>对应的数据量数字表述,如1000
+              <strong>文件数量：</strong>对应的文件数量数字表述,如1000
             </p>
             <p class="info-text">
-              <strong>数据量单位：</strong>对应的数据量表述单位，如GB、条、份、本、小时、篇等
+              <strong>文件数量单位：</strong>对应的文件数量表述单位，如GB、条、份、本、小时、篇等
             </p>
             <p class="info-text">
               <strong>容量估算（GB）：</strong>按电子格式存储的数据容量估算，此处按GB计算
@@ -67,7 +67,7 @@
               <strong>数据年份：</strong>数据归属的年份范围，如2000年以后
             </p>
             <p class="info-text">
-              <strong>来源归属地：</strong>注明数据来源地区，如广西xxx、老挝xx部、xx学院
+              <strong>数据来源机构：</strong>注明数据来源机构区，如广西xxx、老挝xx部、xx学院
             </p>
             <p class="info-text">
               <strong>数据来源：</strong>说明数据的来源，如文本的，老挝公开网站，语音的应注明是什么地方什么类型人士录制
@@ -112,18 +112,20 @@
               </el-form-item>
 
               <el-form-item label="所属领域" prop="domain">
-                <el-select v-model="formData.domain" filterable placeholder="请选择所属领域">
-                  <el-option v-for="domain in domains" :key="domain.domainName" :label="domain.domainName"
-                    :value="domain.domainName"></el-option>
-                </el-select>
+                <el-radio-group v-model="formData.domain" class="domain-radio-group">
+                  <el-radio v-for="domain in domains" :key="domain.domainName" :label="domain.domainName"
+                    class="domain-radio-item">
+                    {{ domain.domainName }}
+                  </el-radio>
+                </el-radio-group>
               </el-form-item>
 
               <el-form-item label="语种" prop="language">
                 <el-input v-model="formData.language" placeholder="如：中文、老挝语、泰国语"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据形式" prop="dataFormat">
-                <el-select v-model="formData.dataFormat" filterable placeholder="请选择数据形式" multiple>
+              <el-form-item label="数据模态" prop="dataFormat">
+                <el-select v-model="formData.dataFormat" filterable placeholder="请选择数据模态" multiple>
                   <el-option v-for="dataFormat in dataFormats" :key="dataFormat.dataFormat"
                     :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
                 </el-select>
@@ -136,12 +138,12 @@
                 </el-select>
               </el-form-item>
 
-              <el-form-item label="数据量" prop="dataVolume">
-                <el-input v-model="formData.dataVolume" type="number" placeholder="请填写数据量" disabled></el-input>
+              <el-form-item label="文件数量" prop="dataVolume">
+                <el-input v-model="formData.dataVolume" type="number" placeholder="请填写文件数量" disabled></el-input>
               </el-form-item>
 
-              <el-form-item label="数据量单位" prop="volumeUnit">
-                <el-select v-model="formData.volumeUnit" filterable placeholder="请选择数据量单位">
+              <el-form-item label="文件数量单位" prop="volumeUnit">
+                <el-select v-model="formData.volumeUnit" filterable placeholder="请选择文件数量单位">
                   <el-option v-for="volumeUnit in volumeUnits" :key="volumeUnit.volumeUnit"
                     :label="volumeUnit.volumeUnit" :value="volumeUnit.volumeUnit"></el-option>
                 </el-select>
@@ -161,11 +163,11 @@
                 </el-date-picker>
               </el-form-item>
 
-              <el-form-item label="来源归属地" prop="sourceLocation">
-                <el-input v-model="formData.sourceLocation" placeholder="如：广西xxx、老挝xx部、xx学院，注明数据来源地"></el-input>
+              <el-form-item label="数据来源机构" prop="sourceLocation">
+                <el-input v-model="formData.sourceLocation" placeholder="如：广西xxx、老挝xx部、xx学院，注明数据来源机构"></el-input>
               </el-form-item>
 
-              <el-form-item label="数据来源" prop="dataSource">
+              <el-form-item label="数据来源渠道" prop="dataSource">
                 <el-input v-model="formData.dataSource" placeholder="如：文本来源于老挝公开网站，语音由XX录制"></el-input>
               </el-form-item>
 
@@ -335,16 +337,16 @@ const rules = {
     { required: true, message: '请输入语种', trigger: 'blur' }
   ],
   dataFormat: [
-    { required: true, message: '请输入数据形式', trigger: 'blur' }
+    { required: true, message: '请输入数据模态', trigger: 'blur' }
   ],
   classification: [
     { required: true, message: '请输入数据分类', trigger: 'blur' }
   ],
   dataVolume: [
-    { required: false, message: '请填写数据量', trigger: 'blur' }
+    { required: false, message: '请填写文件数量', trigger: 'blur' }
   ],
   volumeUnit: [
-    { required: true, message: '请填写数据量单位', trigger: 'blur' }
+    { required: true, message: '请填写文件数量单位', trigger: 'blur' }
   ],
   estimatedCapacityGb: [
     { required: false, message: '请填写容量估算', trigger: 'blur' }
@@ -353,7 +355,7 @@ const rules = {
     { required: false, message: '请输入数据年份', trigger: 'blur' }
   ],
   sourceLocation: [
-    { required: false, message: '请输入来源归属地', trigger: 'blur' }
+    { required: false, message: '请输入数据来源机构', trigger: 'blur' }
   ],
   dataSource: [
     { required: false, message: '请输入数据来源', trigger: 'blur' }
@@ -392,7 +394,7 @@ const formData = reactive({
   classification: '基础语料',
   dataVolume: 0,
   volumeUnit: '份',
-  estimatedCapacityGb: '0.00',
+  estimatedCapacityGb: '0.000000',
   dataYear: new Date().getFullYear().toString(),
   sourceLocation: '',
   dataSource: '',
@@ -453,7 +455,7 @@ const updateEstimatedCapacity = (files) => {
   files.forEach(f => {
     totalSizeInBytes += f.size
   })
-  const totalSizeInGB = (totalSizeInBytes / (1024 * 1024 * 1024)).toFixed(2)
+  const totalSizeInGB = (totalSizeInBytes / (1024 * 1024 * 1024)).toFixed(6)
   formData.estimatedCapacityGb = totalSizeInGB
 }
 
@@ -469,7 +471,7 @@ const handleFileChange = (file, uploadFileList) => {
   // 更新容量估算
   updateEstimatedCapacity(fileList.value)
 
-  // 根据上传文件数量，自动填充数据量（默认0）
+  // 根据上传文件数量，自动填充文件数量（默认0）
   formData.dataVolume = fileList.value.length || 0
 }
 
@@ -485,7 +487,7 @@ const removeFile = (file, uploadFiles) => {
   // 更新容量估算
   updateEstimatedCapacity(fileList.value)
 
-  // 根据上传文件数量，自动填充数据量（默认0）
+  // 根据上传文件数量，自动填充文件数量（默认0）
   formData.dataVolume = fileList.value.length || 0
 }
 
@@ -1009,5 +1011,82 @@ const saveAndCreate = async () => {
 
 .name-check-status .error {
   color: #f56c6c;
+}
+
+/* 所属领域单选框样式 - 固定3列 */
+.domain-radio-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  width: 100%;
+}
+
+.domain-radio-item {
+  margin: 0 !important;
+  padding: 3px 1px;
+  border: 1px solid #e4e7ed;
+  border-radius: 2px;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.domain-radio-item:hover {
+  background-color: #f0f9ff;
+  border-color: #409eff;
+}
+
+.domain-radio-item.is-checked {
+  background-color: #ecf5ff;
+  border-color: #409eff;
+  color: #409eff;
+}
+
+/* 确保单选框在网格中居中对齐 */
+.domain-radio-item .el-radio__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  font-size: 10px;
+  line-height: 1.0;
+  padding: 0;
+  margin-left: 0;
+}
+
+/* 隐藏默认的单选框样式 */
+.domain-radio-item .el-radio__input {
+  display: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .domain-radio-group {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3px;
+  }
+
+  .domain-radio-item {
+    padding: 2px 1px;
+    font-size: 9px;
+    min-height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .domain-radio-group {
+    grid-template-columns: repeat(1, 1fr);
+    gap: 2px;
+  }
+
+  .domain-radio-item {
+    padding: 1px 1px;
+    font-size: 8px;
+    min-height: 14px;
+  }
 }
 </style>

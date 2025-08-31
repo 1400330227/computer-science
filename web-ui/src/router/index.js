@@ -51,7 +51,7 @@ const router = createRouter({
           path: '/my-files',
           name: 'my-files',
           component: () => import('../views/MyFileList.vue'),
-          meta: { requiresAuth: true, title: '我的语料' }
+          meta: { requiresAuth: true, title: '我的文件' }
         },
         {
           path: '/user-management',
@@ -64,6 +64,12 @@ const router = createRouter({
           name: 'corpus-management',
           component: () => import('../views/CorpusManagement.vue'),
           meta: { requiresAuth: true, requiresAdmin: true, title: '语料管理' }
+        },
+        {
+          path: '/my-info',
+          name: 'my-info',
+          component: () => import('../views/MyInfor.vue'),
+          meta: { requiresAuth: true, title: '个人信息' }
         }
       ]
     },

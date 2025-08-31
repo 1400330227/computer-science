@@ -30,7 +30,19 @@ export const useUserStore = defineStore('user', () => {
   const isAuthenticated = computed(() => isLoggedIn.value)
   
   // 计算属性：用户显示名称
-  const displayName = computed(() => userInfo.value.nickname || userInfo.value.account || '未知用户')
+  const displayName = computed(() => {
+    const nickname = userInfo.value.nickname
+    const account = userInfo.value.account
+    const userType = userInfo.value.userType
+    
+    if (nickname) {
+      return `${userType === 'admin' ? '语料库管理员' : '用户'}-${nickname}`
+    } else if (account) {
+      return `${userType === 'admin' ? '语料库管理员' : '用户'}-${account}`
+    } else {
+      return '未知用户'
+    }
+  })
 
   // 计算属性：学院
   const college = computed(() => userInfo.value.college || localStorage.getItem('college') || '')
@@ -154,6 +166,18 @@ export const useUserStore = defineStore('user', () => {
     }
   }
   
+  // 更新用户信息方法
+  const updateUserInfo = (updatedInfo) => {
+    userInfo.value = { ...userInfo.value, ...updatedInfo }
+    
+    // 同步到 localStorage
+    Object.keys(updatedInfo).forEach(key => {
+      if (updatedInfo[key] !== undefined) {
+        localStorage.setItem(key, updatedInfo[key] || '')
+      }
+    })
+  }
+  
   return {
     user: userInfo,
     userInfo,
@@ -163,6 +187,7 @@ export const useUserStore = defineStore('user', () => {
     college,
     login,
     logout,
-    restoreFromStorage
+    restoreFromStorage,
+    updateUserInfo
   }
 }) 

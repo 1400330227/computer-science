@@ -39,9 +39,9 @@
                                 <el-form-item label="语种" prop="language">
                                     <el-input v-model="editForm.language" placeholder="请输入语种" />
                                 </el-form-item>
-                                <el-form-item label="数据形式" prop="dataFormat">
+                                <el-form-item label="数据模态" prop="dataFormat">
                                     <!-- <el-input v-model="editForm.dataFormat" placeholder="例如：文本、语音" /> -->
-                                    <el-select v-model="editForm.dataFormat" filterable placeholder="请选择数据形式" multiple>
+                                    <el-select v-model="editForm.dataFormat" filterable placeholder="请选择数据模态" multiple>
                                         <el-option v-for="dataFormat in dataFormats" :key="dataFormat.dataFormat"
                                             :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
                                     </el-select>
@@ -55,11 +55,11 @@
                                             :value="classification.classificationName"></el-option>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item label="数据量" prop="dataVolume">
+                                <el-form-item label="文件数量" prop="dataVolume">
                                     <el-input v-model.number="editForm.dataVolume" type="number" disabled
-                                        placeholder="请输入数据量" />
+                                        placeholder="请输入文件数量" />
                                 </el-form-item>
-                                <el-form-item label="数据量单位" prop="volumeUnit">
+                                <el-form-item label="文件数量单位" prop="volumeUnit">
                                     <el-input v-model="editForm.volumeUnit" placeholder="如：条、份、GB、小时" />
                                 </el-form-item>
                             </div>
@@ -72,10 +72,10 @@
                                     <el-date-picker v-model="editForm.dataYear" type="year" placeholder="请选择数据年份"
                                         format="YYYY" value-format="YYYY" />
                                 </el-form-item>
-                                <el-form-item label="来源归属地" prop="sourceLocation">
-                                    <el-input v-model="editForm.sourceLocation" placeholder="请输入来源归属地" />
+                                <el-form-item label="数据来源机构" prop="sourceLocation">
+                                    <el-input v-model="editForm.sourceLocation" placeholder="请输入数据来源机构" />
                                 </el-form-item>
-                                <el-form-item label="数据来源" prop="dataSource">
+                                <el-form-item label="数据来源渠道" prop="dataSource">
                                     <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" />
                                 </el-form-item>
                                 <el-form-item label="数据提供方" prop="provider">
@@ -224,16 +224,16 @@ const rules = {
         { required: true, message: '请输入语种', trigger: 'blur' }
     ],
     dataFormat: [
-        { required: true, message: '请输入数据形式', trigger: 'blur' }
+        { required: true, message: '请输入数据模态', trigger: 'blur' }
     ],
     classification: [
         { required: true, message: '请输入数据分类', trigger: 'blur' }
     ],
     dataVolume: [
-        { required: true, message: '请填写数据量', trigger: 'blur' }
+        { required: true, message: '请填写文件数量', trigger: 'blur' }
     ],
     volumeUnit: [
-        { required: true, message: '请填写数据量单位', trigger: 'blur' }
+        { required: true, message: '请填写文件数量单位', trigger: 'blur' }
     ],
     estimatedCapacityGb: [
         { required: false, message: '请填写容量估算', trigger: 'blur' }
@@ -242,7 +242,7 @@ const rules = {
         { required: false, message: '请输入数据年份', trigger: 'blur' }
     ],
     sourceLocation: [
-        { required: false, message: '请输入来源归属地', trigger: 'blur' }
+        { required: false, message: '请输入数据来源机构', trigger: 'blur' }
     ],
     dataSource: [
         { required: false, message: '请输入数据来源', trigger: 'blur' }
@@ -442,7 +442,7 @@ async function saveCorpusDetails() {
     }
 }
 
-// 格式化数据量显示
+// 格式化文件数量显示
 function formatDataVolume(volume, unit) {
     if (!volume) return '-'
     return `${volume}${unit || ''}`
@@ -460,11 +460,11 @@ function formatDateTime(dateTime) {
         minute: '2-digit'
     })
 }
-// 基于当前文件列表自动计算数据量与容量估算（GB）
+// 基于当前文件列表自动计算文件数量与容量估算（GB）
 function updateDataMetricsFromFiles() {
     try {
         const files = Array.isArray(fileList.value) ? fileList.value : []
-        // 数据量 = 文件数量
+        // 文件数量 = 文件数量
         editForm.value.dataVolume = files.length
         // 容量估算 = fileSize 求和（字节）转 GB
         let totalBytes = 0
@@ -474,11 +474,11 @@ function updateDataMetricsFromFiles() {
             }
         }
         if (totalBytes > 0) {
-            const gb = (totalBytes / (1024 * 1024 * 1024)).toFixed(2)
+            const gb = (totalBytes / (1024 * 1024 * 1024)).toFixed(6)
             editForm.value.estimatedCapacityGb = gb
         }
     } catch (e) {
-        console.warn('自动更新数据量失败：', e)
+        console.warn('自动更新文件数量失败：', e)
     }
 }
 // 加载文件列表

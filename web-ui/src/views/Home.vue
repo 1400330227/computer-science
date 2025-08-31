@@ -100,7 +100,11 @@ const handleLogout = async () => {
       <div class="platform-title">广西大学东盟语料收集与管理平台</div>
       <!-- 右侧用户信息和登出按钮 -->
       <div class="nav-right">
-        <span class="user-info">欢迎：{{ userStore.displayName }}</span>
+        <span class="user-info">
+          <el-link type="primary" @click="router.push({ name: 'my-info' })" style="color: #ffffff;">
+            欢迎：{{ userStore.displayName }}
+          </el-link>
+        </span>
         <el-button type="danger" size="small" @click="handleLogout">退出</el-button>
       </div>
     </header>

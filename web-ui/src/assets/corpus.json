@@ -1238,16 +1238,16 @@
     ],
     "domains": [
         {
-            "domainName": "医疗"
+            "domainName": "政治"
+        },
+        {
+            "domainName": "经济"
         },
         {
             "domainName": "教育"
         },
         {
-            "domainName": "民生"
-        },
-        {
-            "domainName": "经济"
+            "domainName": "医疗"
         },
         {
             "domainName": "环境"
@@ -1256,7 +1256,58 @@
             "domainName": "社会和政府政策"
         },
         {
+            "domainName": "文学"
+        },
+        {
+            "domainName": "新闻"
+        },
+        {
+            "domainName": "军事"
+        },
+        {
+            "domainName": "文旅"
+        },
+        {
+            "domainName": "哲学"
+        },
+        {
+            "domainName": "自然科学(学术)"
+        },
+        {
+            "domainName": "民生"
+        },
+        {
             "domainName": "法律"
+        },
+        {
+            "domainName": "历史"
+        },
+        {
+            "domainName": "体育"
+        },
+        {
+            "domainName": "公益"
+        },
+        {
+            "domainName": "宗教"
+        },
+        {
+            "domainName": "人文与艺术"
+        },
+        {
+            "domainName": "交通与物流"
+        },
+        {
+            "domainName": "能源与资源"
+        },
+        {
+            "domainName": "农业与工业"
+        },
+        {
+            "domainName": "人口与移民"
+        },
+        {
+            "domainName": "灾害与应急管理"
         },
         {
             "domainName": "其他"

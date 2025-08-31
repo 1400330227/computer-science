@@ -56,7 +56,7 @@
           </el-table-column>
           <el-table-column prop="domain" label="所属领域" />
           <el-table-column prop="language" label="语种" />
-          <el-table-column prop="dataFormat" label="数据形式" />
+          <el-table-column prop="dataFormat" label="数据模态" />
           <el-table-column prop="classification" label="数据分类" />
           <el-table-column prop="dataYear" label="数据年份" />
           <el-table-column prop="createdAt" label="上传时间" width="110">
@@ -226,7 +226,7 @@ function viewDetails(corpus) {
 
 // 跳转到上传页面
 function goToUpload() {
-  router.push('/upload')
+  router.push('/file-upload')
 }
 
 // 计算下载URL
