@@ -28,6 +28,14 @@
           <p>查看和管理我的文件</p>
         </div>
       </div>
+
+      <div class="card" @click="navigateTo('/all-files')">
+        <div class="card-icon">👥</div>
+        <div class="card-content">
+          <h2>所有文件</h2>
+          <p>查看所有文件</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -96,7 +104,11 @@ onMounted(() => {
 
 // 导航到指定路由
 function navigateTo(path) {
-  router.push(path)
+  if (path === '/all-files') {
+    ElMessage.warning('目前没有权限查看其他人的文件');
+  } else {
+    router.push(path);
+  }
 }
 
 const formatDate = (value) => {
