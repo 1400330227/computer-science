@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -29,7 +29,6 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.hadoop.fs.Path;
 
-import java.io.IOException;
 import java.net.URLEncoder;
 import com.computerscience.hdfsapi.service.UserService;
 import java.util.Set;
@@ -531,82 +530,126 @@ public class CorpusController {
 
                 System.out.println("单文件下载完成");
             } else {
-                String[] filePaths = files.stream().map(FileEntity::getFilePath).toArray(String[]::new);
+//                String[] filePaths = files.stream().map(FileEntity::getFilePath).toArray(String[]::new);
                 // 创建HDFS API连接
                 HdfsApi hdfsApi = new HdfsApi(conf, user);
-                long fileSize = hdfsApi.getFileSizes(filePaths);
-
-                if (fileSize < 0) {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在");
-                    return;
-                }
-
-                // 多个文件时，打包成ZIP下载
                 String zipFileName = corpus.getCollectionName() + ".zip";
+                // 创建临时ZIP文件
+                File tempZipFile = null;
+                ZipOutputStream zipOut = null;
+                try {
+                    // 创建临时文件
+                    String timestamp = String.valueOf(System.currentTimeMillis());
+                    String random = String.valueOf(Thread.currentThread().getId());
+                    tempZipFile = File.createTempFile("download_" + timestamp + "_" + random + "_", ".zip");
 
-                response.setContentType("application/zip");
-                response.setHeader("Content-Disposition",
-                        "attachment;filename=" + URLEncoder.encode(zipFileName, "UTF-8"));
-                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-                response.setHeader("Pragma", "no-cache");
-                response.setHeader("Expires", "0");
-                response.setContentLengthLong(fileSize);
+                    // 创建ZIP输出流指向临时文件
+                    zipOut = new ZipOutputStream(new FileOutputStream(tempZipFile));
 
-//                response.flushBuffer();
+                    int successCount = 0;
+                    int failCount = 0;
 
-                System.out.println("多文件打包下载，ZIP文件名: " + zipFileName);
+                    for (FileEntity file : files) {
+                        try {
+                            String hdfsPath = file.getFilePath();
+                            String fileName = file.getFileName();
 
+                            System.out.println("添加文件到ZIP: " + fileName + " (HDFS: " + hdfsPath + ")");
 
-                // 创建ZIP输出流
-                ZipOutputStream zipOut = new ZipOutputStream(response.getOutputStream());
+                            // 添加ZIP条目
+                            ZipEntry zipEntry = new ZipEntry(fileName);
+                            zipOut.putNextEntry(zipEntry);
 
+                            // 从HDFS读取文件并写入ZIP
+                            Path sPath = new Path(hdfsPath);
+                            try (InputStream inputStream = hdfsApi.getFs().open(sPath)) {
+                                byte[] buffer = new byte[8192];
+                                int length;
+                                while ((length = inputStream.read(buffer)) > 0) {
+                                    zipOut.write(buffer, 0, length);
+                                }
+                            }
 
-                for (FileEntity file : files) {
-                    try {
-                        String hdfsPath = file.getFilePath();
-                        String fileName = file.getFileName();
+                            zipOut.closeEntry();
+                            successCount++;
 
-                        System.out.println("添加文件到ZIP: " + fileName + " (HDFS: " + hdfsPath + ")");
-
-                        // 添加ZIP条目
-                        ZipEntry zipEntry = new ZipEntry(fileName);
-                        zipOut.putNextEntry(zipEntry);
-
-                        // 从HDFS读取文件并写入ZIP
-                        Path sPath = new Path(hdfsPath);
-                        InputStream inputStream = hdfsApi.getFs().open(sPath);
-
-                        byte[] buffer = new byte[1024];
-                        int length;
-                        while ((length = inputStream.read(buffer)) > 0) {
-                            zipOut.write(buffer, 0, length);
+                        } catch (Exception e) {
+                            System.err.println("添加文件到ZIP失败: " + file.getFileName() + ", 错误: " + e.getMessage());
+                            failCount++;
+                            // 继续处理其他文件，不中断整个下载过程
                         }
+                    }
 
-                        inputStream.close();
-                        zipOut.closeEntry();
+                    // 如果有文件失败，在ZIP中添加一个说明文件
+                    if (failCount > 0) {
+                        try {
+                            ZipEntry infoEntry = new ZipEntry("下载说明.txt");
+                            zipOut.putNextEntry(infoEntry);
+                            String info = "注意: " + failCount + " 个文件未能包含在此下载包中，请联系管理员。";
+                            zipOut.write(info.getBytes(StandardCharsets.UTF_8));
+                            zipOut.closeEntry();
+                        } catch (Exception e) {
+                            System.err.println("无法添加说明文件: " + e.getMessage());
+                        }
+                    }
 
-                    } catch (Exception e) {
-                        System.err.println("添加文件到ZIP失败: " + file.getFileName() + ", 错误: " + e.getMessage());
-                        // 继续处理其他文件，不中断整个下载过程
+                    // 关闭ZIP输出流
+                    zipOut.close();
+                    zipOut = null;
+
+                    System.out.println("ZIP打包完成: 成功 " + successCount + " 个文件, 失败 " + failCount + " 个文件");
+                    System.out.println("临时ZIP文件大小: " + tempZipFile.length() + " 字节");
+
+                    // 设置HTTP响应头
+                    response.setContentType("application/zip");
+                    response.setHeader("Content-Disposition",
+                            "attachment;filename=" + URLEncoder.encode(zipFileName, "UTF-8"));
+                    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+                    response.setHeader("Pragma", "no-cache");
+                    response.setHeader("Expires", "0");
+                    response.setHeader("X-Content-Type-Options", "nosniff");
+
+                    // 设置准确的内容长度
+                    response.setContentLengthLong(tempZipFile.length());
+
+                    // 将临时文件内容写入响应输出流
+                    try (InputStream fileInputStream = new FileInputStream(tempZipFile)) {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                            response.getOutputStream().write(buffer, 0, bytesRead);
+                        }
+                    }
+
+                    System.out.println("多文件打包下载完成");
+
+                } catch (Exception e) {
+                    System.err.println("创建ZIP文件失败: " + e.getMessage());
+                    response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "创建下载包失败");
+                } finally {
+                    // 确保资源被正确关闭
+                    if (zipOut != null) {
+                        try { zipOut.close(); } catch (Exception e) { /* 忽略关闭异常 */ }
+                    }
+                    hdfsApi.close();
+
+                    // 删除临时文件
+                    if (tempZipFile != null && tempZipFile.exists()) {
+                        if (!tempZipFile.delete()) {
+                            System.err.println("无法删除临时文件: " + tempZipFile.getAbsolutePath());
+                        }
                     }
                 }
-
-                zipOut.close();
-                hdfsApi.close();
-
-                System.out.println("多文件打包下载完成");
             }
 
             System.out.println("==================");
 
         } catch (Exception e) {
-            System.err.println("语料下载失败: " + e.getMessage());
-            e.printStackTrace();
             try {
                 response.setStatus(500);
                 response.getWriter().write("下载失败: " + e.getMessage());
             } catch (IOException ioException) {
-                ioException.printStackTrace();
+                // ignore
             }
         }
     }
