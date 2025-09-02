@@ -102,4 +102,34 @@ export const uploadFileToCorpus = (formData) => {
  */
 export const getCorpusDownloadUrl = (corpusId) => {
   return `/api/corpus/download/${corpusId}`;
+};
+
+/**
+ * 管理员根据ID获取任意语料库详情
+ * @param {number} id - 语料库ID
+ * @returns {Promise}
+ */
+export const getCorpusByIdAsAdmin = (id) => {
+  return handleApiResponse(api.get(`/admin/corpus/${id}`));
+};
+
+/**
+ * 管理员查询语料的文件列表
+ * @param {number} id - 语料库ID
+ * @returns {Promise}
+ */
+export const getCorpusFilesAsAdmin = (id) => {
+  return handleApiResponse(api.get(`/admin/corpus/${id}/files`));
+};
+
+/**
+ * 管理员上传文件到语料
+ * @param {number} corpusId - 语料库ID
+ * @param {FormData} formData - 包含文件的表单数据
+ * @returns {Promise}
+ */
+export const uploadFileToCorpusAsAdmin = (corpusId, formData) => {
+  return handleApiResponse(api.post(`/admin/corpus/${corpusId}/upload`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }));
 }; 

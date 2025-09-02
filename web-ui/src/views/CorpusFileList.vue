@@ -66,6 +66,14 @@
           </el-table-column>
           <!-- <el-table-column prop="dataSource" label="数据来源" /> -->
           <el-table-column prop="estimatedCapacityGb" label="容量估算GB" width="110" />
+          <el-table-column label="文件数量">
+            <template #default="{ row }">
+              <span v-if="row.dataVolume !== undefined && row.dataVolume !== null">
+                {{ row.dataVolume }} {{ row.volumeUnit }}
+              </span>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
           <!-- <el-table-column prop="remarks" label="备注说明" show-overflow-tooltip /> -->
           <el-table-column label="操作" width="100" fixed="right">
             <template #default="{ row }">

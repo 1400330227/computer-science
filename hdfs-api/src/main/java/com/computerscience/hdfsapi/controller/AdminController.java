@@ -27,11 +27,16 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+
 import javax.servlet.http.HttpServletResponse;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
 
 @RestController
 @RequestMapping("/admin")
@@ -78,10 +83,10 @@ public class AdminController {
                 queryWrapper.like(User::getAccount, account);
             }
             queryWrapper.orderByDesc(User::getCreatedAt);
-            
+
             IPage<User> userPage = userService.page(new Page<>(page, size), queryWrapper);
             DPage<User> result = new DPage<>(userPage.getRecords(), userPage.getTotal(), page, size);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", result);
@@ -319,24 +324,24 @@ public class AdminController {
             int size = Integer.parseInt(params.getOrDefault("size", "10"));
             String collectionName = params.get("collectionName");
             String creatorAccount = params.get("creatorAccount");
-            
+
             System.out.println("=== 语料查询调试 ===");
             System.out.println("页码: " + page + ", 大小: " + size);
             System.out.println("语料名称: " + collectionName);
             System.out.println("创建者账号: " + creatorAccount);
-            
+
             LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
-            
+
             if (StringUtils.hasText(collectionName)) {
                 queryWrapper.like(Corpus::getCollectionName, collectionName);
             }
-            
+
             // 如果按用户账号搜索，先查找用户ID
             if (StringUtils.hasText(creatorAccount)) {
                 LambdaQueryWrapper<User> userQueryWrapper = new LambdaQueryWrapper<>();
                 userQueryWrapper.like(User::getAccount, creatorAccount);
                 List<User> users = userService.list(userQueryWrapper);
-                
+
                 if (!users.isEmpty()) {
                     List<Integer> userIds = new ArrayList<>();
                     for (User user : users) {
@@ -352,12 +357,12 @@ public class AdminController {
                     return ResponseEntity.ok(response);
                 }
             }
-            
+
             queryWrapper.orderByDesc(Corpus::getCreatedAt);
 
             IPage<Corpus> corpusPage = corpusService.page(new Page<>(page, size), queryWrapper);
             System.out.println("查询到的语料数量: " + corpusPage.getRecords().size());
-            
+
             // 获取所有相关用户信息
             Set<Integer> creatorIdSet = new HashSet<>();
             for (Corpus corpus : corpusPage.getRecords()) {
@@ -365,7 +370,7 @@ public class AdminController {
             }
             List<Integer> creatorIds = new ArrayList<>(creatorIdSet);
             System.out.println("需要查询的用户ID: " + creatorIds);
-            
+
             Map<Integer, User> userMap = new HashMap<>();
             // 只有当creatorIds不为空时才查询用户信息
             if (!creatorIds.isEmpty()) {
@@ -375,7 +380,7 @@ public class AdminController {
                     userMap.put(user.getUserId(), user);
                 }
             }
-            
+
             // 转换为包含用户信息的DTO
             List<CorpusWithUserInfo> corpusWithUserInfoList = new ArrayList<>();
             for (Corpus corpus : corpusPage.getRecords()) {
@@ -398,19 +403,19 @@ public class AdminController {
                 dto.setRemarks(corpus.getRemarks());
                 dto.setCreatorId(corpus.getCreatorId());
                 dto.setCreatedAt(corpus.getCreatedAt());
-                
+
                 User creator = userMap.get(corpus.getCreatorId());
                 if (creator != null) {
                     dto.setCreatorAccount(creator.getAccount());
                     dto.setCreatorNickname(creator.getNickname());
                     dto.setCreatorUserType(creator.getUserType());
                 }
-                
+
                 corpusWithUserInfoList.add(dto);
             }
-            
+
             DPage<CorpusWithUserInfo> result = new DPage<>(corpusWithUserInfoList, corpusPage.getTotal(), page, size);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", result);
@@ -427,18 +432,107 @@ public class AdminController {
         }
     }
 
+    /**
+     * 管理员根据ID查询语料详情
+     */
+    @GetMapping("/corpus/{corpusId}")
+    public ResponseEntity<Map<String, Object>> getCorpusDetail(@PathVariable Integer corpusId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Corpus corpus = corpusService.getById(corpusId);
+            if (corpus == null) {
+                response.put("success", false);
+                response.put("message", "语料不存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 获取创建者信息
+            User creator = userService.getById(corpus.getCreatorId());
+
+            // 构建包含用户信息的响应数据
+            Map<String, Object> corpusData = new HashMap<>();
+            corpusData.put("corpusId", corpus.getCorpusId());
+            corpusData.put("collectionName", corpus.getCollectionName());
+            corpusData.put("country", corpus.getCountry());
+            corpusData.put("domain", corpus.getDomain());
+            corpusData.put("language", corpus.getLanguage());
+            corpusData.put("dataFormat", corpus.getDataFormat());
+            corpusData.put("classification", corpus.getClassification());
+            corpusData.put("dataVolume", corpus.getDataVolume());
+            corpusData.put("volumeUnit", corpus.getVolumeUnit());
+            corpusData.put("estimatedCapacityGb", corpus.getEstimatedCapacityGb());
+            corpusData.put("dataYear", corpus.getDataYear());
+            corpusData.put("sourceLocation", corpus.getSourceLocation());
+            corpusData.put("dataSource", corpus.getDataSource());
+            corpusData.put("provider", corpus.getProvider());
+            corpusData.put("providerContact", corpus.getProviderContact());
+            corpusData.put("remarks", corpus.getRemarks());
+            corpusData.put("creatorId", corpus.getCreatorId());
+            corpusData.put("createdAt", corpus.getCreatedAt());
+//            corpusData.put("updatedAt", corpus.getUpdatedAt());
+
+            // 添加创建者信息
+            if (creator != null) {
+                corpusData.put("creatorAccount", creator.getAccount());
+                corpusData.put("creatorNickname", creator.getNickname());
+                corpusData.put("creatorUserType", creator.getUserType());
+                corpusData.put("creatorPhone", creator.getPhone());
+                corpusData.put("creatorCollege", creator.getCollege());
+                corpusData.put("creatorTitle", creator.getTitle());
+                corpusData.put("creatorMajor", creator.getMajor());
+            }
+
+            response.put("success", true);
+            response.put("data", corpusData);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "获取语料详情失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    /**
+     * 管理员查询语料的文件列表
+     */
+    @GetMapping("/corpus/{corpusId}/files")
+    public ResponseEntity<Map<String, Object>> getCorpusFiles(@PathVariable Integer corpusId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 检查语料是否存在
+            Corpus corpus = corpusService.getById(corpusId);
+            if (corpus == null) {
+                response.put("success", false);
+                response.put("message", "语料不存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // 查询文件列表
+            List<FileEntity> files = fileService.findByCorpusId(corpusId);
+
+            response.put("success", true);
+            response.put("data", files != null ? files : new ArrayList<>());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "获取文件列表失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+
     @PostMapping("/corpus/transfer")
     @Transactional
     public ResponseEntity<Map<String, Object>> transferCorpus(@RequestBody CorpusTransferRequest request) {
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             if (request.getCorpusIds() == null || request.getCorpusIds().isEmpty()) {
                 response.put("success", false);
                 response.put("message", "请选择要转移的语料");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             if (request.getTargetUserId() == null) {
                 response.put("success", false);
                 response.put("message", "请选择目标用户");
@@ -465,7 +559,7 @@ public class AdminController {
             }
 
             boolean success = corpusService.updateBatchById(corporaToUpdate);
-            
+
             if (success) {
                 response.put("success", true);
                 response.put("message", "语料转移成功");
@@ -477,7 +571,7 @@ public class AdminController {
                 response.put("success", false);
                 response.put("message", "语料转移失败");
             }
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -489,21 +583,21 @@ public class AdminController {
     @PostMapping("/users/{userId}/update-role")
     public ResponseEntity<Map<String, Object>> updateUserRole(@PathVariable Integer userId, @RequestBody UpdateUserRoleRequest request) {
         Map<String, Object> response = new HashMap<>();
-        
+
         try {
             if (userId == null || request.getUserType() == null) {
                 response.put("success", false);
                 response.put("message", "用户ID和用户类型不能为空");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             // 验证用户类型值
             if (!"user".equals(request.getUserType()) && !"admin".equals(request.getUserType())) {
                 response.put("success", false);
                 response.put("message", "用户类型只能是 'user' 或 'admin'");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             // 获取要修改的用户
             User targetUser = userService.getById(userId);
             if (targetUser == null) {
@@ -511,7 +605,7 @@ public class AdminController {
                 response.put("message", "用户不存在");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             // 防止管理员取消自己的管理员权限（至少保留一个管理员）
             User currentUser = UserContext.getCurrentUser();
             if (currentUser != null && currentUser.getUserId().equals(userId) && "user".equals(request.getUserType())) {
@@ -520,19 +614,19 @@ public class AdminController {
                 adminQuery.eq(User::getUserType, "admin");
                 adminQuery.ne(User::getUserId, userId);
                 long adminCount = userService.count(adminQuery);
-                
+
                 if (adminCount == 0) {
                     response.put("success", false);
                     response.put("message", "不能取消最后一个管理员的权限");
                     return ResponseEntity.badRequest().body(response);
                 }
             }
-            
+
             // 更新用户权限
             String oldUserType = targetUser.getUserType();
             targetUser.setUserType(request.getUserType());
             boolean success = userService.updateById(targetUser);
-            
+
             if (success) {
                 response.put("success", true);
                 response.put("message", "用户权限修改成功");
@@ -546,7 +640,7 @@ public class AdminController {
                 response.put("success", false);
                 response.put("message", "用户权限修改失败");
             }
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -556,8 +650,6 @@ public class AdminController {
     }
 
     // DTO类用于返回包含用户信息的语料数据
-
-
 
 
     // 修改用户权限请求类
@@ -715,7 +807,9 @@ public class AdminController {
                 } finally {
                     // 确保资源被正确关闭
                     if (zipOut != null) {
-                        try { zipOut.close(); } catch (Exception e) { /* 忽略关闭异常 */ }
+                        try {
+                            zipOut.close();
+                        } catch (Exception e) { /* 忽略关闭异常 */ }
                     }
                     hdfsApi.close();
 
@@ -774,6 +868,73 @@ public class AdminController {
                 response.getWriter().write("下载失败: " + e.getMessage());
             } catch (IOException ioException) {
                 // ignore
+            }
+        }
+    }
+
+
+    /**
+     * 下载文件（需要用户权限）
+     */
+    @GetMapping("/download/{id}")
+    public void downloadFile(@PathVariable Integer id, HttpServletResponse response) {
+        try {
+            // 调试信息
+            System.out.println("=== 下载文件 ===");
+            System.out.println("请求的文件ID: " + id);
+            // 获取当前登录用户
+            User currentUser = UserContext.getCurrentUser();
+            System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
+            // 查询文件
+            FileEntity file = fileService.getById(id);
+            if (file == null) {
+                System.out.println("文件不存在，ID: " + id);
+                response.setStatus(404);
+                response.getWriter().write("文件不存在");
+                return;
+            }
+
+            System.out.println("文件信息: " + file.getFileName() + " (创建者ID: " + file.getCreatorId() + ")");
+
+            // 设置响应头让浏览器立刻识别为下载
+            String fileName = file.getFileName();
+            response.setContentType("application/octet-stream");
+            response.setHeader("Content-Disposition",
+                    "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Expires", "0");
+
+//            // 立刻刷新响应头到客户端
+//            response.flushBuffer();
+
+            System.out.println("开始从HDFS下载文件: " + file.getFilePath());
+
+            // 从HDFS下载文件
+            HdfsApi hdfsApi = new HdfsApi(conf, hdfsUser);
+            String hdfsPath = file.getFilePath();
+            long fileSize = hdfsApi.getFileSize(hdfsPath);
+
+            if (fileSize < 0) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在: " + hdfsPath);
+                return;
+            }
+            response.setContentLengthLong(fileSize);
+
+            hdfsApi.downLoadFile(hdfsPath, response, true);
+            hdfsApi.close();
+
+            System.out.println("文件下载完成: " + fileName);
+            System.out.println("===============");
+
+        } catch (Exception e) {
+            System.err.println("文件下载失败: " + e.getMessage());
+            e.printStackTrace();
+            try {
+                response.setStatus(500);
+                response.getWriter().write("下载失败: " + e.getMessage());
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
             }
         }
     }

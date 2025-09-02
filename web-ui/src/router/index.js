@@ -66,6 +66,12 @@ const router = createRouter({
           meta: { requiresAuth: true, requiresAdmin: true, title: '语料管理' }
         },
         {
+          path: '/corpus-management-details/:id',
+          name: 'corpus-management-details',
+          component: () => import('../views/corpusManagementDetails.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true, title: '语料详情' }
+        },
+        {
           path: '/my-info',
           name: 'my-info',
           component: () => import('../views/MyInfor.vue'),

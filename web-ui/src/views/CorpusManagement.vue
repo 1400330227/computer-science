@@ -34,7 +34,13 @@
     <div class="table-card">
       <el-table :data="corpora" v-loading="loading" style="width: 100%">
         <el-table-column prop="country" label="国家" width="100" />
-        <el-table-column prop="collectionName" label="语料名称" min-width="200" />
+        <el-table-column prop="collectionName" label="语料名称" min-width="200">
+          <template #default="{ row }">
+            <router-link :to="`/corpus-management-details/${row.corpusId}`">
+              {{ row.collectionName }}
+            </router-link>
+          </template>
+        </el-table-column>
         <el-table-column prop="creatorAccount" label="所有者" />
         <el-table-column prop="language" label="语种" width="100" />
         <el-table-column prop="dataFormat" label="数据格式" width="120" />
