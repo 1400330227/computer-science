@@ -95,14 +95,18 @@ const handleLogout = async () => {
           <el-menu-item class="nav-item" index="/corpus-management">语料库管理</el-menu-item>
         </template>
 
+        <el-menu-item class="nav-item" index="/data-visualization">数据可视化</el-menu-item>
+
       </el-menu>
       <!-- 添加平台标题 -->
-      <div class="platform-title">广西大学东盟语料收集与管理平台</div>
+      <div class="platform-title">
+        <router-link to="/">广西大学东盟语料收集与管理平台</router-link>
+      </div>
       <!-- 右侧用户信息和登出按钮 -->
       <div class="nav-right">
         <span class="user-info">
           <el-link type="primary" @click="router.push({ name: 'my-info' })" style="color: #ffffff;">
-            欢迎：{{ userStore.displayName }}
+            {{ userStore.displayName }}
           </el-link>
         </span>
         <el-button type="danger" size="small" @click="handleLogout">退出</el-button>
@@ -129,14 +133,15 @@ const handleLogout = async () => {
 }
 
 /* 平台标题样式 */
-.platform-title {
-  font-size: 22px;
+.platform-title > a{
+  font-size: 16px;
   font-weight: bold;
   color: #ffffff;
   padding: 0 15px;
   position: absolute;
   left: 0;
-  top: 12px;
+  top: 17px;
+  text-decoration: none;
 }
 
 /* 右侧用户信息和注销按钮 */

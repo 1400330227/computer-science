@@ -76,6 +76,12 @@ const router = createRouter({
           name: 'my-info',
           component: () => import('../views/MyInfor.vue'),
           meta: { requiresAuth: true, title: '个人信息' }
+        },
+        {
+          path: '/data-visualization',
+          name: 'data-visualization',
+          component: () => import('../views/DataVisualizationDashboard.vue'),
+          meta: {requiresAuth: true, title: '数据可视化'}
         }
       ]
     },
