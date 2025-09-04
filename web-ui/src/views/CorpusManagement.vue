@@ -33,7 +33,7 @@
 
     <div class="table-card">
       <el-table :data="corpora" v-loading="loading" style="width: 100%">
-        <el-table-column prop="country" label="国家" width="100" />
+        <el-table-column prop="country" label="国家" width="80" />
         <el-table-column prop="collectionName" label="语料名称" min-width="200">
           <template #default="{ row }">
             <router-link :to="`/corpus-management-details/${row.corpusId}`">
@@ -41,14 +41,16 @@
             </router-link>
           </template>
         </el-table-column>
-        <el-table-column prop="creatorAccount" label="所有者" />
+        <!-- <el-table-column prop="creatorAccount" label="所有者" /> -->
         <el-table-column prop="language" label="语种" width="100" />
-        <el-table-column prop="dataFormat" label="数据格式" width="120" />
+        <el-table-column prop="provider" label="学院" width="190" />
+        <el-table-column prop="creatorNickname" label="所有者" width="90" />
         <el-table-column prop="dataVolume" label="文件数量" width="120">
           <template #default="scope">
             {{ scope.row.dataVolume ? `${scope.row.dataVolume} ${scope.row.volumeUnit || ''}` : '未设置' }}
           </template>
         </el-table-column>
+        <el-table-column prop="estimatedCapacityGb" label="语料容量GB" width="110" />
         <el-table-column label="创建时间" width="110">
           <template #default="scope">
             {{ formatDate(scope.row.createdAt) }}
@@ -96,7 +98,7 @@ export default {
     const loading = ref(false);
     const transferLoading = ref(false);
     const currentPage = ref(1);
-    const pageSize = ref(10);
+    const pageSize = ref(50);
     const total = ref(0);
     const showTransferDialog = ref(false);
 

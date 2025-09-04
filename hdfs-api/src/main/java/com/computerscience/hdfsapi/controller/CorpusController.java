@@ -434,9 +434,9 @@ public class CorpusController {
             fileEntity.setCreatedAt(LocalDateTime.now());
             
             // 设置文件大小，转换为GB并保留两位小数
-            double sizeInGB = (double) file.getSize() / (1024 * 1024 * 1024);
-            String formattedSize = String.format("%.2f", sizeInGB);
-            fileEntity.setSize(formattedSize);
+//            double sizeInGB = (double) file.getSize() / (1024 * 1024 * 1024);
+//            String formattedSize = String.format("%.2f", sizeInGB);
+            fileEntity.setSize(String.valueOf(file.getSize()));
 
             // 保存文件记录到数据库
             if (fileService.save(fileEntity)) {

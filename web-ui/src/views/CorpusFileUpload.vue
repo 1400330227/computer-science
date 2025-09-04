@@ -87,28 +87,26 @@
                     :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
                 </el-select>
               </el-form-item>
+            </div>
 
+            <!-- 右侧表单 -->
+            <div class="form-column">
               <el-form-item label="数据分类" prop="classification">
                 <el-select v-model="formData.classification" filterable placeholder="请选择数据分类">
                   <el-option v-for="classification in classifications" :key="classification.classificationName"
                     :label="classification.classificationName" :value="classification.classificationName"></el-option>
                 </el-select>
               </el-form-item>
-
-            </div>
-
-            <!-- 右侧表单 -->
-            <div class="form-column">
               <el-form-item label="文件数量" prop="dataVolume">
                 <el-input v-model="formData.dataVolume" type="number" placeholder="请填写文件数量" disabled></el-input>
               </el-form-item>
 
-              <el-form-item label="文件数量单位" prop="volumeUnit">
+              <!-- <el-form-item label="文件数量单位" prop="volumeUnit">
                 <el-select v-model="formData.volumeUnit" filterable placeholder="请选择文件数量单位">
                   <el-option v-for="volumeUnit in volumeUnits" :key="volumeUnit.volumeUnit"
                     :label="volumeUnit.volumeUnit" :value="volumeUnit.volumeUnit"></el-option>
                 </el-select>
-              </el-form-item>
+              </el-form-item> -->
               <el-form-item label="容量估算 (GB)" prop="estimatedCapacityGb">
                 <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"
                   disabled></el-input>
@@ -129,7 +127,7 @@
               </el-form-item>
 
               <el-form-item label="数据提供方" prop="provider">
-                <el-input v-model="formData.provider" placeholder="如：广西大学，填写本条数据集的提供单位名称"></el-input>
+                <el-input v-model="formData.provider" disabled placeholder="如：广西大学，填写本条数据集的提供单位名称"></el-input>
               </el-form-item>
 
               <el-form-item label="提供方联系方式" prop="providerContact">
@@ -310,7 +308,7 @@ const rules = {
     { required: false, message: '请填写容量估算', trigger: 'blur' }
   ],
   dataYear: [
-    { required: false, message: '请输入数据年份', trigger: 'blur' }
+    { required: true, message: '请输入数据年份', trigger: 'blur' }
   ],
   sourceLocation: [
     { required: false, message: '请输入数据来源机构', trigger: 'blur' }

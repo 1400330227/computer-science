@@ -33,12 +33,12 @@
     <div class="table-card">
       <el-table :data="users" v-loading="loading" style="width: 100%">
         <!-- <el-table-column prop="userId" label="用户ID" width="100" /> -->
-        <el-table-column prop="account" label="账号" min-width="120" />
-        <el-table-column prop="nickname" label="姓名" width="100" />
-        <el-table-column prop="college" label="学院" />
-        <el-table-column prop="title" label="职称"  />
-        <el-table-column prop="major" label="专业"  />
-        <el-table-column prop="userType" label="用户类型" width="120">
+        <el-table-column prop="account" label="账号" width="120" />
+        <el-table-column prop="nickname" label="姓名" width="80" />
+        <el-table-column prop="college" label="学院" width="190" />
+        <!-- <el-table-column prop="title" label="职称" /> -->
+        <el-table-column prop="major" label="专业" />
+        <el-table-column prop="userType" label="用户类型" width="110">
           <template #default="scope">
             <el-select v-model="scope.row.userType" size="small" @change="handleUserTypeChange(scope.row)"
               :disabled="updating === scope.row.userId">
@@ -62,7 +62,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="创建时间" width="100">
+        <el-table-column label="创建时间" width="110">
           <template #default="scope">
             {{ formatDate(scope.row.createdAt) }}
           </template>
@@ -97,7 +97,7 @@
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="createForm.phone" maxlength="11" placeholder="请输入11位手机号"
-                    @input="createForm.phone = createForm.phone.replace(/\D/g, '')" />
+            @input="createForm.phone = createForm.phone.replace(/\D/g, '')" />
         </el-form-item>
         <el-form-item label="学院">
           <el-input v-model="createForm.college" />
@@ -148,10 +148,15 @@
         </el-form-item>
         <el-form-item label="手机号" prop="phone">
           <el-input v-model="editForm.phone" maxlength="11" placeholder="请输入11位手机号"
-                    @input="editForm.phone = editForm.phone.replace(/\D/g, '')" />
+            @input="editForm.phone = editForm.phone.replace(/\D/g, '')" />
         </el-form-item>
         <el-form-item label="学院">
-          <el-input v-model="editForm.college" />
+          <!-- <el-input v-model="editForm.college" /> -->
+          <el-select v-model="editForm.college" clearable filterable autocomplete="on">
+            <el-option-group v-for="group in collegeGroups" :key="group.label" :label="group.label">
+              <el-option v-for="name in group.options" :key="name" :label="name" :value="name" />
+            </el-option-group>
+          </el-select>
         </el-form-item>
         <el-form-item label="职称">
           <el-input v-model="editForm.title" />
@@ -210,7 +215,7 @@ export default {
     const updating = ref(null); // 正在更新权限的用户ID
     const total = ref(0);
     const currentPage = ref(1);
-    const pageSize = ref(10);
+    const pageSize = ref(50);
     const searchForm = reactive({
       account: '',
     });
@@ -254,6 +259,84 @@ export default {
       address: '',
       remarks: '',
     });
+
+    const collegeGroups = [
+      {
+        label: '学院',
+        options: [
+          '资源环境与材料学院',
+          '轻工与食品工程学院',
+          '计算机与电子信息学院',
+          '海洋学院',
+          '生命科学与技术学院',
+          '农学院',
+          '动物科学技术学院',
+          '林学院',
+          '数学与信息科学学院',
+          '物理科学与工程技术学院',
+          '文学院',
+          '新闻与传播学院',
+          '外国语学院',
+          '艺术学院',
+          '公共管理学院',
+          '工商管理学院',
+          '法学院',
+          '马克思主义学院',
+          '体育学院',
+          '医学院',
+          '继续教育学院',
+          '中国—东盟经济学院 / 经济学院 / 中国—东盟金融合作学院'
+        ]
+      },
+      {
+        label: '党政管理机构',
+        options: [
+          '党委办公室、校长办公室（校务督查办公室、法治与法务办公室）',
+          '驻校纪检监察组、校纪委',
+          '党委巡察办、党委巡察组',
+          '党委组织部（中共广西大学委员会党校）',
+          '党委宣传部',
+          '党委统战部',
+          '党委学生工作部、学生工作处、武装部（就业指导中心）',
+          '机关党委',
+          '保卫处（治安综合治理委员会办公室）',
+          '校团委',
+          '校工会（校医院）',
+          '党委教师工作部、人力资源处',
+          '发展规划处',
+          '教务处（教师教学服务中心）',
+          '科研院',
+          '研究生院',
+          '教育教学质量监控与评价中心',
+          '财务处',
+          '审计处',
+          '国际合作与交流处（留学生管理服务中心、港澳台事务办公室）',
+          '国有资产与实验室管理处（招标与采购管理中心）',
+          '后勤基建处',
+          '离退休工作处'
+        ]
+      },
+      {
+        label: '研究机构',
+        options: [
+          '亚热带农业生物资源保护与利用国家重点实验室',
+          '省部共建特色金属材料与组合结构全寿命安全国家重点实验室',
+          '中国—东盟研究院/广西创新发展研究院',
+          '君武文化研究院',
+          '农牧产业发展研究院（广西牧草工作站、新农村发展研究院）'
+        ]
+      },
+      {
+        label: '教辅与服务机构',
+        options: [
+          '图书馆（档案馆）',
+          '信息网络中心（网络安全与信息化办公室）',
+          '校友工作办公室',
+          '资产经营有限公司',
+          '教育发展基金会'
+        ]
+      }
+    ]
     const editRules = reactive({
       nickname: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
       phone: [
@@ -482,6 +565,7 @@ export default {
       formatDate,
       editDialogVisible,
       editForm,
+      collegeGroups,
       openEditDialog,
       saveUser,
       saving,

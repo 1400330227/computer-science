@@ -55,6 +55,10 @@
                                             :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
                                     </el-select>
                                 </el-form-item>
+
+
+                            </div>
+                            <div class="form-column">
                                 <el-form-item label="数据分类" prop="classification">
                                     <!-- <el-input v-model="editForm.classification" placeholder="请输入数据分类" /> -->
                                     <el-select v-model="editForm.classification" filterable placeholder="请选择数据分类">
@@ -64,16 +68,13 @@
                                             :value="classification.classificationName"></el-option>
                                     </el-select>
                                 </el-form-item>
-
-                            </div>
-                            <div class="form-column">
                                 <el-form-item label="文件数量" prop="dataVolume">
                                     <el-input v-model.number="editForm.dataVolume" type="number" disabled
                                         placeholder="请输入文件数量" />
                                 </el-form-item>
-                                <el-form-item label="文件数量单位" prop="volumeUnit">
+                                <!-- <el-form-item label="文件数量单位" prop="volumeUnit">
                                     <el-input v-model="editForm.volumeUnit" placeholder="如：条、份、GB、小时" />
-                                </el-form-item>
+                                </el-form-item> -->
                                 <el-form-item label="容量估算(GB)" prop="estimatedCapacityGb">
                                     <el-input v-model="editForm.estimatedCapacityGb" type="number" disabled
                                         placeholder="请输入容量估算" />
@@ -89,7 +90,7 @@
                                     <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" />
                                 </el-form-item>
                                 <el-form-item label="数据提供方" prop="provider">
-                                    <el-input v-model="editForm.provider" placeholder="请输入数据提供方" />
+                                    <el-input v-model="editForm.provider" disabled placeholder="请输入数据提供方" />
                                 </el-form-item>
                                 <el-form-item label="提供方联系方式" prop="providerContact">
                                     <el-input v-model="editForm.providerContact" placeholder="联系方式（手机号或座机号：区号-电话号码）" />
@@ -256,7 +257,7 @@ const rules = {
         { required: false, message: '请填写容量估算', trigger: 'blur' }
     ],
     dataYear: [
-        { required: false, message: '请输入数据年份', trigger: 'blur' }
+        { required: true, message: '请输入数据年份', trigger: 'blur' }
     ],
     sourceLocation: [
         { required: false, message: '请输入数据来源机构', trigger: 'blur' }
