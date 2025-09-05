@@ -16,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import com.computerscience.hdfsapi.service.AdminService;
+import com.computerscience.hdfsapi.dto.CorpusWithComputedCapacity;
+
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -47,6 +50,9 @@ public class AdminController {
 
     @Autowired
     private CorpusService corpusService;
+
+    @Autowired
+    private AdminService adminService;
 
     @Autowired
     private com.computerscience.hdfsapi.service.CryptoService cryptoService;
@@ -325,106 +331,16 @@ public class AdminController {
             String collectionName = params.get("collectionName");
             String creatorAccount = params.get("creatorAccount");
 
-            System.out.println("=== 语料查询调试 ===");
-            System.out.println("页码: " + page + ", 大小: " + size);
-            System.out.println("语料名称: " + collectionName);
-            System.out.println("创建者账号: " + creatorAccount);
+            Page<CorpusWithComputedCapacity> corpusPage = adminService.findCorpusWithComputedCapacity(page, size, collectionName, creatorAccount);
 
-            LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
-
-            if (StringUtils.hasText(collectionName)) {
-                queryWrapper.like(Corpus::getCollectionName, collectionName);
-            }
-
-            // 如果按用户账号搜索，先查找用户ID
-            if (StringUtils.hasText(creatorAccount)) {
-                LambdaQueryWrapper<User> userQueryWrapper = new LambdaQueryWrapper<>();
-                userQueryWrapper.like(User::getAccount, creatorAccount);
-                List<User> users = userService.list(userQueryWrapper);
-
-                if (!users.isEmpty()) {
-                    List<Integer> userIds = new ArrayList<>();
-                    for (User user : users) {
-                        userIds.add(user.getUserId());
-                    }
-                    queryWrapper.in(Corpus::getCreatorId, userIds);
-                } else {
-                    // 如果没有找到匹配的用户，返回空结果
-                    DPage<CorpusWithUserInfo> emptyResult = new DPage<>(new ArrayList<>(), 0L, page, size);
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("success", true);
-                    response.put("data", emptyResult);
-                    return ResponseEntity.ok(response);
-                }
-            }
-
-            queryWrapper.orderByDesc(Corpus::getCreatedAt);
-
-            IPage<Corpus> corpusPage = corpusService.page(new Page<>(page, size), queryWrapper);
-            System.out.println("查询到的语料数量: " + corpusPage.getRecords().size());
-
-            // 获取所有相关用户信息
-            Set<Integer> creatorIdSet = new HashSet<>();
-            for (Corpus corpus : corpusPage.getRecords()) {
-                creatorIdSet.add(corpus.getCreatorId());
-            }
-            List<Integer> creatorIds = new ArrayList<>(creatorIdSet);
-            System.out.println("需要查询的用户ID: " + creatorIds);
-
-            Map<Integer, User> userMap = new HashMap<>();
-            // 只有当creatorIds不为空时才查询用户信息
-            if (!creatorIds.isEmpty()) {
-                List<User> users = userService.listByIds(creatorIds);
-                System.out.println("查询到的用户数量: " + users.size());
-                for (User user : users) {
-                    userMap.put(user.getUserId(), user);
-                }
-            }
-
-            // 转换为包含用户信息的DTO
-            List<CorpusWithUserInfo> corpusWithUserInfoList = new ArrayList<>();
-            for (Corpus corpus : corpusPage.getRecords()) {
-                CorpusWithUserInfo dto = new CorpusWithUserInfo();
-                dto.setCorpusId(corpus.getCorpusId());
-                dto.setCollectionName(corpus.getCollectionName());
-                dto.setCountry(corpus.getCountry());
-                dto.setDomain(corpus.getDomain());
-                dto.setLanguage(corpus.getLanguage());
-                dto.setDataFormat(corpus.getDataFormat());
-                dto.setClassification(corpus.getClassification());
-                dto.setDataVolume(corpus.getDataVolume());
-                dto.setVolumeUnit(corpus.getVolumeUnit());
-                dto.setEstimatedCapacityGb(corpus.getEstimatedCapacityGb());
-                dto.setDataYear(corpus.getDataYear());
-                dto.setSourceLocation(corpus.getSourceLocation());
-                dto.setDataSource(corpus.getDataSource());
-                dto.setProvider(corpus.getProvider());
-                dto.setProviderContact(corpus.getProviderContact());
-                dto.setRemarks(corpus.getRemarks());
-                dto.setCreatorId(corpus.getCreatorId());
-                dto.setCreatedAt(corpus.getCreatedAt());
-
-                User creator = userMap.get(corpus.getCreatorId());
-                if (creator != null) {
-                    dto.setCreatorAccount(creator.getAccount());
-                    dto.setCreatorNickname(creator.getNickname());
-                    dto.setCreatorUserType(creator.getUserType());
-                }
-
-                corpusWithUserInfoList.add(dto);
-            }
-
-            DPage<CorpusWithUserInfo> result = new DPage<>(corpusWithUserInfoList, corpusPage.getTotal(), page, size);
+            // Manually map to DPage
+            DPage<CorpusWithComputedCapacity> result = new DPage<>(corpusPage.getRecords(), corpusPage.getTotal(), page, size);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", result);
-            System.out.println("语料查询成功，返回 " + result.getList().size() + " 条记录");
-            System.out.println("===================");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            System.out.println("语料查询异常: " + e.getMessage());
-            e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "获取语料列表失败: " + e.getMessage());

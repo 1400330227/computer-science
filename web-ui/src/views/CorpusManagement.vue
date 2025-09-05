@@ -50,7 +50,11 @@
             {{ scope.row.dataVolume ? `${scope.row.dataVolume} ${scope.row.volumeUnit || ''}` : '未设置' }}
           </template>
         </el-table-column>
-        <el-table-column prop="estimatedCapacityGb" label="语料容量GB" width="110" />
+        <el-table-column prop="computedCapacityGb" label="语料容量GB" width="110">
+            <template #default="{ row }">
+                {{ row.computedCapacityGb ? row.computedCapacityGb.toFixed(6) : (row.estimatedCapacityGb != null ? row.estimatedCapacityGb.toFixed(6) : '0.000000') }}
+            </template>
+        </el-table-column>
         <el-table-column label="创建时间" width="110">
           <template #default="scope">
             {{ formatDate(scope.row.createdAt) }}

@@ -68,7 +68,7 @@ const router = createRouter({
         {
           path: '/corpus-management-details/:id',
           name: 'corpus-management-details',
-          component: () => import('../views/corpusManagementDetails.vue'),
+          component: () => import('../views/CorpusManagementDetails.vue'),
           meta: { requiresAuth: true, requiresAdmin: true, title: '语料详情' }
         },
         {
@@ -82,6 +82,36 @@ const router = createRouter({
           name: 'data-visualization',
           component: () => import('../views/DataVisualizationDashboard.vue'),
           meta: {requiresAuth: true, title: '数据可视化'}
+        },
+        {
+          path: '/dashboard/country-distribution',
+          name: 'country-distribution',
+          component: () => import('../views/dashboard/CountryDistributionView.vue'),
+          meta: { requiresAuth: true, title: '国家分布统计' }
+        },
+        {
+          path: '/dashboard/language-distribution',
+          name: 'language-distribution',
+          component: () => import('../views/dashboard/LanguageDistributionView.vue'),
+          meta: { requiresAuth: true, title: '语言分布统计' }
+        },
+        {
+          path: '/dashboard/contributor-distribution',
+          name: 'contributor-distribution',
+          component: () => import('../views/dashboard/ContributorDistributionView.vue'),
+          meta: { requiresAuth: true, title: '贡献者分布统计' }
+        },
+        {
+          path: '/dashboard/time-series-analysis',
+          name: 'time-series-analysis',
+          component: () => import('../views/dashboard/TimeSeriesAnalysisView.vue'),
+          meta: { requiresAuth: true, title: '趋势分析' }
+        },
+        {
+          path: '/dashboard/thematic-analysis',
+          name: 'thematic-analysis',
+          component: () => import('../views/dashboard/ThematicAnalysisView.vue'),
+          meta: { requiresAuth: true, title: '主题分析' }
         }
       ]
     },
