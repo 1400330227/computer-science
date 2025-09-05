@@ -9,7 +9,6 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @MapperScan("com.computerscience.hdfsapi.mapper")
-@ComponentScan(basePackages = "com.computerscience.hdfsapi")
 public class HdfsApiApplication {
     private static final Logger logger = LoggerFactory.getLogger(HdfsApiApplication.class);
 

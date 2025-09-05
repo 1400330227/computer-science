@@ -84,6 +84,12 @@ const router = createRouter({
           meta: {requiresAuth: true, title: '数据可视化'}
         },
         {
+          path: '/dashboard/corpus-overview',
+          name: 'corpus-overview',
+          component: () => import('../views/dashboard/CorpusOverview.vue'),
+          meta: { requiresAuth: true, title: '语料库总览' }
+        },
+        {
           path: '/dashboard/country-distribution',
           name: 'country-distribution',
           component: () => import('../views/dashboard/CountryDistributionView.vue'),

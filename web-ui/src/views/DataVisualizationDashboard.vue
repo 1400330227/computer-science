@@ -3,11 +3,12 @@
     <h1>数据可视化仪表板</h1>
     <!-- <p>请选择一个图表查看详情：</p> -->
     <ul>
-      <li><router-link to="/dashboard/country-distribution">国家分布统计</router-link></li>
-      <li><router-link to="/dashboard/language-distribution">语言分布统计</router-link></li>
+<!--      <li><router-link to="/dashboard/country-distribution">国家分布统计</router-link></li>-->
+<!--      <li><router-link to="/dashboard/language-distribution">语言分布统计</router-link></li>-->
+      <li><router-link to="/dashboard/corpus-overview">语料库总览</router-link></li>
       <li><router-link to="/dashboard/contributor-distribution">贡献者语料容量分布</router-link></li>
       <li><router-link to="/dashboard/time-series-analysis">语料收集趋势分析</router-link></li>
-      <li><router-link to="/dashboard/thematic-analysis">语料库主题深度分析</router-link></li>
+<!--      <li><router-link to="/dashboard/thematic-analysis">语料库主题深度分析</router-link></li>-->
     </ul>
   </div>
 </template>

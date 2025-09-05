@@ -5,3 +5,4 @@ export const getLanguageDistribution = () => api.get('/dataView/languageDistribu
 export const getContributorAnalysis = () => api.get('/dataView/contributorAnalysis');
 export const getTimeSeriesAnalysis = () => api.get('/dataView/timeSeriesAnalysis');
 export const getThematicSummary = () => api.get('/dataView/thematicAnalysis');
+export const getCorpusOverview = () => api.get('/dataView/corpusOverview');
