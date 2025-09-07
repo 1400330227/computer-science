@@ -8,9 +8,9 @@
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue';
+import { ref, onMounted } from 'vue';
 import * as echarts from 'echarts';
-import {getTimeSeriesAnalysis} from '@/services/dashboard';
+import { getTimeSeriesAnalysis } from '@/services/dashboard';
 
 const timeSeriesChartRef = ref(null);
 
@@ -44,7 +44,7 @@ const initTimeSeriesChart = async () => {
           color: '#555'
         }
       },
-      grid: {left: '3%', right: '4%', bottom: '15%', top: '5%', containLabel: true},
+      grid: { left: '3%', right: '4%', bottom: '15%', top: '5%', containLabel: true },
       xAxis: {
         type: 'category',
         boundaryGap: false,
@@ -80,12 +80,12 @@ const initTimeSeriesChart = async () => {
               x2: 0,
               y2: 1,
               colorStops: [
-                {offset: 0, color: '#5470c6'},
-                {offset: 1, color: '#81c3fd'}
+                { offset: 0, color: '#5470c6' },
+                { offset: 1, color: '#81c3fd' }
               ]
             }
           },
-          data: chartData.map(item => item.dailyCorpusAdded),
+          data: chartData.map(item => item.dailyCapacityAdded),
           itemStyle: {
             color: '#5470c6',
             borderWidth: 2,
@@ -99,8 +99,8 @@ const initTimeSeriesChart = async () => {
               x2: 0,
               y2: 1,
               colorStops: [
-                {offset: 0, color: 'rgba(84, 112, 198, 0.5)'},
-                {offset: 1, color: 'rgba(84, 112, 198, 0.1)'}
+                { offset: 0, color: 'rgba(84, 112, 198, 0.5)' },
+                { offset: 1, color: 'rgba(84, 112, 198, 0.1)' }
               ]
             }
           },
@@ -123,8 +123,8 @@ const initTimeSeriesChart = async () => {
               x2: 0,
               y2: 1,
               colorStops: [
-                {offset: 0, color: '#91cc75'},
-                {offset: 1, color: '#bef67a'}
+                { offset: 0, color: '#91cc75' },
+                { offset: 1, color: '#bef67a' }
               ]
             }
           },
@@ -141,8 +141,8 @@ const initTimeSeriesChart = async () => {
               x2: 0,
               y2: 1,
               colorStops: [
-                {offset: 0, color: 'rgba(145, 204, 117, 0.5)'},
-                {offset: 1, color: 'rgba(145, 204, 117, 0.1)'}
+                { offset: 0, color: 'rgba(145, 204, 117, 0.5)' },
+                { offset: 1, color: 'rgba(145, 204, 117, 0.1)' }
               ]
             }
           },
