@@ -12,8 +12,8 @@
             </template>
           </el-input>
         </el-form-item>
-        <el-form-item label="用户账号">
-          <el-input v-model="filters.creatorAccount" placeholder="按用户账号搜索" style="width: 200px;"
+        <el-form-item label="所有者">
+          <el-input v-model="filters.creatorNickname" placeholder="按所有者搜索" style="width: 200px;"
             @keyup.enter="fetchCorpora" clearable @clear="fetchCorpora">
             <template #prefix>
               <el-icon>
@@ -90,10 +90,10 @@ import debounce from 'lodash-es/debounce';
 export default {
   name: 'CorpusManagement',
   components: {
-    Search,
-    Refresh,
+    // Search,
+    // Refresh,
     User,
-    Switch
+    // Switch
   },
   setup() {
     const route = useRoute();
@@ -109,7 +109,7 @@ export default {
     // 搜索相关
     const filters = reactive({
       collectionName: '',
-      creatorAccount: '',
+      creatorNickname: '',
       creatorId: null,
     });
 
@@ -125,7 +125,7 @@ export default {
           page: currentPage.value,
           size: pageSize.value,
           collectionName: filters.collectionName || undefined,
-          creatorAccount: filters.creatorAccount || undefined,
+          creatorNickname: filters.creatorNickname || undefined,
           creatorId: filters.creatorId || undefined,
         };
         const response = await getCorpora(params);
@@ -156,7 +156,7 @@ export default {
 
     const resetFilters = () => {
       filters.collectionName = '';
-      filters.creatorAccount = '';
+      filters.creatorNickname = '';
       filters.creatorId = null;
       currentPage.value = 1;
       fetchCorpora();
@@ -243,8 +243,8 @@ export default {
     watch(() => route.query.creatorId, (newCreatorId) => {
       if (newCreatorId) {
         filters.creatorId = parseInt(newCreatorId, 10);
-        if (route.query.creatorAccount) {
-          filters.creatorAccount = route.query.creatorAccount;
+        if (route.query.creatorNickname) {
+          filters.creatorNickname = route.query.creatorNickname;
         }
         fetchCorpora();
       }

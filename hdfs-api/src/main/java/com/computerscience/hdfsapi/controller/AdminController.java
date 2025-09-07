@@ -324,12 +324,12 @@ public class AdminController {
             int page = Integer.parseInt(params.getOrDefault("page", "1"));
             int size = Integer.parseInt(params.getOrDefault("size", "10"));
             String collectionName = params.get("collectionName");
-            String creatorAccount = params.get("creatorAccount");
+            String creatorNickname = params.get("creatorNickname");
 
             System.out.println("=== 语料查询调试 ===");
             System.out.println("页码: " + page + ", 大小: " + size);
             System.out.println("语料名称: " + collectionName);
-            System.out.println("创建者账号: " + creatorAccount);
+            System.out.println("创建者账号: " + creatorNickname);
 
             LambdaQueryWrapper<Corpus> queryWrapper = new LambdaQueryWrapper<>();
 
@@ -338,9 +338,9 @@ public class AdminController {
             }
 
             // 如果按用户账号搜索，先查找用户ID
-            if (StringUtils.hasText(creatorAccount)) {
+            if (StringUtils.hasText(creatorNickname)) {
                 LambdaQueryWrapper<User> userQueryWrapper = new LambdaQueryWrapper<>();
-                userQueryWrapper.like(User::getAccount, creatorAccount);
+                userQueryWrapper.like(User::getNickname, creatorNickname);
                 List<User> users = userService.list(userQueryWrapper);
 
                 if (!users.isEmpty()) {
