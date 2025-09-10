@@ -31,6 +31,13 @@ public class DataViewController {
     @Autowired
     private ThematicSummaryService thematicSummaryService;
 
+
+    @Autowired
+    private CollegeOverviewService collegeOverviewService;
+
+    @Autowired
+    private DomainOverviewService domainOverviewService;
+
     @GetMapping("/corpusOverview")
     public List<CorpusOverview> getCorpusOverview() {
         return corpusOverviewService.list();
@@ -59,5 +66,15 @@ public class DataViewController {
     @GetMapping("/thematicSummary")
     public List<ThematicSummary> getThematicSummary() {
         return thematicSummaryService.list();
+    }
+
+    @GetMapping("/collegeOverview")
+    public List<CollegeOverview> getCollegeOverview() {
+        return collegeOverviewService.list();
+    }
+
+    @GetMapping("/domainOverview")
+    public List<DomainOverview> getDomainOverview() {
+        return domainOverviewService.list();
     }
 }

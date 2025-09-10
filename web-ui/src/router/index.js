@@ -118,6 +118,18 @@ const router = createRouter({
           name: 'thematic-analysis',
           component: () => import('../views/dashboard/ThematicAnalysisView.vue'),
           meta: { requiresAuth: true, title: '主题分析' }
+        },
+        {
+          path: '/dashboard/college-overview',
+          name: 'college-overview',
+          component: () => import('../views/dashboard/CollegeOverviewView.vue'),
+          meta: { requiresAuth: true, title: '学院总览' }
+        },
+        {
+          path: '/dashboard/domain-overview',
+          name: 'domain-overview',
+          component: () => import('../views/dashboard/DomainOverviewView.vue'),
+          meta: { requiresAuth: true, title: '领域总览' }
         }
       ]
     },
