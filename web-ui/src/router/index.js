@@ -125,20 +125,14 @@ const router = createRouter({
           component: () => import('../views/dashboard/CollegeOverviewView.vue'),
           meta: { requiresAuth: true, title: '学院总览' }
         },
-        {
-          path: '/dashboard/domain-overview',
-          name: 'domain-overview',
-          component: () => import('../views/dashboard/DomainOverviewView.vue'),
-          meta: { requiresAuth: true, title: '领域总览' }
-        }
       ]
     },
     {
-      path: '/about',
-      name: 'about',
-      component: () => import('../views/AboutView.vue'),
-      meta: { requiresAuth: true, title: '关于' }
-    },
+      path: '/dashboard-landing',
+      name: 'dashboard-landing',
+      component: () => import('../views/dashboard/DashboardLanding.vue'),
+      meta: { requiresAuth: true, title: '领域总览' }
+    }
 
   ]
 })
