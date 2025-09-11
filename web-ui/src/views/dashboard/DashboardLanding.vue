@@ -16,14 +16,14 @@
                             <div class="alltitle">所属领域语料数量前10分析</div>
                             <div class="navboxall" id="echart5"></div>
                         </div>
-                        <div class="boxall" style="height:360px;">
+                        <div class="boxall" style="height:400px;">
                             <div class="alltitle">学院上传语料容量前10占比</div>
 
                             <div class="navboxall" id="echart1"></div>
                         </div>
                     </li>
                     <li>
-                        <div class="boxall" style="height:210px">
+                        <div class="boxall" style="height:195px">
                             <div class="clearfix navboxall" style="height: 100%">
                                 <div class="pulll_left num">
                                     <div class="numbt">语料库总容量<span>(GB)</span></div>
@@ -56,7 +56,7 @@
                         </div>
                     </li>
                     <li>
-                        <div class="boxall" style="height:380px">
+                        <div class="boxall" style="height:410px">
                             <div class="alltitle">所属国家语料信息</div>
                             <div class="navboxall">
                                 <table class="table1" width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -412,8 +412,8 @@ function echarts_1() {
             left: '67%',
             top: '10%',
             itemWidth: 10,
-            itemHeight: 20,
-            itemGap: 10,
+            itemHeight: 10,
+            itemGap: 15,
             orient: 'vertical',
             tooltip: { show: true },
             textStyle: {
