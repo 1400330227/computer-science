@@ -10,7 +10,7 @@
       <li><router-link to="/dashboard/time-series-analysis">语料收集趋势分析</router-link></li>
       <li><router-link to="/dashboard/thematic-analysis">语料库主题深度分析</router-link></li>
       <li><router-link to="/dashboard/college-overview">学院/机构总览</router-link></li>
-      <li><router-link to="/dashboard/domain-overview">领域总览</router-link></li>
+      <li><router-link to="/dashboard-landing">领域总览</router-link></li>
     </ul>
   </div>
 </template>

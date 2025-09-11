@@ -41,7 +41,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/js/**",         // JS资源不拦截
                         "/css/**",        // CSS资源不拦截
                         "/images/**",     // 图片资源不拦截
-                        "/error"          // 错误页面不拦截
+                        "/error",          // 错误页面不拦截
+                        "/dataView/**"    // 数据统计页面
                 );
         
         // 然后添加认证拦截器
@@ -60,8 +61,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         "/js/**",         // JS资源不拦截
                         "/css/**",        // CSS资源不拦截
                         "/images/**",     // 图片资源不拦截
-                        "/error",         // 错误页面不拦截
-                        "/admin/**"       // 管理员API由专门的拦截器处理
+                        "/error",        // 错误页面不拦截
+                        "/dataView/**"    // 数据统计页面
+
                 );
 
         // 最后添加管理员权限拦截器，只拦截管理员API路径

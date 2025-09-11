@@ -76,29 +76,32 @@
                         <div class="boxall" style="height:230px">
                             <div class="clearfix navboxall" style="height: 100%">
                                 <div class="pulll_left num">
-                                    <div class="numbt">语料库总览</div>
-                                    <div class="numtxt">19382721</div>
+                                    <div class="numbt">语料库总容量<span>(GB)</span></div>
+                                    <div class="numtxt">{{ corpusOverview.totalCapacity }} </div>
                                 </div>
                                 <div class="pulll_right zhibiao">
-                                    <div class="zb1"><span>标题样式</span>
+                                    <div class="zb1"><span>文本数量</span>
                                         <div id="zb1"></div>
                                     </div>
-                                    <div class="zb2"><span>标题样式</span>
+                                    <div class="zb2"><span>音频数量</span>
                                         <div id="zb2"></div>
                                     </div>
-                                    <div class="zb3"><span>标题样式</span>
+                                    <div class="zb3"><span>视频数量</span>
                                         <div id="zb3"></div>
+                                    </div>
+                                    <div class="zb4"><span>图像数量</span>
+                                        <div id="zb4"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="boxall" style="height:350px">
-                            <div class="alltitle">标题样式</div>
+                            <div class="alltitle">贡献者语料容量分布</div>
                             <div class="navboxall" id="echart4"></div>
 
                         </div>
                         <div class="boxall" style="height:340px">
-                            <div class="alltitle">标题样式</div>
+                            <div class="alltitle">语料收集趋势分析 (最近30天)</div>
                             <div class="navboxall" id="echart3"></div>
                         </div>
                     </li>
@@ -218,6 +221,7 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import * as echarts from 'echarts'
 import '@/assets/comon0.css'
+import { getContributorAnalysis, getCorpusOverview, getTimeSeriesAnalysis } from '@/services/dashboard'
 
 const showTime = ref('')
 const loadingEl = ref(null)
@@ -227,6 +231,117 @@ const loadingGifUrl = new URL('@/images/loading.gif', import.meta.url).href
 
 let intervalId = null
 let resizeHandlers = []
+
+const contributorNames = ref([])
+const contributorCorpusCounts = ref([])
+const contributorTotalCapacityGbs = ref([])
+const corpusOverview = ref({ totalCapacity: '0' })
+
+// 添加语料类型分布数据
+const corpusTypeDistribution = ref({
+    textFiles: { count: 0, percentage: 0 },
+    audioFiles: { count: 0, percentage: 0 },
+    videoFiles: { count: 0, percentage: 0 },
+    imageFiles: { count: 0, percentage: 0 }
+})
+
+// 添加时间序列分析数据
+const timeSeriesData = ref({
+    dates: [],
+    dailyCorpusAdded: [],
+    dailyFilesAdded: [],
+    dailyCapacityAdded: []
+})
+
+
+async function loadContributorAnalysis() {
+    try {
+        const res = await getContributorAnalysis()
+        const list = Array.isArray(res?.data) ? res.data : []
+        contributorNames.value = list.map(item => item.contributorName || '')
+        contributorCorpusCounts.value = list.map(item => Number(item.corpusCount || 0))
+        contributorTotalCapacityGbs.value = list.map(item => Number(item.totalCapacityGb || 0))
+    } catch (e) {
+        // fallback to empty arrays on error
+        contributorNames.value = []
+        contributorCorpusCounts.value = []
+        contributorTotalCapacityGbs.value = []
+    }
+}
+
+async function loadCorpusOverview() {
+    try {
+        const res = await getCorpusOverview()
+        if (res?.data && res.data.length > 0) {
+            const data = res.data[0]
+            corpusOverview.value = {
+                totalCapacity: data.totalCapacityGb || '0'
+            }
+            // 更新语料类型分布数据
+            corpusTypeDistribution.value = {
+                textFiles: {
+                    count: data.totalTextFiles || 0,
+                    percentage: data.textFilesPercentage || 0
+                },
+                audioFiles: {
+                    count: data.totalAudioFiles || 0,
+                    percentage: data.audioFilesPercentage || 0
+                },
+                videoFiles: {
+                    count: data.totalVideoFiles || 0,
+                    percentage: data.videoFilesPercentage || 0
+                },
+                imageFiles: {
+                    count: data.totalImageFiles || 0,
+                    percentage: data.imageFilesPercentage || 0
+                }
+            }
+        }
+    } catch (e) {
+        corpusOverview.value = { totalCapacity: '0' }
+        corpusTypeDistribution.value = {
+            textFiles: { count: 0, percentage: 0 },
+            audioFiles: { count: 0, percentage: 0 },
+            videoFiles: { count: 0, percentage: 0 },
+            imageFiles: { count: 0, percentage: 0 }
+        }
+    }
+}
+
+async function loadTimeSeriesAnalysis() {
+    try {
+        const res = await getTimeSeriesAnalysis()
+        const list = Array.isArray(res?.data) ? res.data : []
+
+        // 按日期排序，确保数据按时间顺序排列
+        const sortedData = list.sort((a, b) => {
+            const dateA = new Date(a.contributionDate)
+            const dateB = new Date(b.contributionDate)
+            return dateA - dateB
+        })
+
+        // 提取最近30天的数据
+        const recentData = sortedData.slice(-30)
+
+        timeSeriesData.value = {
+            dates: recentData.map(item => {
+                const date = new Date(item.contributionDate)
+                return `${date.getMonth() + 1}/${date.getDate()}`
+            }),
+            dailyCorpusAdded: recentData.map(item => Number(item.dailyCorpusAdded || 0)),
+            dailyFilesAdded: recentData.map(item => Number(item.dailyFilesAdded || 0)),
+            dailyCapacityAdded: recentData.map(item => Number(item.dailyCapacityAdded || 0))
+        }
+    } catch (e) {
+        // fallback to empty data on error
+        timeSeriesData.value = {
+            dates: [],
+            dailyCorpusAdded: [],
+            dailyFilesAdded: [],
+            dailyCapacityAdded: []
+        }
+    }
+}
 
 function updateClock() {
     const dt = new Date()
@@ -333,41 +448,82 @@ function echarts_3() {
     const el = document.getElementById('echart3')
     if (!el) return
     const myChart = echarts.init(el)
+
+    // 使用真实的时间序列数据
+    const dates = timeSeriesData.value.dates
+    const corpusData = timeSeriesData.value.dailyCorpusAdded
+    const filesData = timeSeriesData.value.dailyFilesAdded
+
     const option = {
         tooltip: { trigger: 'axis', axisPointer: { lineStyle: { color: '#57617B' } } },
         legend: {
-            data: ['销售额', '利润'],
+            data: ['每日新增语料数', '每日新增文件数'],
             top: '0',
             textStyle: { color: '#fff' },
             itemGap: 20,
         },
-        grid: { left: '0', right: '20', top: '10', bottom: '20', containLabel: true },
+        grid: { top: '10%', right: '30', bottom: '30', left: '30' },
         xAxis: [{
             type: 'category',
             boundaryGap: false,
-            axisLabel: { show: true, textStyle: { color: 'rgba(255,255,255,.6)' } },
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,.1)' } },
-            data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+            axisLabel: { show: true, textStyle: { color: '#fff' } },
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
+            data: dates
         }, {}],
         yAxis: [{
-            axisLabel: { show: true, textStyle: { color: 'rgba(255,255,255,.6)' } },
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,.1)' } },
-            splitLine: { lineStyle: { color: 'rgba(255,255,255,.1)' } }
+            name: '每日新增语料数',
+            nameTextStyle: { color: '#fff' },
+            alignTicks: true,
+            axisLabel: { show: true, color: '#fff' },
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } }
+        }, {
+            name: '每日新增文件数量',
+            nameTextStyle: { color: '#fff' },
+            alignTicks: true,
+            axisLabel: { show: true, textStyle: { color: '#fff' } },
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } }
         }],
         series: [
             {
-                name: '销售额', type: 'line', smooth: true, symbol: 'circle', symbolSize: 5, showSymbol: false,
+                name: '每日新增语料数', type: 'line', smooth: true, symbol: 'circle', symbolSize: 8, yAxisIndex: 0,
                 lineStyle: { normal: { width: 2 } },
-                areaStyle: { normal: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(24, 163, 64, 0.3)' }, { offset: 0.8, color: 'rgba(24, 163, 64, 0)' }], false), shadowColor: 'rgba(0,0,0,0.1)', shadowBlur: 10 } },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [
+                            { offset: 0, color: 'rgba(145, 204, 117, 0.5)' },
+                            { offset: 1, color: 'rgba(145, 204, 117, 0.1)' }
+                        ]
+                    }
+                },
                 itemStyle: { normal: { color: '#cdba00', borderColor: 'rgba(137,189,2,0.27)', borderWidth: 12 } },
-                data: [220, 182, 191, 134, 150, 120, 110, 125, 145, 122, 165, 122]
+                data: corpusData
             },
             {
-                name: '利润', type: 'line', smooth: true, symbol: 'circle', symbolSize: 5, showSymbol: false,
+                name: '每日新增文件数', type: 'line', smooth: true, symbolSize: 8, symbol: 'circle', yAxisIndex: 1,
                 lineStyle: { normal: { width: 2 } },
-                areaStyle: { normal: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(39, 122,206, 0.3)' }, { offset: 0.8, color: 'rgba(39, 122,206, 0)' }], false), shadowColor: 'rgba(0,0,0,0.1)', shadowBlur: 10 } },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [
+
+                            { offset: 0, color: 'rgba(24, 163, 64, 0.3)' },
+                            { offset: 1, color: 'rgba(0, 0, 0, 0.1)' }
+                        ]
+                    }
+                },
                 itemStyle: { normal: { color: '#277ace', borderColor: 'rgba(0,136,212,0.2)', borderWidth: 12 } },
-                data: [120, 110, 125, 145, 122, 165, 122, 220, 182, 191, 134, 150]
+                data: filesData
             }
         ]
     }
@@ -379,47 +535,52 @@ function echarts_4() {
     const el = document.getElementById('echart4')
     if (!el) return
     const myChart = echarts.init(el)
+    const names = contributorNames.value
+    const seriesBar1 = contributorCorpusCounts.value
+    const seriesBar2 = contributorTotalCapacityGbs.value
     const option = {
         tooltip: { trigger: 'axis', axisPointer: { lineStyle: { color: '#57617B' } } },
         legend: {
-            data: [{ name: '图例1' }, { name: '图例2' }, { name: '完成率' }],
+            data: [{ name: '上传语料数量(份)' }, { name: '上传语料容量(GB)' }],
             top: '0%',
             textStyle: { color: 'rgba(255,255,255,0.9)' }
         },
         xAxis: [{
             type: 'category',
-            data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,.1)' } },
-            axisLabel: { textStyle: { color: 'rgba(255,255,255,.6)', fontSize: '14' } },
+            data: names,
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
+            axisLabel: { textStyle: { color: '#fff', fontSize: '14' } },
         }],
         yAxis: [
             {
-                type: 'value', name: '金额', min: 0, max: 50, interval: 10,
-                axisLabel: { show: true },
+                type: 'value', name: '上传语料数量(份)',
+                nameTextStyle: { color: '#fff' },
+                axisLabel: { show: true, color: '#fff' },
+                alignTicks: true,
                 axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
+                splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,.4)' } },
             },
             {
-                type: 'value', name: '完成率', show: true,
-                axisLabel: { show: true },
+                type: 'value', name: '上传语料容量(GB)',
+                nameTextStyle: { color: '#fff' },
+                axisLabel: { show: true, color: '#fff', },
+                alignTicks: true,
                 axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
-                splitLine: { show: true, lineStyle: { color: '#001e94' } },
+                splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,.4)' } },
             },
         ],
         grid: { top: '10%', right: '30', bottom: '30', left: '30' },
         series: [
             {
-                name: '图例1', type: 'bar', data: [4, 6, 36, 6, 8, 6, 4, 6, 30, 6, 8, 12], barWidth: 'auto',
-                itemStyle: { normal: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#609db8' }, { offset: 1, color: '#609db8' }], globalCoord: false } } }
+                name: '上传语料数量(份)', type: 'bar', data: seriesBar1, barWidth: 'auto', yAxisIndex: 0, min: 0,
+                itemStyle: { normal: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#609db8' }, { offset: 1, color: '#609db8' }], globalCoord: false } } },
+                label: { show: true, position: 'top', formatter: '{c}', color: '#fff', fontSize: 12 }
             },
             {
-                name: '图例2', type: 'bar', data: [4, 2, 34, 6, 8, 6, 4, 2, 32, 6, 8, 18], barWidth: 'auto',
+                name: '上传语料容量(GB)', type: 'bar', data: seriesBar2, barWidth: 'auto', yAxisIndex: 1, min: 0,
                 itemStyle: { normal: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#66b8a7' }, { offset: 1, color: '#66b8a7' }], globalCoord: false } } },
-                barGap: '0'
+                label: { show: true, position: 'top', formatter: '{c}', color: '#fff', fontSize: 12 }
             },
-            {
-                name: '完成率', type: 'line', yAxisIndex: 1, data: [100, 50, 80, 30, 90, 40, 70, 33, 100, 40, 80, 20],
-                lineStyle: { normal: { width: 2 } }, itemStyle: { normal: { color: '#cdba00' } }, smooth: true
-            }
         ]
     }
     myChart.setOption(option)
@@ -451,12 +612,16 @@ function zb1() {
     const el = document.getElementById('zb1')
     if (!el) return
     const myChart = echarts.init(el)
-    const v1 = 298, v2 = 523, v3 = v1 + v2
+    const data = corpusTypeDistribution.value.textFiles
+    const v1 = data.count
+    const v2 = data.percentage // 转换为百分比
     const option = {
         series: [{
-            type: 'pie', radius: ['60%', '70%'], color: '#49bcf7', label: { normal: { position: 'center' } }, data: [
-                { value: v2, name: '女消费', label: { normal: { formatter: `${v2}`, textStyle: { fontSize: 20, color: '#fff' } } } },
-                { value: v1, name: '男消费', label: { normal: { formatter: () => `占比${Math.round(v2 / v3 * 100)}%`, textStyle: { color: '#aaa', fontSize: 12 } } }, itemStyle: { normal: { color: 'rgba(255,255,255,.2)' }, emphasis: { color: '#fff' } } }
+            type: 'pie', radius: ['60%', '70%'], color: '#49bcf7', hoverAnimation: false,
+            label: { show: true, position: 'center', formatter: [`{a|${v1}份}`, `{b|占比${v2}%}`].join('\n'), rich: { a: { color: '#fff', fontSize: 20, lineHeight: 28 }, b: { color: '#aaa', fontSize: 12 } } },
+            data: [
+                { value: v2, name: '文本文件' },
+                { value: 100 - v2, name: '其他文件', label: { show: false }, itemStyle: { color: 'rgba(255,255,255,.2)' }, emphasis: { itemStyle: { color: '#fff' } } }
             ]
         }]
     }
@@ -468,12 +633,16 @@ function zb2() {
     const el = document.getElementById('zb2')
     if (!el) return
     const myChart = echarts.init(el)
-    const v1 = 298, v2 = 523, v3 = v1 + v2
+    const data = corpusTypeDistribution.value.audioFiles
+    const v1 = data.count
+    const v2 = data.percentage // 转换为百分比
     const option = {
         series: [{
-            type: 'pie', radius: ['60%', '70%'], color: '#cdba00', label: { normal: { position: 'center' } }, data: [
-                { value: v1, name: '男消费', label: { normal: { formatter: `${v1}`, textStyle: { fontSize: 20, color: '#fff' } } } },
-                { value: v2, name: '女消费', label: { normal: { formatter: () => `占比${Math.round(v1 / v3 * 100)}%`, textStyle: { color: '#aaa', fontSize: 12 } } }, itemStyle: { normal: { color: 'rgba(255,255,255,.2)' }, emphasis: { color: '#fff' } } }
+            type: 'pie', radius: ['60%', '70%'], color: '#cdba00', hoverAnimation: false,
+            label: { show: true, position: 'center', formatter: [`{a|${v1}份}`, `{b|占比${v2}%}`].join('\n'), rich: { a: { color: '#fff', fontSize: 20, lineHeight: 28 }, b: { color: '#aaa', fontSize: 12 } } },
+            data: [
+                { value: v2, name: '音频文件' },
+                { value: 100 - v2, name: '其他文件', label: { show: false }, itemStyle: { color: 'rgba(255,255,255,.2)' }, emphasis: { itemStyle: { color: '#fff' } } }
             ]
         }]
     }
@@ -485,12 +654,37 @@ function zb3() {
     const el = document.getElementById('zb3')
     if (!el) return
     const myChart = echarts.init(el)
-    const v1 = 298, v2 = 523, v3 = v1 + v2
+    const data = corpusTypeDistribution.value.videoFiles
+    const v1 = data.count
+    const v2 = data.percentage // 转换为百分比
     const option = {
         series: [{
-            type: 'pie', radius: ['60%', '70%'], color: '#62c98d', label: { normal: { position: 'center' } }, data: [
-                { value: v2, name: '女消费', label: { normal: { formatter: `${v2}`, textStyle: { fontSize: 20, color: '#fff' } } } },
-                { value: v1, name: '男消费', label: { normal: { formatter: () => `占比${Math.round(v2 / v3 * 100)}%`, textStyle: { color: '#aaa', fontSize: 12 } } }, itemStyle: { normal: { color: 'rgba(255,255,255,.2)' }, emphasis: { color: '#fff' } } }
+            type: 'pie', radius: ['60%', '70%'], color: '#62c98d', hoverAnimation: false,
+            label: { show: true, position: 'center', formatter: [`{a|${v1}份}`, `{b|占比${v2}%}`].join('\n'), rich: { a: { color: '#fff', fontSize: 20, lineHeight: 28 }, b: { color: '#aaa', fontSize: 12 } } },
+            data: [
+                { value: v2, name: '视频文件' },
+                { value: 100 - v2, name: '其他文件', label: { show: false }, itemStyle: { color: 'rgba(255,255,255,.2)' }, emphasis: { itemStyle: { color: '#fff' } } }
+            ]
+        }]
+    }
+    myChart.setOption(option)
+    initResizeFor(myChart)
+}
+
+function zb4() {
+    const el = document.getElementById('zb4')
+    if (!el) return
+    const myChart = echarts.init(el)
+    const data = corpusTypeDistribution.value.imageFiles
+    const v1 = data.count
+    const v2 = data.percentage // 转换为百分比
+    const option = {
+        series: [{
+            type: 'pie', radius: ['60%', '70%'], color: '#62c98d', hoverAnimation: false,
+            label: { show: true, position: 'center', formatter: [`{a|${v1}份}`, `{b|占比${v2}%}`].join('\n'), rich: { a: { color: '#fff', fontSize: 20, lineHeight: 28 }, b: { color: '#aaa', fontSize: 12 } } },
+            data: [
+                { value: v2, name: '图像文件' },
+                { value: 100 - v2, name: '其他文件', label: { show: false }, itemStyle: { color: 'rgba(255,255,255,.2)' }, emphasis: { itemStyle: { color: '#fff' } } }
             ]
         }]
     }
@@ -505,11 +699,18 @@ onMounted(async () => {
     echarts_5()
     echarts_1()
     echarts_2()
+
+
+    await loadContributorAnalysis()
+    await loadCorpusOverview()
+    await loadTimeSeriesAnalysis()
     echarts_3()
     echarts_4()
+
     zb1()
     zb2()
     zb3()
+    zb4()
 
     // start clock
     updateClock()
