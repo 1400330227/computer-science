@@ -7,17 +7,17 @@
             <div class="back"></div>
             <div class="head">
                 <div class="weather"><span id="showTime">{{ showTime }}</span></div>
-                <h1>广西大学东盟语料收集与管理平台可视化展示</h1>
+                <h1>广西大学东盟语料收集与管理平台数据可视化</h1>
             </div>
             <div class="mainbox">
                 <ul class="clearfix">
                     <li>
                         <div class="boxall" style="height:500px;">
-                            <div class="alltitle">所属领域语料数量前10分析</div>
+                            <div class="alltitle">领域数据 TOP 10</div>
                             <div class="navboxall" id="echart5"></div>
                         </div>
                         <div class="boxall" style="height:400px;">
-                            <div class="alltitle">学院上传语料容量前10占比</div>
+                            <div class="alltitle">各学院贡献占比分析</div>
 
                             <div class="navboxall" id="echart1"></div>
                         </div>
@@ -48,7 +48,6 @@
                         <div class="boxall" style="height:350px">
                             <div class="alltitle">贡献者语料容量分布</div>
                             <div class="navboxall" id="echart4"></div>
-
                         </div>
                         <div class="boxall" style="height:340px">
                             <div class="alltitle">语料收集趋势分析 (最近30天)</div>
@@ -57,7 +56,7 @@
                     </li>
                     <li>
                         <div class="boxall" style="height:410px">
-                            <div class="alltitle">所属国家语料信息</div>
+                            <div class="alltitle">语料库国家分类</div>
                             <div class="navboxall">
                                 <table class="table1" width="100%" border="0" cellspacing="0" cellpadding="0">
                                     <tbody>
@@ -84,10 +83,10 @@
                         </div>
 
                         <div class="boxall" style="height:490px;">
-                            <div class="alltitle">最近上传语料信息</div>
+                            <div class="alltitle">语料库最新动态</div>
                             <div class="navboxall">
                                 <div class="wraptit">
-                                    <span>姓名</span><span>学院</span><span>语料集</span><span>日期</span>
+                                    <span>上传人</span><span>学院</span><span>语料集</span><span>日期</span>
                                 </div>
                                 <div class="wrap" ref="recentWrapRef" style="overflow:auto; max-height: 380px;">
                                     <ul>
@@ -565,6 +564,7 @@ function echarts_3() {
         ]
     }
     myChart.setOption(option)
+    setupAutoTooltip(myChart, option, 3000)
     initResizeFor(myChart)
 }
 
@@ -621,6 +621,7 @@ function echarts_4() {
         ]
     }
     myChart.setOption(option)
+    setupAutoTooltip(myChart, option, 3000)
     initResizeFor(myChart)
 }
 
@@ -796,6 +797,77 @@ function zb4() {
     }
     myChart.setOption(option)
     initResizeFor(myChart)
+}
+
+/**
+ * 设置 ECharts Tooltip 自动播放
+ * @param {echarts.ECharts} myChart ECharts 实例
+ * @param {echarts.EChartsOption} option 图表的配置项
+ * @param {number} [interval=3000] 轮播间隔，单位毫秒
+ */
+function setupAutoTooltip(myChart, option, interval = 3000) {
+    let currentIndex = -1; // 当前高亮的索引
+    let timerId = null; // 定时器ID
+
+    // 播放的函数
+    const play = () => {
+        const dataLen = option.series[0]?.data?.length;
+        if (!dataLen) {
+            return;
+        }
+
+        // 使用 post-increment，确保从第一个 (index 0) 开始
+        currentIndex = (currentIndex + 1) % dataLen;
+
+        // 核心：调用 dispatchAction 来显示 tooltip
+        myChart.dispatchAction({
+            type: 'showTip',
+            seriesIndex: 0, // 通常我们只关心第一个系列
+            dataIndex: currentIndex,
+        });
+
+        // 同时，对于 axis trigger，高亮对应的轴指针
+        myChart.dispatchAction({
+            type: 'highlight',
+            seriesIndex: 0,
+            dataIndex: currentIndex,
+        });
+    };
+
+    // 开始播放的函数
+    const startPlay = () => {
+        // 防止重复启动
+        if (timerId) {
+            clearInterval(timerId);
+        }
+        timerId = setInterval(play, interval);
+    };
+
+    // 停止播放的函数
+    const stopPlay = () => {
+        if (timerId) {
+            clearInterval(timerId);
+            timerId = null;
+        }
+        // 取消高亮
+        myChart.dispatchAction({
+            type: 'downplay',
+            seriesIndex: 0,
+            dataIndex: currentIndex,
+        });
+    };
+
+    // 监听鼠标事件，实现悬浮时暂停，离开时恢复
+    myChart.on('mouseover', () => {
+        stopPlay();
+    });
+
+    myChart.on('mouseout', () => {
+        startPlay();
+    });
+
+    // 初始启动
+    startPlay();
 }
 
 onMounted(async () => {
