@@ -6,5 +6,6 @@ export const getContributorAnalysis = () => api.get('/dataView/contributorAnalys
 export const getTimeSeriesAnalysis = () => api.get('/dataView/timeSeriesAnalysis');
 export const getThematicSummary = () => api.get('/dataView/thematicSummary');
 export const getCorpusOverview = () => api.get('/dataView/corpusOverview');
-export const getCollegeOverview = () => api.get('/dataView/collegeOverview');
-export const getDomainOverview = () => api.get('/dataView/domainOverview');
+export const getCollegeOverview = () => api.get('/dataView/collegeOverview', {params: {pageNumber: 1, pageSize: 10}});
+export const getDomainOverview = () => api.get('/dataView/domainOverview', {params: {pageNumber: 1, pageSize: 10}});
+export const getRecentUploads = () => api.get('/dataView/recentUploads');

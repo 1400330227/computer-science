@@ -1,10 +1,12 @@
 package com.computerscience.hdfsapi.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.computerscience.hdfsapi.model.*;
 import com.computerscience.hdfsapi.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -38,6 +40,10 @@ public class DataViewController {
     @Autowired
     private DomainOverviewService domainOverviewService;
 
+
+    @Autowired
+    private RecentUploadService recentUploadService;
+
     @GetMapping("/corpusOverview")
     public List<CorpusOverview> getCorpusOverview() {
         return corpusOverviewService.list();
@@ -69,12 +75,27 @@ public class DataViewController {
     }
 
     @GetMapping("/collegeOverview")
-    public List<CollegeOverview> getCollegeOverview() {
-        return collegeOverviewService.list();
+    public List<CollegeOverview> getCollegeOverview(
+            @RequestParam(defaultValue = "1") Integer pageNumber,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        Page<CollegeOverview> page = new Page<>(pageNumber, pageSize);
+        Page<CollegeOverview> resultPage = collegeOverviewService.page(page);
+        return resultPage.getRecords();
     }
 
     @GetMapping("/domainOverview")
-    public List<DomainOverview> getDomainOverview() {
-        return domainOverviewService.list();
+    public List<DomainOverview> getDomainOverview(
+            @RequestParam(defaultValue = "1") Integer pageNumber,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        Page<DomainOverview> page = new Page<>(pageNumber, pageSize);
+        Page<DomainOverview> resultPage = domainOverviewService.page(page);
+        return resultPage.getRecords();
+    }
+
+    @GetMapping("/recentUploads")
+    public List<RecentUpload> getRecentUploads() {
+        return recentUploadService.list();
     }
 }

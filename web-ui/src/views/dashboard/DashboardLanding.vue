@@ -12,68 +12,18 @@
             <div class="mainbox">
                 <ul class="clearfix">
                     <li>
-                        <div class="boxall" style="height:400px;">
-                            <div class="alltitle">标题样式</div>
+                        <div class="boxall" style="height:500px;">
+                            <div class="alltitle">所属领域语料数量前10分析</div>
                             <div class="navboxall" id="echart5"></div>
                         </div>
-                        <div class="boxall" style="height:260px;">
-                            <div class="alltitle">标题样式</div>
-                            <div class="navboxall">
-                                <div class="wraptit">
-                                    <span>单号</span><span>金额</span><span>品名</span><span>时间</span>
-                                </div>
-                                <div class="wrap">
-                                    <ul>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                        <li>
-                                            <p><span>100021415</span><span>199</span><span>手机</span><span>18小时</span>
-                                            </p>
-                                        </li>
-                                    </ul>
-                                </div>
-
-                            </div>
-                        </div>
-                        <div class="boxall" style="height:260px;">
-                            <div class="alltitle">标题样式</div>
+                        <div class="boxall" style="height:360px;">
+                            <div class="alltitle">学院上传语料容量前10占比</div>
 
                             <div class="navboxall" id="echart1"></div>
                         </div>
                     </li>
                     <li>
-
-                        <div class="boxall" style="height:230px">
+                        <div class="boxall" style="height:210px">
                             <div class="clearfix navboxall" style="height: 100%">
                                 <div class="pulll_left num">
                                     <div class="numbt">语料库总容量<span>(GB)</span></div>
@@ -106,107 +56,61 @@
                         </div>
                     </li>
                     <li>
-                        <div class="boxall" style="height:300px">
-                            <div class="alltitle">标题样式</div>
+                        <div class="boxall" style="height:380px">
+                            <div class="alltitle">所属国家语料信息</div>
                             <div class="navboxall">
                                 <table class="table1" width="100%" border="0" cellspacing="0" cellpadding="0">
                                     <tbody>
                                         <tr>
                                             <th scope="col">排名</th>
-                                            <th scope="col">公司</th>
-                                            <th scope="col">数量</th>
-                                            <th scope="col">增长率</th>
+                                            <th scope="col">国家</th>
+                                            <th scope="col">语料集数量</th>
+                                            <th scope="col">语料容量(GB)</th>
+                                            <th scope="col">文件数量</th>
                                         </tr>
-                                        <tr>
-                                            <td><span>1</span></td>
-                                            <td>腾讯科技</td>
-                                            <td>114万<br></td>
-                                            <td>100%<br></td>
+                                        <tr v-for="(row, index) in countryRows" :key="row.country">
+                                            <td><span>{{ index + 1 }}</span></td>
+                                            <td>{{ row.country }}</td>
+                                            <td>{{ row.corpusCount }}</td>
+                                            <td>{{ row.totalCapacityGb }}</td>
+                                            <td>{{ row.filesCount }}</td>
                                         </tr>
-                                        <tr>
-                                            <td><span>2</span></td>
-                                            <td>百度公司</td>
-                                            <td>923823万</td>
-                                            <td>21%</td>
+                                        <tr v-if="countryRows.length === 0">
+                                            <td colspan="5" style="text-align:center;color:#aaa;">暂无数据</td>
                                         </tr>
-
-                                        <tr>
-                                            <td><span>3</span></td>
-                                            <td>新浪</td>
-                                            <td>1240253万</td>
-                                            <td>12%</td>
-                                        </tr>
-                                        <tr>
-                                            <td><span>4</span></td>
-                                            <td>网易</td>
-                                            <td>1.2亿</td>
-                                            <td>39%</td>
-                                        </tr>
-                                        <tr>
-                                            <td><span>5</span></td>
-                                            <td>雅虎</td>
-                                            <td>13423万</td>
-                                            <td>9%</td>
-                                        </tr>
-
                                     </tbody>
                                 </table>
                             </div>
                         </div>
 
-                        <div class="boxall" style="height: 300px">
-                            <div class="alltitle">标题样式</div>
+                        <div class="boxall" style="height:490px;">
+                            <div class="alltitle">最近上传语料信息</div>
                             <div class="navboxall">
-                                <table class="table1" width="100%" border="0" cellspacing="0" cellpadding="0">
-                                    <tbody>
-                                        <tr>
-                                            <th scope="col">排名</th>
-                                            <th scope="col">公司</th>
-                                            <th scope="col">数量</th>
-                                            <th scope="col">增长率</th>
-                                        </tr>
-                                        <tr>
-                                            <td><span>1</span></td>
-                                            <td>腾讯科技</td>
-                                            <td>114万<br></td>
-                                            <td>100%<br></td>
-                                        </tr>
-                                        <tr>
-                                            <td><span>2</span></td>
-                                            <td>百度公司</td>
-                                            <td>923823万</td>
-                                            <td>21%</td>
-                                        </tr>
-
-                                        <tr>
-                                            <td><span>3</span></td>
-                                            <td>新浪</td>
-                                            <td>1240253万</td>
-                                            <td>12%</td>
-                                        </tr>
-                                        <tr>
-                                            <td><span>4</span></td>
-                                            <td>网易</td>
-                                            <td>1.2亿</td>
-                                            <td>39%</td>
-                                        </tr>
-                                        <tr>
-                                            <td><span>5</span></td>
-                                            <td>雅虎</td>
-                                            <td>13423万</td>
-                                            <td>9%</td>
-                                        </tr>
-
-                                    </tbody>
-                                </table>
+                                <div class="wraptit">
+                                    <span>姓名</span><span>学院</span><span>语料集</span><span>日期</span>
+                                </div>
+                                <div class="wrap" ref="recentWrapRef" style="overflow:auto; max-height: 380px;">
+                                    <ul>
+                                        <li v-for="item in recentUploads" :key="item.id">
+                                            <p>
+                                                <span>{{ item.contributorName }}</span>
+                                                <span>{{ item.contributorCollege }}</span>
+                                                <span>{{ item.corpusName }}</span>
+                                                <span>{{ item.uploadTime }}</span>
+                                            </p>
+                                        </li>
+                                        <li v-if="recentUploads.length === 0">
+                                            <p style="text-align:center;color:#aaa;">暂无数据</p>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
-
                         </div>
 
-                        <div class="boxall" style="height:320px">
+                        <!-- <div class="boxall" style="height:320px">
                             <div class="alltitle">标题样式</div>
                             <div class="navboxall" id="echart2"></div>
-                        </div>
+                        </div> -->
 
 
                     </li>
@@ -221,7 +125,9 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import * as echarts from 'echarts'
 import '@/assets/comon0.css'
-import { getContributorAnalysis, getCorpusOverview, getTimeSeriesAnalysis } from '@/services/dashboard'
+import { getContributorAnalysis, getCorpusOverview, getTimeSeriesAnalysis, getCollegeOverview, getDomainOverview } from '@/services/dashboard'
+import { getCountryDistribution } from '@/services/dashboard'
+import { getRecentUploads } from '@/services/dashboard'
 
 const showTime = ref('')
 const loadingEl = ref(null)
@@ -231,11 +137,31 @@ const loadingGifUrl = new URL('@/images/loading.gif', import.meta.url).href
 
 let intervalId = null
 let resizeHandlers = []
+let recentScrollTimer = null
 
 const contributorNames = ref([])
 const contributorCorpusCounts = ref([])
 const contributorTotalCapacityGbs = ref([])
 const corpusOverview = ref({ totalCapacity: '0' })
+
+const colleges = ref([])
+const collegeNames = ref([])
+const collegeCorpusCounts = ref([])
+const collegeTotalCapacityGbs = ref([])
+
+// 添加国家分布表数据
+const countryRows = ref([])
+
+// 最近上传语料信息
+const recentUploads = ref([])
+const recentWrapRef = ref(null)
+
+// 添加领域分析数据
+const domainAnalysis = ref({
+    domainNames: [],
+    domainValues: [],
+    domainPercentages: []
+})
 
 // 添加语料类型分布数据
 const corpusTypeDistribution = ref({
@@ -253,6 +179,32 @@ const timeSeriesData = ref({
     dailyCapacityAdded: []
 })
 
+async function loadDomainAnalysis() {
+    try {
+        const res = await getDomainOverview()
+        const list = Array.isArray(res?.data) ? res.data : []
+
+        // 计算总数用于百分比计算
+        const totalCount = list.reduce((sum, item) => sum + (Number(item.corpusCount) || 0), 0)
+
+        domainAnalysis.value = {
+            domainNames: list.map(item => item.domain || '未知领域'),
+            domainValues: list.map(item => Number(item.corpusCount) || 0),
+            domainPercentages: list.map(item => {
+                const count = Number(item.corpusCount) || 0
+                return totalCount > 0 ? Math.round((count / totalCount) * 100) : 0
+            })
+        }
+    } catch (e) {
+        console.log('加载领域分析数据失败:', e)
+        // fallback to empty data on error
+        domainAnalysis.value = {
+            domainNames: [],
+            domainValues: [],
+            domainPercentages: []
+        }
+    }
+}
 
 async function loadContributorAnalysis() {
     try {
@@ -262,10 +214,28 @@ async function loadContributorAnalysis() {
         contributorCorpusCounts.value = list.map(item => Number(item.corpusCount || 0))
         contributorTotalCapacityGbs.value = list.map(item => Number(item.totalCapacityGb || 0))
     } catch (e) {
+        console.log(e)
         // fallback to empty arrays on error
         contributorNames.value = []
         contributorCorpusCounts.value = []
         contributorTotalCapacityGbs.value = []
+    }
+}
+
+async function loadCollegeOverview() {
+    try {
+        const res = await getCollegeOverview()
+        const list = Array.isArray(res?.data) ? res.data : []
+        colleges.value = list.map(item => ({ name: item.college, value: item.totalCapacityGb }))
+        collegeNames.value = list.map(item => item.college || '')
+        collegeCorpusCounts.value = list.map(item => Number(item.corpusCount || 0))
+        collegeTotalCapacityGbs.value = list.map(item => Number(item.totalCapacityGb || 0))
+    } catch (e) {
+        console.log(e)
+        // fallback to empty arrays on error
+        collegeNames.value = []
+        collegeCorpusCounts.value = []
+        collegeTotalCapacityGbs.value = []
     }
 }
 
@@ -298,6 +268,7 @@ async function loadCorpusOverview() {
             }
         }
     } catch (e) {
+        console.log(e)
         corpusOverview.value = { totalCapacity: '0' }
         corpusTypeDistribution.value = {
             textFiles: { count: 0, percentage: 0 },
@@ -333,6 +304,7 @@ async function loadTimeSeriesAnalysis() {
             dailyCapacityAdded: recentData.map(item => Number(item.dailyCapacityAdded || 0))
         }
     } catch (e) {
+        console.log(e)
         // fallback to empty data on error
         timeSeriesData.value = {
             dates: [],
@@ -340,6 +312,72 @@ async function loadTimeSeriesAnalysis() {
             dailyFilesAdded: [],
             dailyCapacityAdded: []
         }
+    }
+}
+
+async function loadCountryDistribution() {
+    try {
+        const res = await getCountryDistribution()
+        const list = Array.isArray(res?.data) ? res.data : []
+        // 期望后端字段：country, corpusCount, totalCapacityGb, fileCount
+        countryRows.value = list.map(item => ({
+            country: item.country || '未知',
+            corpusCount: Number(item.corpusCount || 0),
+            totalCapacityGb: Number(item.totalCapacityGb || 0),
+            filesCount: Number(item.filesCount || 0)
+        }))
+    } catch (e) {
+        console.log('加载国家分布失败:', e)
+        countryRows.value = []
+    }
+}
+
+async function loadRecentUploads() {
+    try {
+        const res = await getRecentUploads()
+        const list = Array.isArray(res?.data) ? res.data : []
+        recentUploads.value = list
+    } catch (e) {
+        console.log('加载最近上传语料失败:', e)
+        recentUploads.value = []
+    }
+}
+
+function startRecentAutoScroll() {
+    const container = recentWrapRef.value
+    if (!container) return
+    const listEl = container.querySelector('ul')
+    if (!listEl) return
+    // 如果元素不足滚动，复制一份以实现无缝滚动
+    if (listEl.children.length > 0 && listEl.children.length < 8) {
+        listEl.innerHTML = listEl.innerHTML + listEl.innerHTML
+    }
+    let scrollTop = 0
+    const step = 1 // 像素
+    const interval = 30 // ms
+    const maxScroll = listEl.scrollHeight - container.clientHeight
+    const tick = () => {
+        if (maxScroll <= 0) return
+        scrollTop += step
+        if (scrollTop >= maxScroll) {
+            scrollTop = 0
+        }
+        container.scrollTop = scrollTop
+    }
+    stopRecentAutoScroll()
+    recentScrollTimer = window.setInterval(tick, interval)
+    // 悬停暂停
+    container.addEventListener('mouseenter', stopRecentAutoScroll)
+    container.addEventListener('mouseleave', () => {
+        stopRecentAutoScroll()
+        recentScrollTimer = window.setInterval(tick, interval)
+    })
+}
+
+function stopRecentAutoScroll() {
+    if (recentScrollTimer) {
+        window.clearInterval(recentScrollTimer)
+        recentScrollTimer = null
     }
 }
 
@@ -364,39 +402,38 @@ function echarts_1() {
     const el = document.getElementById('echart1')
     if (!el) return
     const myChart = echarts.init(el)
+    // 使用学院数据
+    const names = collegeNames.value
+    const data = colleges.value
     const option = {
-        tooltip: { trigger: 'item', formatter: '{b} : {c} ({d}%)' },
+        tooltip: { trigger: 'item', formatter: '{b} : {c}GB({d}%)' },
         legend: {
-            right: 0,
-            top: 30,
-            height: 160,
+            type: 'scroll',
+            left: '67%',
+            top: '10%',
             itemWidth: 10,
-            itemHeight: 10,
+            itemHeight: 20,
             itemGap: 10,
-            textStyle: { color: 'rgba(255,255,255,.6)', fontSize: 12 },
             orient: 'vertical',
-            data: ['图例1', '图例2', '图例3', '图例4', '图例5']
+            tooltip: { show: true },
+            textStyle: {
+                color: 'rgba(255,255,255,.6)',
+                fontSize: 14,
+                overflow: 'truncate',
+                width: 120
+            },
+            data: names
         },
         calculable: true,
-        series: [
-            {
-                name: ' ',
-                color: ['#62c98d', '#2f89cf', '#4cb9cf', '#53b666', '#62c98d', '#205acf', '#c9c862', '#c98b62', '#c962b9', '#7562c9', '#c96262', '#c25775', '#00b7be'],
-                type: 'pie',
-                radius: [30, 70],
-                center: ['35%', '50%'],
-                roseType: 'radius',
-                label: { normal: { show: true }, emphasis: { show: true } },
-                lableLine: { normal: { show: true }, emphasis: { show: true } },
-                data: [
-                    { value: 10, name: '图例1' },
-                    { value: 5, name: '图例2' },
-                    { value: 15, name: '图例3' },
-                    { value: 25, name: '图例4' },
-                    { value: 20, name: '图例5' },
-                ]
-            }
-        ]
+        series: [{
+            name: '学院贡献',
+            color: ['#62c98d', '#2f89cf', '#4cb9cf', '#53b666', '#62c98d', '#205acf', '#c9c862', '#c98b62', '#c962b9', '#7562c9', '#c96262', '#c25775', '#00b7be'],
+            type: 'pie', radius: [30, 130], center: ['33%', '50%'], label: {
+                show: true, position: 'inside', formatter: '{d}%', color: '#fff', fontSize: 12, textShadowBlur: 2,
+                textShadowColor: 'rgba(0, 0, 0, 0.5)'
+            },
+            emphasis: { label: { show: true, fontSize: 14, color: '#fff' } }, data: data
+        }]
     }
     myChart.setOption(option)
     initResizeFor(myChart)
@@ -467,7 +504,7 @@ function echarts_3() {
             type: 'category',
             boundaryGap: false,
             axisLabel: { show: true, textStyle: { color: '#fff' } },
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } },
             data: dates
         }, {}],
         yAxis: [{
@@ -475,15 +512,15 @@ function echarts_3() {
             nameTextStyle: { color: '#fff' },
             alignTicks: true,
             axisLabel: { show: true, color: '#fff' },
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
-            splitLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } }
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } }
         }, {
             name: '每日新增文件数量',
             nameTextStyle: { color: '#fff' },
             alignTicks: true,
             axisLabel: { show: true, textStyle: { color: '#fff' } },
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
-            splitLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } }
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } },
+            splitLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } }
         }],
         series: [
             {
@@ -548,8 +585,8 @@ function echarts_4() {
         xAxis: [{
             type: 'category',
             data: names,
-            axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
-            axisLabel: { textStyle: { color: '#fff', fontSize: '14' } },
+            axisLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } },
+            axisLabel: { textStyle: { color: '#fff', fontSize: 14 } },
         }],
         yAxis: [
             {
@@ -557,16 +594,16 @@ function echarts_4() {
                 nameTextStyle: { color: '#fff' },
                 axisLabel: { show: true, color: '#fff' },
                 alignTicks: true,
-                axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
-                splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,.4)' } },
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } },
+                splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,.6)' } },
             },
             {
                 type: 'value', name: '上传语料容量(GB)',
                 nameTextStyle: { color: '#fff' },
                 axisLabel: { show: true, color: '#fff', },
                 alignTicks: true,
-                axisLine: { lineStyle: { color: 'rgba(255,255,255,.4)' } },
-                splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,.4)' } },
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } },
+                splitLine: { show: true, lineStyle: { color: 'rgba(255,255,255,.6)' } },
             },
         ],
         grid: { top: '10%', right: '30', bottom: '30', left: '30' },
@@ -591,17 +628,86 @@ function echarts_5() {
     const el = document.getElementById('echart5')
     if (!el) return
     const myChart = echarts.init(el)
+
+    // 使用真实的领域分析数据
+    const domainNames = domainAnalysis.value.domainNames.slice().reverse()
+    const domainPercentages = domainAnalysis.value.domainPercentages.slice().reverse()
+    const domainValues = domainAnalysis.value.domainValues.slice().reverse()
+
+    // 确保有数据显示
+    const yAxisData = domainNames.length > 0 ? domainNames : ['暂无数据']
+    const seriesData = domainPercentages.length > 0 ? domainPercentages : [0]
+    const backgroundData = Array(yAxisData.length).fill(100)
+
     const option = {
-        tooltip: { show: false },
-        grid: { top: '0%', left: '65', right: '14%', bottom: '0%' },
-        xAxis: { min: 0, max: 100, splitLine: { show: false }, axisTick: { show: false }, axisLine: { show: false }, axisLabel: { show: false } },
+        tooltip: {
+            show: true,
+            trigger: 'axis',
+            axisPointer: { type: 'shadow' },
+            formatter: function (params) {
+                if (params && params.length > 0 && domainNames.length > 0) {
+                    const dataIndex = params[0].dataIndex
+                    const domainName = domainNames[dataIndex]
+                    const percentage = domainPercentages[dataIndex]
+                    const count = domainValues[dataIndex]
+                    return `${domainName}<br/>语料数量: ${count}份<br/>占比: ${percentage}%`
+                }
+                return ''
+            }
+        },
+        grid: { top: '0%', left: '0', right: '4%', bottom: '5%' },
+        xAxis: {
+            min: 0,
+            max: 100,
+            splitLine: { show: false },
+            axisTick: { show: false },
+            axisLine: { show: false },
+            axisLabel: { show: false }
+        },
         yAxis: {
-            data: ['字段名称', '字段名称', '字段名称', '字段名称', '字段名称', '字段名称', '字段名称', '字段名称', '字段名称', '字段名称', '字段名称'],
-            axisTick: { show: false }, axisLine: { show: false }, axisLabel: { color: 'rgba(255,255,255,.6)', fontSize: 14 }
+            data: yAxisData,
+            axisTick: { show: false },
+            axisLine: { show: false },
+            axisLabel: {
+                color: 'rgba(255,255,255,.6)',
+                fontSize: 14,
+                interval: 0,
+                formatter: function (value) {
+                    // 限制显示长度，避免文字过长
+                    return value.length > 8 ? value.substring(0, 8) + '...' : value
+                }
+            }
         },
         series: [
-            { type: 'bar', label: { show: true, zlevel: 10000, position: 'right', padding: 10, color: '#49bcf7', fontSize: 14, formatter: '{c}%' }, itemStyle: { color: '#49bcf7' }, barWidth: '15', data: [49, 80, 67, 99, 12, 19, 39, 84, 28, 47, 57, 100], z: 10 },
-            { type: 'bar', barGap: '-100%', itemStyle: { color: '#fff', opacity: 0.1 }, barWidth: '15', data: Array(12).fill(100), z: 5 }
+            {
+                name: '领域占比',
+                type: 'bar',
+                label: {
+                    show: true,
+                    zlevel: 10000,
+                    position: 'right',
+                    padding: 10,
+                    color: '#49bcf7',
+                    fontSize: 14,
+                    formatter: function (params) {
+                        return params.value > 0 ? `${params.value}%` : ''
+                    }
+                },
+                itemStyle: { color: '#49bcf7' },
+                barWidth: '15',
+                data: seriesData,
+                z: 10
+            },
+            {
+                name: '背景',
+                type: 'bar',
+                barGap: '-100%',
+                itemStyle: { color: '#fff', opacity: 0.1 },
+                barWidth: '15',
+                data: backgroundData,
+                z: 5,
+                silent: true
+            }
         ]
     }
     myChart.setOption(option)
@@ -696,21 +802,33 @@ onMounted(async () => {
     if (loadingEl.value) loadingEl.value.style.display = 'block'
 
     // initialize charts
-    echarts_5()
-    echarts_1()
+
+
     echarts_2()
 
 
-    await loadContributorAnalysis()
-    await loadCorpusOverview()
-    await loadTimeSeriesAnalysis()
+    await Promise.all([
+        loadContributorAnalysis(),
+        loadCorpusOverview(),
+        loadTimeSeriesAnalysis(),
+        loadCollegeOverview(),
+        loadDomainAnalysis(),
+        loadCountryDistribution(),
+        loadRecentUploads()
+    ])
+
+    echarts_1()
     echarts_3()
     echarts_4()
+    echarts_5()
 
     zb1()
     zb2()
     zb3()
     zb4()
+
+    // 启动最近上传自动滚动
+    startRecentAutoScroll()
 
     // start clock
     updateClock()
@@ -725,11 +843,26 @@ onBeforeUnmount(() => {
     if (intervalId) clearInterval(intervalId)
     // remove resize handlers
     resizeHandlers.forEach(({ handler }) => window.removeEventListener('resize', handler))
+    stopRecentAutoScroll()
 })
 </script>
 
 <style lang="scss" scoped>
 .dashboard-landing {
     background: #000d4a url(@/images/bg.jpg) center top;
+}
+
+/* 隐藏“最近上传语料信息”列表滚动条 */
+.wrap {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.wrap::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    /* Chrome, Safari, Opera */
 }
 </style>
