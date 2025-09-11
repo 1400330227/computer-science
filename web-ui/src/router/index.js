@@ -90,18 +90,6 @@ const router = createRouter({
           meta: { requiresAuth: true, title: '语料库总览' }
         },
         {
-          path: '/dashboard/country-distribution',
-          name: 'country-distribution',
-          component: () => import('../views/dashboard/CountryDistributionView.vue'),
-          meta: { requiresAuth: true, title: '国家分布统计' }
-        },
-        {
-          path: '/dashboard/language-distribution',
-          name: 'language-distribution',
-          component: () => import('../views/dashboard/LanguageDistributionView.vue'),
-          meta: { requiresAuth: true, title: '语言分布统计' }
-        },
-        {
           path: '/dashboard/contributor-distribution',
           name: 'contributor-distribution',
           component: () => import('../views/dashboard/ContributorDistributionView.vue'),
@@ -112,19 +100,7 @@ const router = createRouter({
           name: 'time-series-analysis',
           component: () => import('../views/dashboard/TimeSeriesAnalysisView.vue'),
           meta: { requiresAuth: true, title: '趋势分析' }
-        },
-        {
-          path: '/dashboard/thematic-analysis',
-          name: 'thematic-analysis',
-          component: () => import('../views/dashboard/ThematicAnalysisView.vue'),
-          meta: { requiresAuth: true, title: '主题分析' }
-        },
-        {
-          path: '/dashboard/college-overview',
-          name: 'college-overview',
-          component: () => import('../views/dashboard/CollegeOverviewView.vue'),
-          meta: { requiresAuth: true, title: '学院总览' }
-        },
+        }
       ]
     },
     {
