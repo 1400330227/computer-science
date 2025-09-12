@@ -1,10 +1,9 @@
 <template>
     <div class="dashboard-landing">
-        <div :style="{ background: `#000d4a url(${bgUrl}) center top` }">
+        <div class="fullscreen">
             <div class="loading" ref="loadingEl">
                 <div class="loadbox"><img :src="loadingGifUrl"> 页面加载中...</div>
             </div>
-            <div class="back"></div>
             <div class="head">
                 <div class="weather"><span id="showTime">{{ showTime }}</span></div>
                 <h1>广西大学东盟语料收集与管理平台数据可视化</h1>
@@ -131,7 +130,7 @@ import { getRecentUploads } from '@/services/dashboard'
 const showTime = ref('')
 const loadingEl = ref(null)
 
-const bgUrl = new URL('@/images/bg.jpg', import.meta.url).href
+// const bgUrl = new URL('@/images/bg.jpg', import.meta.url).href
 const loadingGifUrl = new URL('@/images/loading.gif', import.meta.url).href
 
 let intervalId = null
@@ -712,6 +711,7 @@ function echarts_5() {
         ]
     }
     myChart.setOption(option)
+    setupAutoTooltip(myChart, option, 3000)
     initResizeFor(myChart)
 }
 
@@ -918,23 +918,3 @@ onBeforeUnmount(() => {
     stopRecentAutoScroll()
 })
 </script>
-
-<style lang="scss" scoped>
-.dashboard-landing {
-    background: #000d4a url(@/images/bg.jpg) center top;
-}
-
-/* 隐藏“最近上传语料信息”列表滚动条 */
-.wrap {
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
-}
-
-.wrap::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-    /* Chrome, Safari, Opera */
-}
-</style>

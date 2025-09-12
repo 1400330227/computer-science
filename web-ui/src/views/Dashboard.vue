@@ -37,66 +37,43 @@
         </div>
       </div>
     </div>
+
+    <!-- 文档下载区域 -->
+    <div class="document-section">
+      <h2>相关文档</h2>
+      <div class="document-cards">
+        <div class="document-card">
+          <div class="document-icon">📋</div>
+          <div class="document-content">
+            <h3>广西大学东盟语料库建设方案</h3>
+            <p>了解语料库建设的详细方案和规划</p>
+            <a href="/广西大学东盟语料库建设方案.docx" download>
+              <div class="download-btn">点击下载</div>
+            </a>
+          </div>
+        </div>
+
+        <div class="document-card">
+          <div class="document-icon">📖</div>
+          <div class="document-content">
+            <h3>广西大学东盟语料收集与管理平台系统操作手册</h3>
+            <p>详细的操作指南和使用说明</p>
+            <a href="/广西大学东盟语料收集与管理平台系统操作手册.docx" download>
+              <div class="download-btn">点击下载</div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { useRouter } from 'vue-router'
-import { onMounted, ref } from 'vue'
+import { onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import api from '../services/api'
-import { useUserStore } from '../stores/user'
+
 const router = useRouter()
-const userStore = useUserStore()
-// 列表与分页
-const tableData = ref([])
-const loading = ref(false)
-const currentPage = ref(1)
-const pageSize = ref(10)
-const total = ref(0)
-
-const loadCorpora = () => {
-  loading.value = true
-  const params = { page: currentPage.value, size: pageSize.value }
-  api
-    .get('/corpus', { params })
-    .then((response) => {
-      if (response.data && response.data.records) {
-        tableData.value = response.data.records
-        total.value = response.data.total || 0
-      } else if (Array.isArray(response.data)) {
-        tableData.value = response.data
-        total.value = response.data.length
-      } else {
-        tableData.value = []
-        total.value = 0
-        ElMessage.warning('返回数据格式不正确')
-      }
-    })
-    .catch(() => {
-      tableData.value = []
-      total.value = 0
-      ElMessage.error('获取语料列表失败，请稍后重试')
-    })
-    .finally(() => {
-      loading.value = false
-    })
-}
-
-function handlePageChange(page) {
-  currentPage.value = page
-  loadCorpora()
-}
-
-function getDownloadUrl(corpus) {
-  return `/api/corpus/download/${corpus.corpusId}`;
-}
-
-function handleSizeChange(size) {
-  pageSize.value = size
-  currentPage.value = 1
-  loadCorpora()
-}
 
 onMounted(() => {
   // loadCorpora()
@@ -110,16 +87,6 @@ function navigateTo(path) {
     router.push(path);
   }
 }
-
-const formatDate = (value) => {
-  if (!value) return ''
-  const d = new Date(value)
-  if (Number.isNaN(d.getTime())) return ''
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
 </script>
 
 <style scoped>
@@ -127,13 +94,6 @@ const formatDate = (value) => {
   max-width: 1200px;
   margin: 0 auto;
   /* padding: 20px; */
-}
-
-.dashboard-table {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .welcome-banner {
@@ -222,5 +182,83 @@ const formatDate = (value) => {
   .welcome-banner h1 {
     font-size: 24px;
   }
+}
+
+/* 文档下载区域样式 */
+.document-section {
+  margin-bottom: 30px;
+}
+
+.document-section h2 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #303133;
+  margin-bottom: 20px;
+}
+
+.document-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.document-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 25px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.document-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: #4b6cb7;
+  background-color: #f9fbff;
+}
+
+.document-icon {
+  font-size: 48px;
+  margin-right: 20px;
+  color: #4b6cb7;
+}
+
+.document-content {
+  flex: 1;
+}
+
+.document-content h3 {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #303133;
+}
+
+.document-content p {
+  font-size: 14px;
+  color: #606266;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.download-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.document-card:hover .download-btn {
+  background: linear-gradient(135deg, #5a7bc7 0%, #2a3a58 100%);
+  transform: scale(1.05);
 }
 </style>

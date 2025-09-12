@@ -107,7 +107,7 @@ const router = createRouter({
       path: '/dashboard-landing',
       name: 'dashboard-landing',
       component: () => import('../views/dashboard/DashboardLanding.vue'),
-      meta: { requiresAuth: true, title: '领域总览' }
+      meta: { requiresAuth: false, title: '领域总览' }
     }
 
   ]

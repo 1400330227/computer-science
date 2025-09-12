@@ -15,6 +15,9 @@ a.active,a:focus{ outline:none!important; text-decoration:none;}
 ol,ul,p,h1,h2,h3,h4,h5,h6{ padding:0; margin:0}
 a:hover{ color:#06c; text-decoration: none!important}
 
+.dashboard-landing{background: #000d4a url(@/images/bg.jpg);background-position: center top;background-repeat: no-repeat;background-size: cover;overflow: auto;height: 100%;width: 100%;}
+.dashboard-landing{min-width: 2032px;}
+.fullscreen {height: 100%;width: 100%;}
 
 .clearfix:after, .clearfix:before {
 	display: table;
@@ -37,10 +40,10 @@ a:hover{ color:#06c; text-decoration: none!important}
 .weather span{color:rgba(255,255,255,.9)!important; font-size: 24px; }
 
 .mainbox{ padding:10px 20px 0 20px;}
-.mainbox>ul{ margin-left:-.4rem; margin-right:-.4rem;}
-.mainbox>ul>li{ float: left; padding: 0 .4rem}
-.mainbox>ul>li{ width: 24%}
-.mainbox>ul>li:nth-child(2){ width: 52%}
+.mainbox>ul{ margin-left:-.4rem; margin-right:-.4rem; display: flex;}
+.mainbox>ul>li{padding: 0 .4rem; box-sizing: border-box;flex-shrink: 0;}
+.mainbox>ul>li{ width: 24%; min-width: 469px;}
+.mainbox>ul>li:nth-child(2){ width: 52%; min-width: 1031px;}
 
 .boxall{ padding:15px;  background: rgba(0,0,0,.2); position: relative; margin-bottom:15px;; z-index: 10;}
 .alltitle{ font-size:18px; color:#fff; position: relative; padding-left: 12px;margin-bottom: 10px;}
@@ -74,12 +77,14 @@ a:hover{ color:#06c; text-decoration: none!important}
 .wrap{ height:82%; overflow: hidden; }
 .wrap li{  line-height:40px; height:40px; }
 .wrap li p,.wraptit{ font-size: 0; }
-.wrap li span,.wraptit span{ display: inline-block; font-size: 16px;color: rgba(255,255,255,.6);}
+.wrap li span,.wraptit span{ display: inline-block; font-size: 16px;color: rgba(255,255,255,.6);white-space: nowrap; overflow: hidden;text-overflow: ellipsis;}
 .wraptit { border-bottom: 1px solid rgba(255,255,255,.2); padding:0 0 10px 0; margin-bottom: 10px;}
 .wrap li span:nth-child(1),.wraptit span:nth-child(1){ width: 15%}
 .wrap li span:nth-child(2),.wraptit span:nth-child(2){ width: 40%}
 .wrap li span:nth-child(3),.wraptit span:nth-child(3){ width: 20%}
 .wrap li span:nth-child(4),.wraptit span:nth-child(4){ width: 15%}
+.wrap {-ms-overflow-style: none;    scrollbar-width: none;}
+.wrap::-webkit-scrollbar {width: 0;height: 0;}
 
 .str_wrap {
 	overflow:hidden;

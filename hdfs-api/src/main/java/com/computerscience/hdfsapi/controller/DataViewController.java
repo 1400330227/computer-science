@@ -50,8 +50,13 @@ public class DataViewController {
     }
 
     @GetMapping("/countryDistribution")
-    public List<CountryDistribution> getCountryDistribution() {
-        return countryDistributionService.list();
+    public List<CountryDistribution> getCountryDistribution(
+            @RequestParam(defaultValue = "1") Integer pageNumber,
+            @RequestParam(defaultValue = "10") Integer pageSize
+    ) {
+        Page<CountryDistribution> page = new Page<>(pageNumber, pageSize);
+        Page<CountryDistribution> resultPage = countryDistributionService.page(page);
+        return resultPage.getRecords();
     }
 
     @GetMapping("/languageDistribution")
