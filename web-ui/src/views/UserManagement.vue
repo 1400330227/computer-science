@@ -87,7 +87,7 @@
     </div>
 
     <!-- 新增用户对话框 -->
-    <el-dialog v-model="createDialogVisible" title="新增用户" width="520px">
+    <el-dialog v-model="createDialogVisible" title="新增用户" width="600px" draggable :close-on-click-modal="false">
       <el-form :model="createForm" :rules="createRules" ref="createFormRef" label-width="90px">
         <el-form-item label="账号" required>
           <el-input v-model="createForm.account" placeholder="请输入账号" />
@@ -100,7 +100,12 @@
             @input="createForm.phone = createForm.phone.replace(/\D/g, '')" />
         </el-form-item>
         <el-form-item label="学院">
-          <el-input v-model="createForm.college" />
+          <!-- <el-input v-model="createForm.college" /> -->
+          <el-select v-model="createForm.college" clearable filterable autocomplete="on">
+            <el-option-group v-for="group in collegeGroups" :key="group.label" :label="group.label">
+              <el-option v-for="name in group.options" :key="name" :label="name" :value="name" />
+            </el-option-group>
+          </el-select>
         </el-form-item>
         <el-form-item label="职称">
           <el-input v-model="createForm.title" />
@@ -112,7 +117,6 @@
           <el-select v-model="createForm.gender" placeholder="请选择">
             <el-option label="男" value="男" />
             <el-option label="女" value="女" />
-            <el-option label="未知" value="未知" />
           </el-select>
         </el-form-item>
         <el-form-item label="账号状态">
@@ -138,7 +142,7 @@
     </el-dialog>
 
     <!-- 编辑用户对话框 -->
-    <el-dialog v-model="editDialogVisible" title="编辑用户" width="520px">
+    <el-dialog v-model="editDialogVisible" title="编辑用户" width="600px">
       <el-form :model="editForm" :rules="editRules" ref="editFormRef" label-width="90px">
         <el-form-item label="账号">
           <el-input v-model="editForm.account" />

@@ -233,7 +233,7 @@ function navigateTo(path) {
 }
 
 .document-content h3 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 500;
   margin-bottom: 8px;
   color: #303133;
