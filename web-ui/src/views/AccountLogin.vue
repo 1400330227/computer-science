@@ -75,24 +75,27 @@
     </el-card>
 
     <!-- 登记信息弹出框 -->
-    <el-dialog v-model="registrationDialogVisible" title="用户信息登记" width="500px" :close-on-click-modal="false"
+    <el-dialog v-model="registrationDialogVisible" title="用户信息登记" width="600px" :close-on-click-modal="false"
       :close-on-press-escape="true">
       <div class="registration-content">
-        <p>请通过以下链接登记您的信息：</p>
-        <div class="link-container">
-          <a href="https://www.kdocs.cn/l/caFGYN3GHWIe" target="_blank" class="registration-link">
-            https://www.kdocs.cn/l/caFGYN3GHWIe
-          </a>
+        <div class="qr-container">
+          <img :src="registerQrcode" alt="登记二维码" class="qrcode" />
         </div>
-        <p class="note">点击链接将在新窗口中打开金山文档，请按照文档要求填写相关信息。</p>
+        <p class="tips">1. 为精准筛选适合参与广西大学东盟语料库建设项目的同学，同时妥善安排后续劳务费发放、AI 技能培训及项目协作等事宜，请您扫码填写相关信息（包括学号、姓名、手机号、QQ
+          号、学院等）。我们会严格确保信息不外泄，请您认真填写，感谢您的配合。
+        </p>
+        <p class="tips">2. 填写完成后，请您加入工作组 QQ 群（群号：1007115093），我们将为您注册系统账号（新账号和密码详见工作组 QQ
+          群公告）。
+        </p>
+        <p class="tips">
+          3.
+          注册成功后，您可登录网站（http://172.21.44.162:5173/#/login）上传语料库相关数据集；在网站首页，请您详细阅读《广西大学东盟语料收集与管理平台系统操作手册》及《广西大学东盟语料库建设方案》。此外，我们将根据您的贡献度发放劳务费。
+        </p>
       </div>
 
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="registrationDialogVisible = false">关闭</el-button>
-          <el-button type="primary" @click="openRegistrationLink">
-            打开链接
-          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -111,6 +114,7 @@ import { ElMessage } from 'element-plus'  // Element Plus 的消息提示组件
 import { useUserStore } from '@/stores/user'  // 用户状态管理
 import { JSEncrypt } from 'jsencrypt'  // RSA加密库
 import heartbeatService from '@/services/heartbeat'  // 心跳检测服务
+import registerQrcode from '@/images/register_qrcode.png'
 
 // ======= 响应式数据定义 =======
 const router = useRouter()  // 创建路由对象，用于页面跳转
@@ -179,11 +183,6 @@ const showRegistrationInfo = () => {
   registrationDialogVisible.value = true
 }
 
-// ======= 打开登记链接函数 =======
-const openRegistrationLink = () => {
-  window.open('https://www.kdocs.cn/l/caFGYN3GHWIe', '_blank')
-  registrationDialogVisible.value = false
-}
 
 // ======= 页面加载时执行的函数 =======
 onMounted(async () => {
@@ -428,13 +427,14 @@ const handleLogin = async () => {
 /* 登记信息弹出框样式 */
 .registration-content {
   text-align: center;
-  padding: 20px 0;
+
 }
 
 .registration-content p {
   margin: 10px 0;
   color: #606266;
   line-height: 1.6;
+  font-size: 16px;
 }
 
 .link-container {
@@ -464,5 +464,22 @@ const handleLogin = async () => {
 
 .dialog-footer {
   text-align: right;
+}
+
+/* 二维码展示 */
+.qr-container {
+  margin: 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qrcode {
+  width: 220px;
+  height: 220px;
+}
+
+.tips {
+  text-align: left;
 }
 </style>
