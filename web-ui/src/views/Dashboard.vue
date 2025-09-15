@@ -3,7 +3,6 @@
     <div class="welcome-banner">
       <h1>欢迎使用广西大学东盟语料收集与管理平台</h1>
     </div>
-
     <div class="function-cards">
       <div class="card" @click="navigateTo('/file-list')">
         <div class="card-icon">📁</div>
@@ -37,32 +36,40 @@
         </div>
       </div>
     </div>
-
     <!-- 文档下载区域 -->
     <div class="document-section">
       <h2>相关文档</h2>
       <div class="document-cards">
         <div class="document-card">
-          <div class="document-icon">📋</div>
+<!--          <div class="document-icon">📋</div>-->
           <div class="document-content">
             <h3>广西大学东盟语料库建设方案</h3>
-            <p>了解语料库建设的详细方案和规划</p>
+<!--            <p>了解语料库建设的详细方案和规划</p>-->
             <a href="/广西大学东盟语料库建设方案.docx" download>
               <div class="download-btn">点击下载</div>
             </a>
           </div>
         </div>
-
         <div class="document-card">
-          <div class="document-icon">📖</div>
+<!--          <div class="document-icon">📖</div>-->
           <div class="document-content">
             <h3>广西大学东盟语料收集与管理平台系统操作手册</h3>
-            <p>详细的操作指南和使用说明</p>
+<!--            <p>详细的操作指南和使用说明</p>-->
             <a href="/广西大学东盟语料收集与管理平台系统操作手册.docx" download>
               <div class="download-btn">点击下载</div>
             </a>
           </div>
         </div>
+        <div class="document-card">
+<!--          <div class="document-icon">📊</div>-->
+          <div class="document-content">
+            <h3>东盟国家价值观相关数据初步整理说明</h3>
+<!--            <p>东盟国家价值观相关数据的整理说明和初步分析</p>-->
+            <a href="/东盟国家价值观相关数据初步整理说明.pdf" download>
+              <div class="download-btn">点击下载</div>
+            </a>
+          </div>
+      </div>
       </div>
     </div>
   </div>
@@ -204,7 +211,7 @@ function navigateTo(path) {
 
 .document-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
@@ -224,12 +231,11 @@ function navigateTo(path) {
 .document-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: #4b6cb7;
   background-color: #f9fbff;
 }
 
 .document-icon {
-  font-size: 48px;
+  font-size: 40px;
   margin-right: 20px;
   color: #4b6cb7;
 }
