@@ -844,6 +844,8 @@ public class AdminController {
             String language = params.get("language"); // 语种
             String classification = params.get("classification"); // 数据分类
             String dataYear = params.get("dataYear"); // 数据年份
+            String startDataYear = params.get("startDataYear"); // 起始年份
+            String endDataYear = params.get("endDataYear");   // 终止年份
 
             System.out.println("=== 管理员查询所有文件 ===");
             System.out.println("页码: " + page + ", 大小: " + size);
@@ -858,12 +860,14 @@ public class AdminController {
             System.out.println("语种: " + language);
             System.out.println("数据分类: " + classification);
             System.out.println("数据年份: " + dataYear);
+            System.out.println("起始年份: " + startDataYear);
+            System.out.println("终止年份: " + endDataYear);
 
             // 先根据语料条件筛选出符合条件的语料ID
             List<Integer> filteredCorpusIds = null;
             boolean hasCorpusFilters = StringUtils.hasText(corpusName) || StringUtils.hasText(country) ||
                     StringUtils.hasText(domain) || StringUtils.hasText(language) || StringUtils.hasText(classification) ||
-                    StringUtils.hasText(dataYear);
+                    StringUtils.hasText(dataYear) || StringUtils.hasText(startDataYear) || StringUtils.hasText(endDataYear);
 
             if (hasCorpusFilters) {
                 LambdaQueryWrapper<Corpus> corpusQueryWrapper = new LambdaQueryWrapper<>();
@@ -883,8 +887,16 @@ public class AdminController {
                 if (StringUtils.hasText(classification)) {
                     corpusQueryWrapper.like(Corpus::getClassification, classification);
                 }
+                // 兼容旧的单一年份筛选
                 if (StringUtils.hasText(dataYear)) {
                     corpusQueryWrapper.like(Corpus::getDataYear, dataYear);
+                }
+                // 新增：年份范围筛选（如果提供起始或终止年份）
+                if (StringUtils.hasText(startDataYear)) {
+                    corpusQueryWrapper.ge(Corpus::getDataYear, startDataYear);
+                }
+                if (StringUtils.hasText(endDataYear)) {
+                    corpusQueryWrapper.le(Corpus::getDataYear, endDataYear);
                 }
 
                 List<Corpus> filteredCorpusList = corpusService.list(corpusQueryWrapper);

@@ -33,7 +33,8 @@ const searchForm = reactive({
     domain: '',
     language: '',
     classification: '',
-    dataYear: ''
+    startDataYear: '',
+    endDataYear: ''
 });
 
 // 中国和东盟十国选项
@@ -215,8 +216,16 @@ onMounted(() => {
                         </template>
                     </el-input>
                 </el-form-item>
-                <el-form-item label="数据格式">
-                    <el-select v-model="searchForm.dataFormat" placeholder="选择数据格式" style="width: 230px;" clearable
+              <el-form-item label="语料名称">
+                <el-input v-model="searchForm.corpusName" placeholder="按语料名称搜索" style="width: 230px;"
+                          @keyup.enter="handleSearch" clearable @clear="handleSearch">
+                  <template #prefix>
+                    <Search />
+                  </template>
+                </el-input>
+              </el-form-item>
+                <el-form-item label="数据模态">
+                    <el-select v-model="searchForm.dataFormat" placeholder="选择数据模态" style="width: 230px;" clearable
                         @change="handleSearch">
                         <el-option label="文本" value="文本" />
                         <el-option label="图像" value="图像" />
@@ -227,14 +236,6 @@ onMounted(() => {
                 </el-form-item>
 
                 <!-- 第二行：语料相关筛选条件 -->
-                <el-form-item label="语料名称">
-                    <el-input v-model="searchForm.corpusName" placeholder="按语料名称搜索" style="width: 230px;"
-                        @keyup.enter="handleSearch" clearable @clear="handleSearch">
-                        <template #prefix>
-                            <Search />
-                        </template>
-                    </el-input>
-                </el-form-item>
                 <el-form-item label="国家">
                     <el-select v-model="searchForm.country" placeholder="选择国家" style="width: 230px;" clearable
                         @change="handleSearch">
@@ -272,8 +273,12 @@ onMounted(() => {
                 </el-form-item>
 
                 <!-- 第四行：年份筛选 -->
-                <el-form-item label="数据年份">
-                    <el-date-picker v-model="searchForm.dataYear" type="year" placeholder="选择数据年份" style="width: 230px;"
+                <el-form-item label="时间范围">
+                    <el-date-picker v-model="searchForm.startDataYear" type="year" placeholder="" style="width: 113px;"
+                        @change="handleSearch" clearable format="YYYY" value-format="YYYY">
+                    </el-date-picker>
+                    <span class="text-gray-500">-</span>
+                    <el-date-picker v-model="searchForm.endDataYear" type="year" placeholder="" style="width: 113px;"
                         @change="handleSearch" clearable format="YYYY" value-format="YYYY">
                     </el-date-picker>
                 </el-form-item>
@@ -310,11 +315,11 @@ onMounted(() => {
                     </template>
                 </el-table-column>
                 <el-table-column prop="corpusName" label="语料名称"></el-table-column>
+              <el-table-column prop="corpusCountry" label="国家"></el-table-column>
                 <el-table-column prop="corpusDomain" label="所属领域"></el-table-column>
-                <el-table-column prop="corpusCountry" label="国家"></el-table-column>
                 <el-table-column prop="corpusClassification" label="数据分类"></el-table-column>
-                <el-table-column prop="corpusDataYear" label="数据年份" width="100" v-if="hasCorpusInfo"></el-table-column>
-                <el-table-column prop="corpusLanguage" label="语言" width="100" v-if="hasCorpusInfo" />
+                <el-table-column prop="corpusDataYear" label="数据年份" width="100"></el-table-column>
+<!--                <el-table-column prop="corpusLanguage" label="语言" width="100" />-->
                 <el-table-column label="操作" width="90">
                     <template #default="scope">
                         <a :href="getFileDownloadUrl(scope.row)" class="download-link" title="下载文件" download>

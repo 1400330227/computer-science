@@ -11,8 +11,8 @@
                         </template>
                     </el-input>
                 </el-form-item>
-                <el-form-item label="数据格式">
-                    <el-select v-model="searchForm.dataFormat" placeholder="选择数据格式" style="width: 230px;" clearable
+                <el-form-item label="数据模态">
+                    <el-select v-model="searchForm.dataFormat" placeholder="选择数据模态" style="width: 230px;" clearable
                         @change="handleSearch">
                         <el-option label="文本" value="文本" />
                         <el-option label="图像" value="图像" />
@@ -83,8 +83,12 @@
                 </el-form-item>
 
                 <!-- 第四行：年份和学院筛选 -->
-                <el-form-item label="数据年份">
-                    <el-date-picker v-model="searchForm.dataYear" type="year" placeholder="选择数据年份" style="width: 230px;"
+                <el-form-item label="时间范围">
+                    <el-date-picker v-model="searchForm.startDataYear" type="year" placeholder="" style="width: 113px;"
+                        @change="handleSearch" clearable format="YYYY" value-format="YYYY">
+                    </el-date-picker>
+                    <span class="text-gray-500">-</span>
+                    <el-date-picker v-model="searchForm.endDataYear" type="year" placeholder="" style="width: 113px;"
                         @change="handleSearch" clearable format="YYYY" value-format="YYYY">
                     </el-date-picker>
                 </el-form-item>
@@ -128,27 +132,26 @@
                 <!-- 多选列 -->
                 <el-table-column type="selection" width="55" />
 
-                <el-table-column prop="fileName" label="文件" min-width="300">
+                <el-table-column prop="fileName" label="文件" min-width="290">
                     <template #default="scope">
                         <div>{{ scope.row.fileName }}</div>
-                        <div style="color:#999999">
-                            详情：{{ scope.row.corpusDomain }}领域 | {{ scope.row.corpusCountry }} </div>
-                        <div style="color:#999999">属性：{{ scope.row.dataFormat }} | {{ formatFileSize(scope.row.size)
+
+                        <div style="color:#999999">{{ scope.row.dataFormat }} | {{ formatFileSize(scope.row.size)
                             }}GB</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="corpusName" label="语料名称" width="200">
-                    <template #default="scope">
-                        <div>
-                            <div>{{ scope.row.corpusName }}</div>
-                            <el-tag type="primary"> {{ scope.row.corpusClassification }}</el-tag>
-                        </div>
-                    </template>
+                  <template #default="{row}">
+                    {{row.corpusName}}
+                    <div style="color:#999999">
+                      {{ row.corpusCountry }} | {{ row.corpusDomain }}领域</div>
+                  </template>
                 </el-table-column>
                 <el-table-column prop="creatorCollege" label="学院" width="200"></el-table-column>
                 <el-table-column prop="creatorNickname" label="所有者" width="100" />
+              <el-table-column prop="corpusClassification" label="数据分类" width="110" />
                 <el-table-column prop="corpusDataYear" label="数据年份" width="110"></el-table-column>
-                <el-table-column prop="corpusLanguage" label="语言" width="100" />
+
                 <el-table-column label="操作" width="90">
                     <template #default="scope">
                         <a :href="getDownloadUrl(scope.row)" class="download-link" title="下载语料" download>
@@ -195,7 +198,8 @@ const searchForm = reactive({
     domain: '',
     language: '',
     classification: '',
-    dataYear: '',
+    startDataYear: '',
+    endDataYear: '',
     creatorCollege: ''
 });
 
