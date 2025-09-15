@@ -81,12 +81,12 @@
                 </el-select>
               </el-form-item>
 
-              <el-form-item label="数据模态" prop="dataFormat">
+              <!-- <el-form-item label="数据模态" prop="dataFormat">
                 <el-select v-model="formData.dataFormat" filterable placeholder="请选择数据模态" multiple>
                   <el-option v-for="dataFormat in dataFormats" :key="dataFormat.dataFormat"
                     :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
                 </el-select>
-              </el-form-item>
+              </el-form-item> -->
             </div>
 
             <!-- 右侧表单 -->
@@ -113,15 +113,15 @@
               <!-- <el-form-item label="数据来源机构" prop="sourceLocation">
                 <el-input v-model="formData.sourceLocation" placeholder="如：广西xxx、老挝xx部、xx学院，注明数据来源机构"></el-input>
               </el-form-item> -->
-              <el-form-item label="价值观语料" prop="valuesCorpus">
-                <el-radio-group v-model="formData.valuesCorpus">
-                  <el-radio label="否">否</el-radio>
-                  <el-radio label="是">是</el-radio>
-                </el-radio-group>
-              </el-form-item>
+<!--              <el-form-item label="价值观语料" prop="valuesCorpus">-->
+<!--                <el-radio-group v-model="formData.valuesCorpus">-->
+<!--                  <el-radio label="否">否</el-radio>-->
+<!--                  <el-radio label="是">是</el-radio>-->
+<!--                </el-radio-group>-->
+<!--              </el-form-item>-->
 
               <el-form-item label="数据来源" prop="dataSource">
-                <el-input v-model="formData.dataSource" placeholder="提供具体数据网站或者描述具体来源"></el-input>
+                <el-input v-model="formData.dataSource" placeholder="提供具体数据网站或者描述数据具体来源，如广西大学新闻网：https://news.gxu.edu.cn/info/1002/42978.htm" type="textarea"></el-input>
               </el-form-item>
 
               <el-form-item label="数据提供方" prop="provider">
@@ -311,11 +311,11 @@ const rules = {
   sourceLocation: [
     { required: false, message: '请输入数据来源机构', trigger: 'blur' }
   ],
-  valuesCorpus: [
-    { required: true, message: '请选择是否为价值观语料', trigger: 'change' }
-  ],
+  // valuesCorpus: [
+  //   { required: true, message: '请选择是否为价值观语料', trigger: 'change' }
+  // ],
   dataSource: [
-    { required: false, message: '请输入数据来源', trigger: 'blur' }
+    { required: true, message: '请输入数据来源', trigger: 'blur' }
   ],
   provider: [
     { required: false, message: '请输入数据提供方', trigger: 'blur' }
@@ -348,13 +348,13 @@ const formData = reactive({
   domain: '教育',
   language: '',
   dataFormat: ['文本'],
-  classification: '基础语料',
+  classification: '价值观语料',
   dataVolume: 0,
   volumeUnit: '份',
   estimatedCapacityGb: 0.000000,
   dataYear: new Date().getFullYear().toString(),
   sourceLocation: '',
-  valuesCorpus: '否',  // 新增这一行，默认值为"否"
+  // valuesCorpus: '否',  // 新增这一行，默认值为"否"
   dataSource: '',
   provider: '',
   providerContact: '',

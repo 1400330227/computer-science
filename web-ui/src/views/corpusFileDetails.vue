@@ -48,13 +48,12 @@
                                     </el-select>
                                     <!-- <el-input v-model="editForm.language" placeholder="请输入语种" /> -->
                                 </el-form-item>
-                                <el-form-item label="数据模态" prop="dataFormat">
-                                    <!-- <el-input v-model="editForm.dataFormat" placeholder="例如：文本、语音" /> -->
+                                <!-- <el-form-item label="数据模态" prop="dataFormat">
                                     <el-select v-model="editForm.dataFormat" filterable placeholder="请选择数据模态" multiple>
                                         <el-option v-for="dataFormat in dataFormats" :key="dataFormat.dataFormat"
                                             :label="dataFormat.dataFormat" :value="dataFormat.dataFormat"></el-option>
                                     </el-select>
-                                </el-form-item>
+                                </el-form-item> -->
 
 
                             </div>
@@ -83,11 +82,11 @@
                                     <el-date-picker v-model="editForm.dataYear" type="year" placeholder="请选择数据年份"
                                         format="YYYY" value-format="YYYY" />
                                 </el-form-item>
-                                <el-form-item label="数据来源机构" prop="sourceLocation">
+                                <!-- <el-form-item label="数据来源机构" prop="sourceLocation">
                                     <el-input v-model="editForm.sourceLocation" placeholder="请输入数据来源机构" />
-                                </el-form-item>
+                                </el-form-item> -->
                                 <el-form-item label="数据来源" prop="dataSource">
-                                    <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" />
+                                    <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" type="textarea"/>
                                 </el-form-item>
                                 <el-form-item label="数据提供方" prop="provider">
                                     <el-input v-model="editForm.provider" disabled placeholder="请输入数据提供方" />

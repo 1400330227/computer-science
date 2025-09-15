@@ -84,9 +84,9 @@
                                     <el-date-picker v-model="editForm.dataYear" type="year" placeholder="请选择数据年份"
                                         format="YYYY" value-format="YYYY" />
                                 </el-form-item>
-                                <el-form-item label="数据来源机构" prop="sourceLocation">
+                                <!-- <el-form-item label="数据来源机构" prop="sourceLocation">
                                     <el-input v-model="editForm.sourceLocation" placeholder="请输入数据来源机构" />
-                                </el-form-item>
+                                </el-form-item> -->
                                 <el-form-item label="数据来源" prop="dataSource">
                                     <el-input v-model="editForm.dataSource" placeholder="提供具体数据网站或者具体来源描述" />
                                 </el-form-item>

@@ -95,6 +95,42 @@
             "fullName": "SubRip Subtitle",
             "description": "字幕文件，纯文本格式存储视频字幕和时间码",
             "commonUses": "字幕文件，纯文本格式存储视频字幕和时间码"
+        },
+        {
+            "extension": ".xls",
+            "fullName": "Microsoft Excel Spreadsheet (老版本)",
+            "description": "Microsoft Excel 97-2003电子表格文档",
+            "commonUses": "Microsoft Excel 97-2003电子表格文档"
+        },
+        {
+            "extension": ".xlsx",
+            "fullName": "Microsoft Excel Open XML Spreadsheet",
+            "description": "Microsoft Excel 2007及之后版本的电子表格文档",
+            "commonUses": "Microsoft Excel 2007及之后版本的电子表格文档"
+        },
+        {
+            "extension": ".ods",
+            "fullName": "OpenDocument Spreadsheet",
+            "description": "LibreOffice Calc、OpenOffice Calc等开源办公软件的电子表格格式",
+            "commonUses": "LibreOffice Calc、OpenOffice Calc等开源办公软件的电子表格格式"
+        },
+        {
+            "extension": ".ppt",
+            "fullName": "Microsoft PowerPoint Presentation (老版本)",
+            "description": "Microsoft PowerPoint 97-2003演示文稿文档",
+            "commonUses": "Microsoft PowerPoint 97-2003演示文稿文档"
+        },
+        {
+            "extension": ".pptx",
+            "fullName": "Microsoft PowerPoint Open XML Presentation",
+            "description": "Microsoft PowerPoint 2007及之后版本的演示文稿文档",
+            "commonUses": "Microsoft PowerPoint 2007及之后版本的演示文稿文档"
+        },
+        {
+            "extension": ".odp",
+            "fullName": "OpenDocument Presentation",
+            "description": "LibreOffice Impress、OpenOffice Impress等开源办公软件的演示文稿格式",
+            "commonUses": "LibreOffice Impress、OpenOffice Impress等开源办公软件的演示文稿格式"
         }
     ],
     "videoFormats": [
@@ -313,6 +349,106 @@
             "type": "有损压缩",
             "description": "另一种常见的环绕声编码，是杜比数字的竞争对手。",
             "characteristics": "另一种常见的环绕声编码，是杜比数字的竞争对手。"
+        }
+    ],
+    "imageFormats": [
+        {
+            "extension": ".jpg/.jpeg",
+            "fullName": "Joint Photographic Experts Group",
+            "type": "有损压缩",
+            "description": "最常见的图像格式。通过压缩大幅减小文件体积，但会永久丢失部分数据。适合存储颜色丰富的照片，但不适合保存logo、线稿等需要清晰边缘的图片。",
+            "characteristics": "最常见的图像格式。通过压缩大幅减小文件体积，但会永久丢失部分数据。适合存储颜色丰富的照片，但不适合保存logo、线稿等需要清晰边缘的图片。"
+        },
+        {
+            "extension": ".png",
+            "fullName": "Portable Network Graphics",
+            "type": "无损压缩",
+            "description": "支持透明度（透明通道）。压缩效率高且无损，适合保存logo、图标、网页图形、截图等需要清晰边缘或透明背景的图片。通常体积比JPG大。",
+            "characteristics": "支持透明度（透明通道）。压缩效率高且无损，适合保存logo、图标、网页图形、截图等需要清晰边缘或透明背景的图片。通常体积比JPG大。"
+        },
+        {
+            "extension": ".gif",
+            "fullName": "Graphics Interchange Format",
+            "type": "无损压缩（但色域有限）",
+            "description": "支持动画和简单的透明度（只有完全透明或不透明，没有半透明）。最多只支持256色，适合颜色简单的图形、动画表情包。",
+            "characteristics": "支持动画和简单的透明度（只有完全透明或不透明，没有半透明）。最多只支持256色，适合颜色简单的图形、动画表情包。"
+        },
+        {
+            "extension": ".bmp",
+            "fullName": "Bitmap",
+            "type": "未压缩",
+            "description": "Windows系统中的标准位图格式。几乎不进行压缩，保留了完整的图像数据，因此画质最好但体积非常大，现在已不常用。",
+            "characteristics": "Windows系统中的标准位图格式。几乎不进行压缩，保留了完整的图像数据，因此画质最好但体积非常大，现在已不常用。"
+        },
+        {
+            "extension": ".tiff/.tif",
+            "fullName": "Tagged Image File Format",
+            "type": "通常无损压缩",
+            "description": "高质量专业格式。支持图层、多种压缩方案，常用于印刷出版、扫描、专业摄影等领域，以保证最高质量。",
+            "characteristics": "高质量专业格式。支持图层、多种压缩方案，常用于印刷出版、扫描、专业摄影等领域，以保证最高质量。"
+        },
+        {
+            "extension": ".webp",
+            "fullName": "Web Picture",
+            "type": "有损/无损压缩",
+            "description": "由Google开发，专为Web设计。在相同质量下，体积比JPEG和PNG更小，支持透明度和动画。正在成为Web图像的新标准。",
+            "characteristics": "由Google开发，专为Web设计。在相同质量下，体积比JPEG和PNG更小，支持透明度和动画。正在成为Web图像的新标准。"
+        },
+        {
+            "extension": ".svg",
+            "fullName": "Scalable Vector Graphics",
+            "type": "矢量图形",
+            "description": "基于XML的矢量格式。图像由数学公式定义，因此可以无限放大而不失真。非常适合logo、图标、图表等需要多种尺寸显示的图形。",
+            "characteristics": "基于XML的矢量格式。图像由数学公式定义，因此可以无限放大而不失真。非常适合logo、图标、图表等需要多种尺寸显示的图形。"
+        },
+        {
+            "extension": ".eps",
+            "fullName": "Encapsulated PostScript",
+            "type": "矢量图形",
+            "description": "一种老式的矢量格式，常用于印刷和Adobe Illustrator软件。",
+            "characteristics": "一种老式的矢量格式，常用于印刷和Adobe Illustrator软件。"
+        },
+        {
+            "extension": ".raw",
+            "fullName": "Raw Image Format",
+            "type": "未处理数据",
+            "description": "\"数字底片\"。是相机传感器捕获的原始、未处理的数据，保留了最大的图像信息，为后期编辑提供了极大灵活性。不同相机厂商有各自的RAW格式（如.CR2, .NEF, .ARW）。",
+            "characteristics": "\"数字底片\"。是相机传感器捕获的原始、未处理的数据，保留了最大的图像信息，为后期编辑提供了极大灵活性。不同相机厂商有各自的RAW格式（如.CR2, .NEF, .ARW）。"
+        },
+        {
+            "extension": ".ico",
+            "fullName": "Windows Icon",
+            "type": "光栅/矢量",
+            "description": "专门用于存储计算机图标的格式，包含多个尺寸和色深的一个或多个图像。",
+            "characteristics": "专门用于存储计算机图标的格式，包含多个尺寸和色深的一个或多个图像。"
+        },
+        {
+            "extension": ".heic/.heif",
+            "fullName": "High Efficiency Image File Format",
+            "type": "有损/无损压缩",
+            "description": "由MPEG开发的新一代格式，采用先进的压缩技术，在相同画质下文件大小比JPEG小约50%。是苹果设备（iPhone、iPad）的默认照片格式。",
+            "characteristics": "由MPEG开发的新一代格式，采用先进的压缩技术，在相同画质下文件大小比JPEG小约50%。是苹果设备（iPhone、iPad）的默认照片格式。"
+        },
+        {
+            "extension": ".psd",
+            "fullName": "Photoshop Document",
+            "type": "专用格式",
+            "description": "Adobe Photoshop的源文件格式，支持图层、蒙版、通道等所有编辑信息，用于图像编辑和设计。",
+            "characteristics": "Adobe Photoshop的源文件格式，支持图层、蒙版、通道等所有编辑信息，用于图像编辑和设计。"
+        },
+        {
+            "extension": ".ai",
+            "fullName": "Adobe Illustrator Artwork",
+            "type": "专用格式",
+            "description": "Adobe Illustrator的源文件格式，用于存储矢量图形设计的原始数据。",
+            "characteristics": "Adobe Illustrator的源文件格式，用于存储矢量图形设计的原始数据。"
+        },
+        {
+            "extension": ".indd",
+            "fullName": "InDesign Document",
+            "type": "专用格式",
+            "description": "Adobe InDesign的源文件格式，用于排版设计。",
+            "characteristics": "Adobe InDesign的源文件格式，用于排版设计。"
         }
     ]
 }

@@ -8,6 +8,7 @@ import com.computerscience.hdfsapi.service.CorpusService;
 import com.computerscience.hdfsapi.service.FileService;
 import com.computerscience.hdfsapi.utils.UserContext;
 import com.computerscience.hdfsapi.api.HdfsApi;
+import com.computerscience.hdfsapi.enums.DataFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -432,6 +433,14 @@ public class CorpusController {
             fileEntity.setCreatorId(currentUser.getUserId());
             fileEntity.setCorpusId(corpusId);
             fileEntity.setCreatedAt(LocalDateTime.now());
+            
+            // 使用DataFormat枚举根据文件扩展名判断文件类型并设置dataFormat属性
+            DataFormat dataFormat = DataFormat.getByFileName(fileName);
+            if (dataFormat != null) {
+                fileEntity.setDataFormat(dataFormat.getCategory());
+            } else {
+                fileEntity.setDataFormat("其他"); // 如果未匹配到任何已知格式，设置为OTHER
+            }
             
             // 设置文件大小，转换为GB并保留两位小数
 //            double sizeInGB = (double) file.getSize() / (1024 * 1024 * 1024);

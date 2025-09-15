@@ -117,6 +117,4 @@ public class Corpus implements Serializable {
     @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
-    @TableField("values_corpus")
-    private String valuesCorpus;
 }

@@ -41,7 +41,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
 
 
-
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
@@ -833,47 +832,42 @@ public class AdminController {
             int page = Integer.parseInt(params.getOrDefault("page", "1"));
             int size = Integer.parseInt(params.getOrDefault("size", "10"));
             String fileName = params.get("fileName");
-            String fileType = params.get("fileType");
+            String dataFormat = params.get("dataFormat"); // 数据格式
             String creatorNickname = params.get("creatorNickname");
+            String creatorCollege = params.get("creatorCollege"); // 学院
             Integer corpusId = params.get("corpusId") != null ? Integer.parseInt(params.get("corpusId")) : null;
-            
+
             // 新增的语料相关筛选参数
             String corpusName = params.get("corpusName"); // 语料名称
             String country = params.get("country"); // 国家
             String domain = params.get("domain"); // 所属领域
             String language = params.get("language"); // 语种
-            String dataFormat = params.get("dataFormat"); // 数据模态
             String classification = params.get("classification"); // 数据分类
             String dataYear = params.get("dataYear"); // 数据年份
-            String minFileSize = params.get("minFileSize"); // 最小文件大小(GB)
-            String maxFileSize = params.get("maxFileSize"); // 最大文件大小(GB)
 
             System.out.println("=== 管理员查询所有文件 ===");
             System.out.println("页码: " + page + ", 大小: " + size);
             System.out.println("文件名: " + fileName);
-            System.out.println("文件类型: " + fileType);
+            System.out.println("数据格式: " + dataFormat);
             System.out.println("创建者姓名: " + creatorNickname);
+            System.out.println("创建者学院: " + creatorCollege);
             System.out.println("语料ID: " + corpusId);
             System.out.println("语料名称: " + corpusName);
             System.out.println("国家: " + country);
             System.out.println("所属领域: " + domain);
             System.out.println("语种: " + language);
-            System.out.println("数据模态: " + dataFormat);
             System.out.println("数据分类: " + classification);
             System.out.println("数据年份: " + dataYear);
-            System.out.println("最小文件大小: " + minFileSize);
-            System.out.println("最大文件大小: " + maxFileSize);
 
             // 先根据语料条件筛选出符合条件的语料ID
             List<Integer> filteredCorpusIds = null;
-            boolean hasCorpusFilters = StringUtils.hasText(corpusName) || StringUtils.hasText(country) || 
-                                     StringUtils.hasText(domain) || StringUtils.hasText(language) || 
-                                     StringUtils.hasText(dataFormat) || StringUtils.hasText(classification) || 
-                                     StringUtils.hasText(dataYear);
+            boolean hasCorpusFilters = StringUtils.hasText(corpusName) || StringUtils.hasText(country) ||
+                    StringUtils.hasText(domain) || StringUtils.hasText(language) || StringUtils.hasText(classification) ||
+                    StringUtils.hasText(dataYear);
 
             if (hasCorpusFilters) {
                 LambdaQueryWrapper<Corpus> corpusQueryWrapper = new LambdaQueryWrapper<>();
-                
+
                 if (StringUtils.hasText(corpusName)) {
                     corpusQueryWrapper.like(Corpus::getCollectionName, corpusName);
                 }
@@ -886,9 +880,6 @@ public class AdminController {
                 if (StringUtils.hasText(language)) {
                     corpusQueryWrapper.like(Corpus::getLanguage, language);
                 }
-                if (StringUtils.hasText(dataFormat)) {
-                    corpusQueryWrapper.like(Corpus::getDataFormat, dataFormat);
-                }
                 if (StringUtils.hasText(classification)) {
                     corpusQueryWrapper.like(Corpus::getClassification, classification);
                 }
@@ -898,8 +889,8 @@ public class AdminController {
 
                 List<Corpus> filteredCorpusList = corpusService.list(corpusQueryWrapper);
                 filteredCorpusIds = filteredCorpusList.stream()
-                    .map(Corpus::getCorpusId)
-                    .collect(Collectors.toList());
+                        .map(Corpus::getCorpusId)
+                        .collect(Collectors.toList());
 
                 if (filteredCorpusIds.isEmpty()) {
                     // 如果没有符合条件的语料，返回空结果
@@ -918,9 +909,9 @@ public class AdminController {
                 queryWrapper.like(FileEntity::getFileName, fileName);
             }
 
-            // 文件类型搜索
-            if (StringUtils.hasText(fileType)) {
-                queryWrapper.eq(FileEntity::getFileType, fileType);
+            // 数据格式搜索
+            if (StringUtils.hasText(dataFormat)) {
+                queryWrapper.eq(FileEntity::getDataFormat, dataFormat);
             }
 
             // 语料ID搜索
@@ -937,6 +928,28 @@ public class AdminController {
             if (StringUtils.hasText(creatorNickname)) {
                 LambdaQueryWrapper<User> userQueryWrapper = new LambdaQueryWrapper<>();
                 userQueryWrapper.like(User::getNickname, creatorNickname);
+                List<User> users = userService.list(userQueryWrapper);
+
+                if (!users.isEmpty()) {
+                    List<Integer> userIds = new ArrayList<>();
+                    for (User user : users) {
+                        userIds.add(user.getUserId());
+                    }
+                    queryWrapper.in(FileEntity::getCreatorId, userIds);
+                } else {
+                    // 如果没有找到匹配的用户，返回空结果
+                    DPage<Map<String, Object>> emptyResult = new DPage<>(new ArrayList<>(), 0L, page, size);
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("success", true);
+                    response.put("data", emptyResult);
+                    return ResponseEntity.ok(response);
+                }
+            }
+
+            // 如果按创建者学院搜索，先查找用户ID
+            if (StringUtils.hasText(creatorCollege)) {
+                LambdaQueryWrapper<User> userQueryWrapper = new LambdaQueryWrapper<>();
+                userQueryWrapper.like(User::getCollege, creatorCollege);
                 List<User> users = userService.list(userQueryWrapper);
 
                 if (!users.isEmpty()) {
@@ -1002,6 +1015,7 @@ public class AdminController {
                 fileInfo.put("corpusId", file.getCorpusId());
                 fileInfo.put("createdAt", file.getCreatedAt());
                 fileInfo.put("updatedAt", file.getUpdatedAt());
+                fileInfo.put("dataFormat", file.getDataFormat());
 
                 // 添加创建者信息
                 User creator = userMap.get(file.getCreatorId());
@@ -1028,40 +1042,6 @@ public class AdminController {
                 }
 
                 fileWithInfoList.add(fileInfo);
-            }
-
-            // 文件大小筛选（在内存中筛选，因为文件大小存储为字符串）
-            if (StringUtils.hasText(minFileSize) || StringUtils.hasText(maxFileSize)) {
-                fileWithInfoList = fileWithInfoList.stream()
-                    .filter(fileInfo -> {
-                        String sizeStr = (String) fileInfo.get("size");
-                        if (sizeStr == null || sizeStr.trim().isEmpty()) {
-                            return false;
-                        }
-                        
-                        try {
-                            double fileSize = Double.parseDouble(sizeStr);
-                            
-                            if (StringUtils.hasText(minFileSize)) {
-                                double minSize = Double.parseDouble(minFileSize);
-                                if (fileSize < minSize) {
-                                    return false;
-                                }
-                            }
-                            
-                            if (StringUtils.hasText(maxFileSize)) {
-                                double maxSize = Double.parseDouble(maxFileSize);
-                                if (fileSize > maxSize) {
-                                    return false;
-                                }
-                            }
-                            
-                            return true;
-                        } catch (NumberFormatException e) {
-                            return false;
-                        }
-                    })
-                    .collect(Collectors.toList());
             }
 
             DPage<Map<String, Object>> result = new DPage<>(fileWithInfoList, filePage.getTotal(), page, size);
@@ -1208,7 +1188,7 @@ public class AdminController {
         try {
             System.out.println("=== 批量下载文件 ===");
             System.out.println("文件IDs: " + fileIds);
-            
+
             // 解析文件ID列表
             String[] fileIdArray = fileIds.split(",");
             List<Integer> fileIdList = new ArrayList<>();
@@ -1219,13 +1199,13 @@ public class AdminController {
                     System.err.println("无效的文件ID: " + fileIdStr);
                 }
             }
-            
+
             if (fileIdList.isEmpty()) {
                 response.setStatus(400);
                 response.getWriter().write("没有有效的文件ID");
                 return;
             }
-            
+
             // 查询文件信息
             List<FileEntity> files = fileService.listByIds(fileIdList);
             if (files.isEmpty()) {
@@ -1233,13 +1213,13 @@ public class AdminController {
                 response.getWriter().write("没有找到文件");
                 return;
             }
-            
+
             System.out.println("找到 " + files.size() + " 个文件");
-            
+
             // 创建HDFS API连接
             HdfsApi hdfsApi = new HdfsApi(conf, hdfsUser);
             String zipFileName = "批量下载_" + System.currentTimeMillis() + ".zip";
-            
+
             // 创建临时ZIP文件
             File tempZipFile = null;
             ZipOutputStream zipOut = null;
@@ -1248,24 +1228,24 @@ public class AdminController {
                 String timestamp = String.valueOf(System.currentTimeMillis());
                 String random = String.valueOf(Thread.currentThread().getId());
                 tempZipFile = File.createTempFile("batch_download_" + timestamp + "_" + random + "_", ".zip");
-                
+
                 // 创建ZIP输出流指向临时文件
                 zipOut = new ZipOutputStream(new FileOutputStream(tempZipFile));
-                
+
                 int successCount = 0;
                 int failCount = 0;
-                
+
                 for (FileEntity file : files) {
                     try {
                         String hdfsPath = file.getFilePath();
                         String fileName = file.getFileName();
-                        
+
                         System.out.println("添加文件到ZIP: " + fileName + " (HDFS: " + hdfsPath + ")");
-                        
+
                         // 添加ZIP条目
                         ZipEntry zipEntry = new ZipEntry(fileName);
                         zipOut.putNextEntry(zipEntry);
-                        
+
                         // 从HDFS读取文件并写入ZIP
                         Path sPath = new Path(hdfsPath);
                         try (InputStream inputStream = hdfsApi.getFs().open(sPath)) {
@@ -1275,17 +1255,17 @@ public class AdminController {
                                 zipOut.write(buffer, 0, length);
                             }
                         }
-                        
+
                         zipOut.closeEntry();
                         successCount++;
-                        
+
                     } catch (Exception e) {
                         System.err.println("添加文件到ZIP失败: " + file.getFileName() + ", 错误: " + e.getMessage());
                         failCount++;
                         // 继续处理其他文件，不中断整个下载过程
                     }
                 }
-                
+
                 // 如果有文件失败，在ZIP中添加一个说明文件
                 if (failCount > 0) {
                     try {
@@ -1298,14 +1278,14 @@ public class AdminController {
                         System.err.println("无法添加说明文件: " + e.getMessage());
                     }
                 }
-                
+
                 // 关闭ZIP输出流
                 zipOut.close();
                 zipOut = null;
-                
+
                 System.out.println("ZIP打包完成: 成功 " + successCount + " 个文件, 失败 " + failCount + " 个文件");
                 System.out.println("临时ZIP文件大小: " + tempZipFile.length() + " 字节");
-                
+
                 // 设置HTTP响应头
                 response.setContentType("application/zip");
                 response.setHeader("Content-Disposition",
@@ -1314,10 +1294,10 @@ public class AdminController {
                 response.setHeader("Pragma", "no-cache");
                 response.setHeader("Expires", "0");
                 response.setHeader("X-Content-Type-Options", "nosniff");
-                
+
                 // 设置准确的内容长度
                 response.setContentLengthLong(tempZipFile.length());
-                
+
                 // 将临时文件内容写入响应输出流
                 try (InputStream fileInputStream = new FileInputStream(tempZipFile)) {
                     byte[] buffer = new byte[8192];
@@ -1326,9 +1306,9 @@ public class AdminController {
                         response.getOutputStream().write(buffer, 0, bytesRead);
                     }
                 }
-                
+
                 System.out.println("批量下载完成");
-                
+
             } catch (Exception e) {
                 System.err.println("创建ZIP文件失败: " + e.getMessage());
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "创建下载包失败");
@@ -1340,7 +1320,7 @@ public class AdminController {
                     } catch (Exception e) { /* 忽略关闭异常 */ }
                 }
                 hdfsApi.close();
-                
+
                 // 删除临时文件
                 if (tempZipFile != null && tempZipFile.exists()) {
                     if (!tempZipFile.delete()) {

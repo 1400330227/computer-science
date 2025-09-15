@@ -73,4 +73,7 @@ public class FileEntity implements Serializable {
      */
     @TableField("corpus_id")
     private Integer corpusId;
+
+    @TableField("data_format")
+    private String dataFormat;
 }
