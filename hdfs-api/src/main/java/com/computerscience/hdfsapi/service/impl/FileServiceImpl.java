@@ -62,28 +62,39 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
     }
 
     @Override
-    public IPage<FileEntity> findByCreatorIdPage(Integer creatorId, Integer page, Integer size) {
-        if (creatorId == null) {
-            return null;
+    public IPage<FileEntity> findFilePage(Integer page, Integer size, Integer creatorId, String fileType, 
+                                         Integer corpusId, String fileName, String dataFormat, 
+                                         List<Integer> filteredCorpusIds) {
+        LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
+        
+        // 创建者ID筛选
+        if (creatorId != null) {
+            queryWrapper.eq(FileEntity::getCreatorId, creatorId);
         }
         
-        LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(FileEntity::getCreatorId, creatorId);
-        queryWrapper.orderByDesc(FileEntity::getCreatedAt);
-        
-        return page(new Page<>(page, size), queryWrapper);
-    }
-
-    @Override
-    public IPage<FileEntity> findFilePage(Integer page, Integer size, String fileType, Integer corpusId) {
-        LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
-        
+        // 文件类型筛选
         if (StringUtils.hasText(fileType)) {
             queryWrapper.eq(FileEntity::getFileType, fileType);
         }
         
+        // 语料库ID筛选
         if (corpusId != null) {
             queryWrapper.eq(FileEntity::getCorpusId, corpusId);
+        }
+        
+        // 文件名模糊搜索
+        if (StringUtils.hasText(fileName)) {
+            queryWrapper.like(FileEntity::getFileName, fileName);
+        }
+        
+        // 数据格式筛选
+        if (StringUtils.hasText(dataFormat)) {
+            queryWrapper.eq(FileEntity::getDataFormat, dataFormat);
+        }
+        
+        // 根据语料条件筛选的文件ID
+        if (filteredCorpusIds != null && !filteredCorpusIds.isEmpty()) {
+            queryWrapper.in(FileEntity::getCorpusId, filteredCorpusIds);
         }
         
         queryWrapper.orderByDesc(FileEntity::getCreatedAt);

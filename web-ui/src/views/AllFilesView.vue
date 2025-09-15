@@ -170,8 +170,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import { Search, Refresh, Download, Delete, User, Close } from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
+import { Search, Refresh, Download, User, Close } from '@element-plus/icons-vue';
 import { getAllFiles, deleteFileById } from '@/services/admin';
 import corpusData from '@/assets/corpus.json';
 
