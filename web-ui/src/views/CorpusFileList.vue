@@ -3,7 +3,7 @@
     <div class="search-container">
       <el-form :model="searchForm" :inline="true" label-position="left" label-width="auto" @submit.prevent>
         <el-form-item label="语料集">
-          <el-input v-model="searchForm.collectionName" placeholder="请输入语料集名称" prefix-icon="Search" clearable
+          <el-input v-model="searchForm.collectionName" placeholder="请输入语料名称" prefix-icon="Search" clearable
             @keyup.enter="handleSearch" />
         </el-form-item>
         <!-- <el-form-item label="国家">
@@ -47,7 +47,7 @@
         <!-- 语料表格 -->
         <el-table v-loading="loading" :data="fileList" style="width: 100%">
           <el-table-column prop="country" label="国家" />
-          <el-table-column prop="collectionName" label="语料集名称" min-width="140">
+          <el-table-column prop="collectionName" label="语料名称" min-width="140">
             <template #default="{ row }">
               <router-link :to="`/corpus-details/${row.corpusId}`">
                 {{ row.collectionName }}

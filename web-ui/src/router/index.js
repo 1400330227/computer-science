@@ -72,6 +72,12 @@ const router = createRouter({
           meta: { requiresAuth: true, requiresAdmin: true, title: '语料详情' }
         },
         {
+          path: '/all-files',
+          name: 'all-files',
+          component: () => import('../views/AllFilesView.vue'),
+          meta: { requiresAuth: true, requiresAdmin: true, title: '所有文件' }
+        },
+        {
           path: '/my-info',
           name: 'my-info',
           component: () => import('../views/MyInfor.vue'),

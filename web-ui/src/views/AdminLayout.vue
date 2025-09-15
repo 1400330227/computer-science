@@ -18,6 +18,10 @@
           <el-icon><Document /></el-icon>
           <span>语料管理</span>
         </el-menu-item>
+        <el-menu-item index="/all-files">
+          <el-icon><Folder /></el-icon>
+          <span>所有文件</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     <el-main class="admin-main">
@@ -27,13 +31,14 @@
 </template>
 
 <script>
-import { User, Document } from '@element-plus/icons-vue'
+import { User, Document, Folder } from '@element-plus/icons-vue'
 
 export default {
   name: 'AdminLayout',
   components: {
     User,
-    Document
+    Document,
+    Folder
   }
 };
 </script>

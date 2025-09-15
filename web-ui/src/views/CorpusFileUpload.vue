@@ -55,7 +55,7 @@
                   </el-option-group>
                 </el-select>
               </el-form-item>
-              <el-form-item label="语料集名称" prop="collectionName">
+              <el-form-item label="语料名称" prop="collectionName">
                 <el-input v-model="formData.collectionName" placeholder="如：中国国家图书馆书籍电子文本语料"
                   @blur="checkCollectionNameDuplicate"></el-input>
                 <div v-if="collectionNameStatus.show" class="name-check-status">
@@ -100,30 +100,28 @@
               <el-form-item label="文件数量" prop="dataVolume">
                 <el-input v-model="formData.dataVolume" type="number" placeholder="请填写文件数量" disabled></el-input>
               </el-form-item>
-
-              <!-- <el-form-item label="文件数量单位" prop="volumeUnit">
-                <el-select v-model="formData.volumeUnit" filterable placeholder="请选择文件数量单位">
-                  <el-option v-for="volumeUnit in volumeUnits" :key="volumeUnit.volumeUnit"
-                    :label="volumeUnit.volumeUnit" :value="volumeUnit.volumeUnit"></el-option>
-                </el-select>
-              </el-form-item> -->
               <el-form-item label="容量估算 (GB)" prop="estimatedCapacityGb">
                 <el-input v-model="formData.estimatedCapacityGb" type="number" placeholder="请填写容量估算"
                   disabled></el-input>
               </el-form-item>
-
               <el-form-item label="数据年份" prop="dataYear">
                 <el-date-picker v-model="formData.dataYear" type="year" placeholder="请选择数据年份" format="YYYY"
                   value-format="YYYY">
                 </el-date-picker>
               </el-form-item>
 
-              <el-form-item label="数据来源机构" prop="sourceLocation">
+              <!-- <el-form-item label="数据来源机构" prop="sourceLocation">
                 <el-input v-model="formData.sourceLocation" placeholder="如：广西xxx、老挝xx部、xx学院，注明数据来源机构"></el-input>
+              </el-form-item> -->
+              <el-form-item label="价值观语料" prop="valuesCorpus">
+                <el-radio-group v-model="formData.valuesCorpus">
+                  <el-radio label="否">否</el-radio>
+                  <el-radio label="是">是</el-radio>
+                </el-radio-group>
               </el-form-item>
 
-              <el-form-item label="数据来源渠道" prop="dataSource">
-                <el-input v-model="formData.dataSource" placeholder="如：文本来源于老挝公开网站(https://www.baidu.com)"></el-input>
+              <el-form-item label="数据来源" prop="dataSource">
+                <el-input v-model="formData.dataSource" placeholder="提供具体数据网站或者描述具体来源"></el-input>
               </el-form-item>
 
               <el-form-item label="数据提供方" prop="provider">
@@ -313,6 +311,9 @@ const rules = {
   sourceLocation: [
     { required: false, message: '请输入数据来源机构', trigger: 'blur' }
   ],
+  valuesCorpus: [
+    { required: true, message: '请选择是否为价值观语料', trigger: 'change' }
+  ],
   dataSource: [
     { required: false, message: '请输入数据来源', trigger: 'blur' }
   ],
@@ -353,6 +354,7 @@ const formData = reactive({
   estimatedCapacityGb: 0.000000,
   dataYear: new Date().getFullYear().toString(),
   sourceLocation: '',
+  valuesCorpus: '否',  // 新增这一行，默认值为"否"
   dataSource: '',
   provider: '',
   providerContact: '',

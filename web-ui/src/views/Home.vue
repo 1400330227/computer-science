@@ -91,8 +91,9 @@ const handleLogout = async () => {
 
         <!-- Admin Menu -->
         <template v-if="userStore.user?.userType === 'admin'">
-          <el-menu-item class="nav-item" index="/user-management">用户管理</el-menu-item>
+          <el-menu-item class="nav-item" index="/all-files">所有文件</el-menu-item>
           <el-menu-item class="nav-item" index="/corpus-management">语料库管理</el-menu-item>
+          <el-menu-item class="nav-item" index="/user-management">用户管理</el-menu-item>
         </template>
 
         <el-menu-item class="nav-item" index="/data-visualization">数据可视化</el-menu-item>

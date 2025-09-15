@@ -27,8 +27,8 @@
                                         </el-option-group>
                                     </el-select>
                                 </el-form-item>
-                                <el-form-item label="语料集名称" prop="collectionName">
-                                    <el-input v-model="editForm.collectionName" placeholder="请填写语料集名称" />
+                                <el-form-item label="语料名称" prop="collectionName">
+                                    <el-input v-model="editForm.collectionName" placeholder="请填写语料名称" />
                                 </el-form-item>
                                 <el-form-item label="所属领域" prop="domain">
                                     <el-radio-group v-model="editForm.domain" class="domain-radio-group">
@@ -87,8 +87,8 @@
                                 <el-form-item label="数据来源机构" prop="sourceLocation">
                                     <el-input v-model="editForm.sourceLocation" placeholder="请输入数据来源机构" />
                                 </el-form-item>
-                                <el-form-item label="数据来源渠道" prop="dataSource">
-                                    <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" />
+                                <el-form-item label="数据来源" prop="dataSource">
+                                    <el-input v-model="editForm.dataSource" placeholder="提供具体数据网站或者具体来源描述" />
                                 </el-form-item>
                                 <el-form-item label="数据提供方" prop="provider">
                                     <el-input v-model="editForm.provider" placeholder="请输入数据提供方" />

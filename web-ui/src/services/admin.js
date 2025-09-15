@@ -98,4 +98,26 @@ export const updateUser = (userId, data) => {
  */
 export const resetUserPassword = (userId) => {
   return handleApiResponse(api.post(`/admin/users/${userId}/reset-password`));
+};
+
+/**
+ * Fetches a paginated list of all files (admin only)
+ * @param {object} params - Query parameters { 
+ *   page, size, fileName, fileType, creatorNickname, corpusId,
+ *   corpusName, country, domain, language, dataFormat, classification, 
+ *   dataYear, minFileSize, maxFileSize 
+ * }
+ * @returns {Promise}
+ */
+export const getAllFiles = (params) => {
+  return handleApiResponse(api.get('/admin/files', { params }));
+};
+
+/**
+ * Delete a file by ID (admin only)
+ * @param {number} fileId - The file ID to delete
+ * @returns {Promise}
+ */
+export const deleteFileById = (fileId) => {
+  return handleApiResponse(api.delete(`/admin/files/${fileId}`));
 }; 

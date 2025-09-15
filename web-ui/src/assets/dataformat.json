@@ -1,0 +1,318 @@
+{
+    "textFormats": [
+        {
+            "extension": ".txt",
+            "fullName": "Plain Text File",
+            "description": "最基础的纯文本文件，无任何格式",
+            "commonUses": "最基础的纯文本文件，无任何格式"
+        },
+        {
+            "extension": ".rtf",
+            "fullName": "Rich Text Format",
+            "description": "富文本格式，支持粗体、斜体等基本格式",
+            "commonUses": "富文本格式，支持粗体、斜体等基本格式"
+        },
+        {
+            "extension": ".doc",
+            "fullName": "Microsoft Word Document (老版本)",
+            "description": "Microsoft Word 97-2003文档",
+            "commonUses": "Microsoft Word 97-2003文档"
+        },
+        {
+            "extension": ".docx",
+            "fullName": "Microsoft Word Open XML Document",
+            "description": "Microsoft Word 2007及之后版本的文档",
+            "commonUses": "Microsoft Word 2007及之后版本的文档"
+        },
+        {
+            "extension": ".odt",
+            "fullName": "OpenDocument Text Document",
+            "description": "LibreOffice, OpenOffice等开源办公软件的文本格式",
+            "commonUses": "LibreOffice, OpenOffice等开源办公软件的文本格式"
+        },
+        {
+            "extension": ".pdf",
+            "fullName": "Portable Document Format",
+            "description": "便携式文档格式，用于保留所有格式的跨平台文档",
+            "commonUses": "便携式文档格式，用于保留所有格式的跨平台文档"
+        },
+        {
+            "extension": ".html/.htm",
+            "fullName": "HyperText Markup Language",
+            "description": "网页文件，包含网页的结构和内容",
+            "commonUses": "网页文件，包含网页的结构和内容"
+        },
+        {
+            "extension": ".xml",
+            "fullName": "eXtensible Markup Language",
+            "description": "可扩展标记语言，用于存储和传输数据",
+            "commonUses": "可扩展标记语言，用于存储和传输数据"
+        },
+        {
+            "extension": ".json",
+            "fullName": "JavaScript Object Notation",
+            "description": "轻量级的数据交换格式，易于人阅读和编写",
+            "commonUses": "轻量级的数据交换格式，易于人阅读和编写"
+        },
+        {
+            "extension": ".csv",
+            "fullName": "Comma-Separated Values",
+            "description": "逗号分隔值文件，用于存储表格数据（如Excel）",
+            "commonUses": "逗号分隔值文件，用于存储表格数据（如Excel）"
+        },
+        {
+            "extension": ".tex",
+            "fullName": "LaTeX Source Document",
+            "description": "LaTeX排版系统的源文件",
+            "commonUses": "LaTeX排版系统的源文件"
+        },
+        {
+            "extension": ".log",
+            "fullName": "Log File",
+            "description": "日志文件，记录系统或软件的运行事件",
+            "commonUses": "日志文件，记录系统或软件的运行事件"
+        },
+        {
+            "extension": ".md/.markdown",
+            "fullName": "Markdown Documentation",
+            "description": "轻量级标记语言文件，常用於README文件等",
+            "commonUses": "轻量级标记语言文件，常用於README文件等"
+        },
+        {
+            "extension": ".ini",
+            "fullName": "Initialization File",
+            "description": "初始化配置文件，用于保存程序的设置",
+            "commonUses": "初始化配置文件，用于保存程序的设置"
+        },
+        {
+            "extension": ".yaml/.yml",
+            "fullName": "YAML Ain't Markup Language",
+            "description": "另一种人性化的数据序列化标准，常用於配置文件",
+            "commonUses": "另一种人性化的数据序列化标准，常用於配置文件"
+        },
+        {
+            "extension": ".srt",
+            "fullName": "SubRip Subtitle",
+            "description": "字幕文件，纯文本格式存储视频字幕和时间码",
+            "commonUses": "字幕文件，纯文本格式存储视频字幕和时间码"
+        }
+    ],
+    "videoFormats": [
+        {
+            "extension": ".mp4",
+            "fullName": "MPEG-4 Part 14",
+            "description": "最常见的格式。通用性强，兼容性好，通常包含H.264视频和AAC音频。",
+            "characteristics": "最常见的格式。通用性强，兼容性好，通常包含H.264视频和AAC音频。"
+        },
+        {
+            "extension": ".avi",
+            "fullName": "Audio Video Interleave",
+            "description": "微软开发的旧容器格式，体积通常较大，但兼容性极好。",
+            "characteristics": "微软开发的旧容器格式，体积通常较大，但兼容性极好。"
+        },
+        {
+            "extension": ".mkv",
+            "fullName": "Matroska Video",
+            "description": "开源容器格式，功能强大，可封装几乎所有编码的视频、音频、字幕轨道。",
+            "characteristics": "开源容器格式，功能强大，可封装几乎所有编码的视频、音频、字幕轨道。"
+        },
+        {
+            "extension": ".mov",
+            "fullName": "QuickTime File Format",
+            "description": "苹果公司开发的格式，常用于专业视频编辑和macOS生态系统。",
+            "characteristics": "苹果公司开发的格式，常用于专业视频编辑和macOS生态系统。"
+        },
+        {
+            "extension": ".wmv",
+            "fullName": "Windows Media Video",
+            "description": "微软开发的视频格式，曾常用于网络流媒体，现在较少见。",
+            "characteristics": "微软开发的视频格式，曾常用于网络流媒体，现在较少见。"
+        },
+        {
+            "extension": ".flv",
+            "fullName": "Flash Video",
+            "description": "Adobe Flash的视频格式，曾是网络视频的主流，现已逐渐淘汰。",
+            "characteristics": "Adobe Flash的视频格式，曾是网络视频的主流，现已逐渐淘汰。"
+        },
+        {
+            "extension": ".webm",
+            "fullName": "Web Media",
+            "description": "开源且专为网络设计的格式，通常包含VP8/VP9/AV1视频和Vorbis/Opus音频。",
+            "characteristics": "开源且专为网络设计的格式，通常包含VP8/VP9/AV1视频和Vorbis/Opus音频。"
+        },
+        {
+            "extension": ".m4v",
+            "fullName": "iTunes Video File",
+            "description": "苹果iTunes使用的视频格式，是MP4的一种变体，可能包含DRM版权保护。",
+            "characteristics": "苹果iTunes使用的视频格式，是MP4的一种变体，可能包含DRM版权保护。"
+        },
+        {
+            "extension": ".mpeg/.mpg",
+            "fullName": "Moving Picture Experts Group",
+            "description": "早期的MPEG压缩标准视频格式。",
+            "characteristics": "早期的MPEG压缩标准视频格式。"
+        },
+        {
+            "extension": ".ts",
+            "fullName": "MPEG Transport Stream",
+            "description": "传输流格式，常用于数字广播和录制实时视频流（如卫星电视）。",
+            "characteristics": "传输流格式，常用于数字广播和录制实时视频流（如卫星电视）。"
+        },
+        {
+            "extension": ".m2ts",
+            "fullName": "BDAV MPEG-2 Transport Stream",
+            "description": "蓝光光盘使用的视频格式，基于TS格式。",
+            "characteristics": "蓝光光盘使用的视频格式，基于TS格式。"
+        },
+        {
+            "extension": ".3gp",
+            "fullName": "3GPP Multimedia File",
+            "description": "为移动设备设计的低带宽格式，常见于老式功能手机录制的视频。",
+            "characteristics": "为移动设备设计的低带宽格式，常见于老式功能手机录制的视频。"
+        },
+        {
+            "extension": ".vob",
+            "fullName": "DVD Video Object",
+            "description": "DVD光盘中的视频文件，包含MPEG-2视频、音频、字幕和菜单。",
+            "characteristics": "DVD光盘中的视频文件，包含MPEG-2视频、音频、字幕和菜单。"
+        },
+        {
+            "extension": ".rm/.rmvb",
+            "fullName": "RealMedia / RealMedia Variable Bitrate",
+            "description": "RealNetworks公司的格式，rmvb支持可变比特率，曾流行于网络下载。",
+            "characteristics": "RealNetworks公司的格式，rmvb支持可变比特率，曾流行于网络下载。"
+        },
+        {
+            "extension": ".asf",
+            "fullName": "Advanced Systems Format",
+            "description": "微软开发的流媒体容器，WMV和WMA常封装在其中。",
+            "characteristics": "微软开发的流媒体容器，WMV和WMA常封装在其中。"
+        },
+        {
+            "extension": ".ogv",
+            "fullName": "Ogg Video",
+            "description": "Xiph.Org基金会开源的容器格式，通常包含Theora视频和Vorbis音频。",
+            "characteristics": "Xiph.Org基金会开源的容器格式，通常包含Theora视频和Vorbis音频。"
+        },
+        {
+            "extension": ".divx",
+            "fullName": "DivX Media Format",
+            "description": "基于MPEG-4 Part 2编码的一种特定品牌格式。",
+            "characteristics": "基于MPEG-4 Part 2编码的一种特定品牌格式。"
+        }
+    ],
+    "audioFormats": [
+        {
+            "extension": ".mp3",
+            "fullName": "MPEG-1 Audio Layer III",
+            "type": "有损压缩",
+            "description": "最普及的音频格式。体积小，兼容性极好，但牺牲了部分音质。",
+            "characteristics": "最普及的音频格式。体积小，兼容性极好，但牺牲了部分音质。"
+        },
+        {
+            "extension": ".flac",
+            "fullName": "Free Lossless Audio Codec",
+            "type": "无损压缩",
+            "description": "开源的无损格式。音质完美等同于CD，体积约为CD的一半。",
+            "characteristics": "开源的无损格式。音质完美等同于CD，体积约为CD的一半。"
+        },
+        {
+            "extension": ".wav",
+            "fullName": "Waveform Audio File Format",
+            "type": "未压缩",
+            "description": "由微软和IBM开发，保留了完整的音频数据，音质最好，但体积巨大。",
+            "characteristics": "由微软和IBM开发，保留了完整的音频数据，音质最好，但体积巨大。"
+        },
+        {
+            "extension": ".aac",
+            "fullName": "Advanced Audio Coding",
+            "type": "有损压缩",
+            "description": "效率高于MP3，音质更好或体积更小。是MP4视频的标准音频格式。",
+            "characteristics": "效率高于MP3，音质更好或体积更小。是MP4视频的标准音频格式。"
+        },
+        {
+            "extension": ".wma",
+            "fullName": "Windows Media Audio",
+            "type": "有损/无损",
+            "description": "微软开发的格式，有有损（WMA）和无损（WMA Lossless）两种版本。",
+            "characteristics": "微软开发的格式，有有损（WMA）和无损（WMA Lossless）两种版本。"
+        },
+        {
+            "extension": ".m4a",
+            "fullName": "MPEG-4 Audio",
+            "type": "有损/无损",
+            "description": "苹果常用的音频格式，通常包含AAC编码（有损）或ALAC编码（无损）的音频。",
+            "characteristics": "苹果常用的音频格式，通常包含AAC编码（有损）或ALAC编码（无损）的音频。"
+        },
+        {
+            "extension": ".alac",
+            "fullName": "Apple Lossless Audio Codec",
+            "type": "无损压缩",
+            "description": "苹果开发的无损格式，音质等同于FLAC，但兼容性不如FLAC。",
+            "characteristics": "苹果开发的无损格式，音质等同于FLAC，但兼容性不如FLAC。"
+        },
+        {
+            "extension": ".ogg",
+            "fullName": "Ogg Vorbis",
+            "type": "有损压缩",
+            "description": "开源的有损格式，是MP3和AAC的竞争对手，音质优于同码率的MP3。",
+            "characteristics": "开源的有损格式，是MP3和AAC的竞争对手，音质优于同码率的MP3。"
+        },
+        {
+            "extension": ".opus",
+            "fullName": "Opus Audio Codec",
+            "type": "有损压缩",
+            "description": "非常现代的开源格式，专为交互式网络应用设计，在低比特率下音质卓越。",
+            "characteristics": "非常现代的开源格式，专为交互式网络应用设计，在低比特率下音质卓越。"
+        },
+        {
+            "extension": ".aiff",
+            "fullName": "Audio Interchange File Format",
+            "type": "未压缩",
+            "description": "苹果开发的未压缩格式，类似于WAV，常用于macOS专业音频领域。",
+            "characteristics": "苹果开发的未压缩格式，类似于WAV，常用于macOS专业音频领域。"
+        },
+        {
+            "extension": ".ape",
+            "fullName": "Monkey's Audio",
+            "type": "无损压缩",
+            "description": "压缩率很高的无损格式，但编码解码速度较慢，不如FLAC普及。",
+            "characteristics": "压缩率很高的无损格式，但编码解码速度较慢，不如FLAC普及。"
+        },
+        {
+            "extension": ".dsd/.dff/.dsf",
+            "fullName": "Direct Stream Digital",
+            "type": "未压缩",
+            "description": "用于Super Audio CD (SACD) 的高分辨率音频格式，体积非常大。",
+            "characteristics": "用于Super Audio CD (SACD) 的高分辨率音频格式，体积非常大。"
+        },
+        {
+            "extension": ".mid/.midi",
+            "fullName": "Musical Instrument Digital Interface",
+            "type": "指令序列",
+            "description": "不是音频，而是记录演奏指令（按了哪个键、力度多大），需要音源合成声音。",
+            "characteristics": "不是音频，而是记录演奏指令（按了哪个键、力度多大），需要音源合成声音。"
+        },
+        {
+            "extension": ".amr",
+            "fullName": "Adaptive Multi-Rate",
+            "type": "有损压缩",
+            "description": "专为语音优化，常见于手机录音文件。",
+            "characteristics": "专为语音优化，常见于手机录音文件。"
+        },
+        {
+            "extension": ".ac3",
+            "fullName": "Audio Codec 3",
+            "type": "有损压缩",
+            "description": "Dolby Digital环绕声编码，常用于DVD和蓝光光盘。",
+            "characteristics": "Dolby Digital环绕声编码，常用于DVD和蓝光光盘。"
+        },
+        {
+            "extension": ".dts",
+            "fullName": "Digital Theater Systems",
+            "type": "有损压缩",
+            "description": "另一种常见的环绕声编码，是杜比数字的竞争对手。",
+            "characteristics": "另一种常见的环绕声编码，是杜比数字的竞争对手。"
+        }
+    ]
+}
