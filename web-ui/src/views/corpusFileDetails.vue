@@ -41,12 +41,12 @@
                                             :label="domain.domainName" :value="domain.domainName"></el-option>
                                     </el-select> -->
                                 </el-form-item>
-                                <el-form-item label="语种" prop="language">
-                                    <el-select v-model="editForm.language" filterable placeholder="请选择语种">
+                                <el-form-item label="语言" prop="language">
+                                    <el-select v-model="editForm.language" filterable placeholder="请选择语言">
                                         <el-option v-for="language in languages" :key="language.language"
                                             :label="language.language" :value="language.language"></el-option>
                                     </el-select>
-                                    <!-- <el-input v-model="editForm.language" placeholder="请输入语种" /> -->
+                                    <!-- <el-input v-model="editForm.language" placeholder="请输入语言" /> -->
                                 </el-form-item>
                                 <!-- <el-form-item label="数据模态" prop="dataFormat">
                                     <el-select v-model="editForm.dataFormat" filterable placeholder="请选择数据模态" multiple>
@@ -86,7 +86,7 @@
                                     <el-input v-model="editForm.sourceLocation" placeholder="请输入数据来源机构" />
                                 </el-form-item> -->
                                 <el-form-item label="数据来源" prop="dataSource">
-                                    <el-input v-model="editForm.dataSource" placeholder="请输入数据来源" type="textarea"/>
+                                    <el-input v-model="editForm.dataSource" placeholder="提供具体数据网站或者描述数据具体来源，如广西大学新闻网：https://news.gxu.edu.cn/info/42978.htm" type="textarea"/>
                                 </el-form-item>
                                 <el-form-item label="数据提供方" prop="provider">
                                     <el-input v-model="editForm.provider" disabled placeholder="请输入数据提供方" />
@@ -238,7 +238,7 @@ const rules = {
         { required: true, message: '请输入所属领域', trigger: 'blur' }
     ],
     language: [
-        { required: true, message: '请输入语种', trigger: 'blur' }
+        { required: true, message: '请输入语言', trigger: 'blur' }
     ],
     dataFormat: [
         { required: true, message: '请输入数据模态', trigger: 'blur' }
@@ -262,7 +262,7 @@ const rules = {
         { required: false, message: '请输入数据来源机构', trigger: 'blur' }
     ],
     dataSource: [
-        { required: false, message: '请输入数据来源', trigger: 'blur' }
+        { required: true, message: '请输入数据来源', trigger: 'blur' }
     ],
     provider: [
         { required: false, message: '请输入数据提供方', trigger: 'blur' }

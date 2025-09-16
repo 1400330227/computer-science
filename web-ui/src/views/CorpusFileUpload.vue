@@ -74,8 +74,8 @@
                 </el-radio-group>
               </el-form-item>
 
-              <el-form-item label="语种" prop="language">
-                <el-select v-model="formData.language" filterable placeholder="请选择语种">
+              <el-form-item label="语言" prop="language">
+                <el-select v-model="formData.language" filterable placeholder="请选择语言">
                   <el-option v-for="language in languages" :key="language.language" :label="language.language"
                     :value="language.language"></el-option>
                 </el-select>
@@ -204,8 +204,6 @@ const aseanCountries = computed(() => countries.filter(c => c.name !== DEFAULT_C
 const otherCountries = computed(() => countries.filter(c => c.name !== DEFAULT_COUNTRY_NAME && !ASEAN_COUNTRY_NAMES.has(c.name)))
 const domains = corpus.domains
 const classifications = corpus.classifications
-const volumeUnits = corpus.volumeUnits
-const dataFormats = corpus.dataFormats
 const languages = corpus.languages
 const validCountryNames = new Set(countries.map(country => country.name))
 // 基于国家名称到语言的映射
@@ -288,7 +286,7 @@ const rules = {
     { required: true, message: '请输入所属领域', trigger: 'blur' }
   ],
   language: [
-    { required: true, message: '请输入语种', trigger: 'blur' }
+    { required: true, message: '请输入语言', trigger: 'blur' }
   ],
   dataFormat: [
     { required: true, message: '请输入数据模态', trigger: 'blur' }

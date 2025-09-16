@@ -42,12 +42,12 @@
                                             :label="domain.domainName" :value="domain.domainName"></el-option>
                                     </el-select> -->
                                 </el-form-item>
-                                <el-form-item label="语种" prop="language">
-                                    <el-select v-model="editForm.language" filterable placeholder="请选择语种">
+                                <el-form-item label="语言" prop="language">
+                                    <el-select v-model="editForm.language" filterable placeholder="请选择语言">
                                         <el-option v-for="language in languages" :key="language.language"
                                             :label="language.language" :value="language.language"></el-option>
                                     </el-select>
-                                    <!-- <el-input v-model="editForm.language" placeholder="请输入语种" /> -->
+                                    <!-- <el-input v-model="editForm.language" placeholder="请输入语言" /> -->
                                 </el-form-item>
                                 <el-form-item label="数据模态" prop="dataFormat">
                                     <!-- <el-input v-model="editForm.dataFormat" placeholder="例如：文本、语音" /> -->
@@ -227,7 +227,7 @@ const rules = {
         { required: true, message: '请输入所属领域', trigger: 'blur' }
     ],
     language: [
-        { required: true, message: '请输入语种', trigger: 'blur' }
+        { required: true, message: '请输入语言', trigger: 'blur' }
     ],
     dataFormat: [
         { required: true, message: '请输入数据模态', trigger: 'blur' }

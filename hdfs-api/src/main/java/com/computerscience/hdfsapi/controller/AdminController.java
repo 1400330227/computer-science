@@ -841,7 +841,7 @@ public class AdminController {
             String corpusName = params.get("corpusName"); // 语料名称
             String country = params.get("country"); // 国家
             String domain = params.get("domain"); // 所属领域
-            String language = params.get("language"); // 语种
+            String language = params.get("language"); // 语言
             String classification = params.get("classification"); // 数据分类
             String dataYear = params.get("dataYear"); // 数据年份
             String startDataYear = params.get("startDataYear"); // 起始年份
@@ -857,7 +857,7 @@ public class AdminController {
             System.out.println("语料名称: " + corpusName);
             System.out.println("国家: " + country);
             System.out.println("所属领域: " + domain);
-            System.out.println("语种: " + language);
+            System.out.println("语言: " + language);
             System.out.println("数据分类: " + classification);
             System.out.println("数据年份: " + dataYear);
             System.out.println("起始年份: " + startDataYear);

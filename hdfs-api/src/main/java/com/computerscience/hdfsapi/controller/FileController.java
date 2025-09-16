@@ -276,7 +276,7 @@ public class FileController {
             System.out.println("语料名称: " + corpusName);
             System.out.println("国家: " + country);
             System.out.println("所属领域: " + domain);
-            System.out.println("语种: " + language);
+            System.out.println("语言: " + language);
             System.out.println("数据分类: " + classification);
             System.out.println("数据年份: " + dataYear);
             System.out.println("起始年份: " + startDataYear);
