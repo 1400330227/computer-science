@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <div class="welcome-banner">
-      <h1>欢迎使用广西大学东盟语料收集与管理平台</h1>
+      <h1>欢迎使用广西大学东盟语料库管理与标注平台</h1>
     </div>
     <div class="function-cards">
       <div class="card" @click="navigateTo('/file-list')">
@@ -53,9 +53,9 @@
         <div class="document-card">
 <!--          <div class="document-icon">📖</div>-->
           <div class="document-content">
-            <h3>广西大学东盟语料收集与管理平台系统操作手册</h3>
+            <h3>广西大学东盟语料库管理与标注平台系统操作手册</h3>
 <!--            <p>详细的操作指南和使用说明</p>-->
-            <a href="/广西大学东盟语料收集与管理平台系统操作手册.docx" download>
+            <a href="/广西大学东盟语料库管理与标注平台系统操作手册.docx" download>
               <div class="download-btn">点击下载</div>
             </a>
           </div>
@@ -71,6 +71,13 @@
           </div>
       </div>
       </div>
+    </div>
+
+    <div class="document-section">
+      <h2>相关应用</h2>
+
+      <div>
+        <el-link href="http://172.21.44.162:9089" target="_blank">广西大学东盟大语言模型</el-link></div>
     </div>
   </div>
 </template>

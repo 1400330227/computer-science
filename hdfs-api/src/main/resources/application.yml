@@ -5,7 +5,7 @@ spring:
   server:
     port: 8080
   datasource:
-    url: jdbc:mysql://172.21.44.162:3306/HDFS?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://172.21.44.163:3307/HDFS?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
     username: tangxw
     password: Puersai.168
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -23,8 +23,8 @@ spring:
 hadoop:
   hdfs:
     user: Administrator
-    uri: hdfs://172.21.44.162:9000
-    root-path: /user/
+    uri: hdfs://172.21.44.163:9000
+    root-path: /corpus/
 
 logging:
   level:

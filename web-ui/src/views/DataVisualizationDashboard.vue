@@ -7,7 +7,7 @@
       <li><router-link to="/dashboard/contributor-distribution">贡献者语料容量分布</router-link></li>
       <li><router-link to="/dashboard/time-series-analysis">语料收集趋势分析</router-link></li>
       <li><router-link to="/dashboard-landing" target="_blank"
-          rel="noopener noreferrer">广西大学东盟语料收集与管理平台数据可视化(对外开放)</router-link></li>
+          rel="noopener noreferrer">广西大学东盟语料库管理与标注平台数据可视化(对外开放)</router-link></li>
     </ul>
   </div>
 </template>

@@ -86,6 +86,7 @@ const handleLogout = async () => {
           <template #title>语料清单</template>
           <el-menu-item index="/file-list">我的语料集</el-menu-item>
           <el-menu-item index="/file-upload">上传语料集</el-menu-item>
+          <el-menu-item index=""></el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/my-files" class="nav-item">我的文件</el-menu-item>
 
@@ -101,7 +102,7 @@ const handleLogout = async () => {
       </el-menu>
       <!-- 添加平台标题 -->
       <div class="platform-title">
-        <router-link to="/">广西大学东盟语料收集与管理平台</router-link>
+        <router-link to="/">广西大学东盟语料库管理与标注平台</router-link>
       </div>
       <!-- 右侧用户信息和登出按钮 -->
       <div class="nav-right">

@@ -234,7 +234,7 @@ export default {
       college: '',
       title: '',
       major: '',
-      gender: '未知',
+      gender: '男',
       accountStatus: 'active',
       address: '',
       remarks: '',
@@ -289,7 +289,8 @@ export default {
           '体育学院',
           '医学院',
           '继续教育学院',
-          '中国—东盟经济学院 / 经济学院 / 中国—东盟金融合作学院'
+          '中国—东盟经济学院 / 经济学院 / 中国—东盟金融合作学院',
+          '南宁师范大学'
         ]
       },
       {
@@ -397,7 +398,7 @@ export default {
       createForm.college = '';
       createForm.title = '';
       createForm.major = '';
-      createForm.gender = '未知';
+      createForm.gender = '男';
       createForm.accountStatus = 'active';
       createForm.address = '';
       createForm.remarks = '';

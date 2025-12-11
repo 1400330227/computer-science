@@ -6,7 +6,7 @@
             </div>
             <div class="head">
                 <div class="weather"><span id="showTime">{{ showTime }}</span></div>
-                <h1>广西大学东盟语料收集与管理平台数据可视化</h1>
+                <h1>广西大学东盟语料库管理与标注平台</h1>
             </div>
             <div class="mainbox">
                 <ul class="clearfix">
