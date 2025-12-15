@@ -108,53 +108,83 @@
 
             <!-- 文件详情信息 -->
             <div v-loading="filesLoading" class="section-container">
-                <h3 class="section-title">文件详情信息</h3>
-                <div class="file-list" v-if="fileList.length > 0">
-                    <div v-for="(file, index) in fileList" :key="index" class="file-item">
-                        <div class="file-name">
-                            <el-icon :size="16" :class="getFileIconClass(file.fileName)">
-                                <component :is="getFileIcon(file.fileName)" />
-                            </el-icon>
-                            {{ file.fileName }}
-                        </div>
-                        <div class="file-actions">
-                            <span class="file-size" v-if="file.fileSize">{{ formatFileSize(file.fileSize) }}</span>
-                            <a :href="getFileDownloadUrl(file)" class="file-download-link"
-                                @click="showFileDownloadMessage(file)" title="下载文件" download>
-                                <el-icon>
-                                    <Download />
-                                </el-icon>
-                                下载
-                            </a>
-                        </div>
-                    </div>
+              <div class="section-title">
+                <h3 >文件详情信息</h3>
+                <div style="float: right; margin-top: -28px">
+                  <el-button>下载全部原始文件</el-button>
+                  <el-button>下载全部标注文件</el-button>
                 </div>
-                <el-empty v-else description="暂无文件" />
+              </div>
 
-                <!-- 标注文件上传（以语料为单位，无需选择具体文件） -->
-                <div class="annotation-upload">
-                    <el-form :inline="true" label-width="120px">
-                        <el-form-item label="标注文件(.txt)">
-                            <el-upload
-                                class="upload-inline"
-                                :auto-upload="false"
-                                :limit="1"
-                                :on-change="handleAnnotationUploadChange"
-                                :file-list="annotationUploadList"
-                                accept=".txt"
-                            >
-                                <template #trigger>
-                                    <el-button>选择标注文件</el-button>
-                                </template>
-                                <el-button type="primary" :disabled="annotationUploadList.length === 0" :loading="annotationUploading"
-                                           @click.stop="submitAnnotationUpload" style="margin-left: 12px;">
-                                    上传标注
-                                </el-button>
-                            </el-upload>
-                            <div class="upload-tip">文件名需与原始文件主名一致，扩展名为 .txt；内容每3行一组问答。</div>
-                        </el-form-item>
-                    </el-form>
-                </div>
+              <el-table :data="fileList" style="width: 100%" v-loading="loading">
+                <!-- 原始文件名 -->
+                <el-table-column prop="fileName" label="原始文件名" min-width="120">
+                  <template #default="{ row }">
+                    <i class="el-icon-document"></i> {{ row.fileName }}
+                    <a :href="getFileDownloadUrl(row)"
+                       @click="showFileDownloadMessage(row)" title="下载文件" download>
+                      下载文件
+                    </a>
+                  </template>
+                </el-table-column>
+
+                <!-- 文件大小 -->
+                <el-table-column prop="fileSize" label="大小" width="100">
+                  <template #default="{ row }">
+                    {{ row.computedCapacityGb ? row.computedCapacityGb.toFixed(6) : (row.estimatedCapacityGb != null ? row.estimatedCapacityGb.toFixed(6) : '0.000000') }}
+                  </template>
+                </el-table-column>
+
+                <!-- 标注状态 -->
+                <el-table-column label="标注文件" min-width="120">
+                  <template #default="{ row }">
+                    这里显示标注文件名（只允许上传.txt）
+                    <a :href="getFileDownloadUrl(row)"
+                       @click="triggerUpload(row)" title="下载标注" download>
+                      下载标注
+                    </a>
+                  </template>
+                </el-table-column>
+
+                <!-- QA对数量 (从后端返回的数据中获取) -->
+                <el-table-column prop="qaPairCount" label="问答对数量" width="110">
+                  <template #default="{ row }">
+                    <span v-if="row.annotationFile">{{ row.annotationFile.qaPairCount }}</span>
+                    <span v-else>-</span>
+                  </template>
+                </el-table-column>
+
+                <!-- 操作列 -->
+                <el-table-column label="操作" width="180">
+                  <template #default="{ row }">
+                    <div>
+                    <!-- 1. 下载原始文件 -->
+
+                      <!-- 3. 下载标注文件 (仅当存在时显示) -->
+                    </div>
+                    <div>
+                      <a :href="getFileDownloadUrl(row)"
+                         @click="triggerUpload(row)" title="下载文件" download>
+                        {{row.annotationFile ? '重传标注' : '上传标注'}}
+                      </a>
+
+                      <a :href="getFileDownloadUrl(row)" style="display: inline-block; margin-left: 12px"
+                         @click="triggerUpload(row)" title="删除标注" download>
+                        删除标注
+                      </a>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+
+              <!-- 隐藏的文件上传输入框 -->
+              <input
+                type="file"
+                ref="annotationInput"
+                style="display: none"
+                accept=".txt"
+                @change="handleFileChange"
+              />
             </div>
 
             <div class="section-actions">
@@ -520,6 +550,12 @@ async function submitAnnotationUpload() {
     }
 }
 
+function triggerUpload(row) {
+  this.currentUploadRow = row;
+  // 触发隐藏的 input 点击事件
+  this.$refs.annotationInput.value = null; // 清空上次选择，确保change事件触发
+  this.$refs.annotationInput.click();
+}
 
 // 计算文件下载URL
 function getFileDownloadUrl(file) {

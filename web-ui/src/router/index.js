@@ -63,19 +63,19 @@ const router = createRouter({
           path: '/corpus-management',
           name: 'corpus-management',
           component: () => import('../views/CorpusManagement.vue'),
-          meta: { requiresAuth: true, requiresAdmin: true, title: '语料管理' }
+          meta: { requiresAuth: true, requiresAdmin: false, title: '标注管理' }
         },
         {
           path: '/corpus-management-details/:id',
           name: 'corpus-management-details',
           component: () => import('../views/CorpusManagementDetails.vue'),
-          meta: { requiresAuth: true, requiresAdmin: true, title: '语料详情' }
+          meta: { requiresAuth: true, requiresAdmin: false, title: '语料详情' }
         },
         {
           path: '/all-files',
           name: 'all-files',
           component: () => import('../views/AllFilesView.vue'),
-          meta: { requiresAuth: true, requiresAdmin: true, title: '所有文件' }
+          meta: { requiresAuth: true, requiresAdmin: false, title: '所有文件' }
         },
         {
           path: '/my-info',

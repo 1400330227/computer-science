@@ -133,11 +133,13 @@
                 <el-table-column type="selection" width="55" />
 
                 <el-table-column prop="fileName" label="文件" min-width="290">
-                    <template #default="scope">
-                        <div>{{ scope.row.fileName }}</div>
-
-                        <div style="color:#999999">{{ scope.row.dataFormat }} | {{ formatFileSize(scope.row.size)
-                            }}GB</div>
+                    <template #default="{row}">
+                      <div>
+                        <router-link :to="`/corpus-management-details/${row.corpusId}`">
+                        {{ row.fileName }}
+                        </router-link>
+                      </div>
+                        <div style="color:#999999">{{ row.dataFormat }} | {{ formatFileSize(row.size)}}GB</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="corpusName" label="语料名称" width="200">
@@ -149,14 +151,21 @@
                 </el-table-column>
                 <el-table-column prop="creatorCollege" label="学院" width="200"></el-table-column>
                 <el-table-column prop="creatorNickname" label="所有者" width="100" />
-              <el-table-column prop="corpusClassification" label="数据分类" width="110" />
-                <el-table-column prop="corpusDataYear" label="数据年份" width="110"></el-table-column>
+                <el-table-column prop="corpusClassification" label="数据分类" width="110" />
+                <el-table-column prop="corpusDataYear" label="标注文件" width="110">
+                  <template #default="{row}">
+                    这里显示文件名称和问答对
+                  </template>
+                </el-table-column>
 
-                <el-table-column label="操作" width="90">
-                    <template #default="scope">
-                        <a :href="getDownloadUrl(scope.row)" class="download-link" title="下载语料" download>
+                <el-table-column label="操作" width="110">
+                    <template #default="{row}">
+                        <a :href="getDownloadUrl(row)" class="download-link" title="下载语料" download>
                             下载
                         </a>
+                      <router-link :to="`/corpus-management-details/${row.corpusId}`" style="margin-left: 12px">
+                        标注
+                      </router-link>
                     </template>
                 </el-table-column>
             </el-table>

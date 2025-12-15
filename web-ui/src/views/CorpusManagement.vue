@@ -44,9 +44,21 @@
         <!-- <el-table-column prop="creatorAccount" label="所有者" /> -->
         <el-table-column prop="language" label="语言" width="100" />
         <el-table-column prop="provider" label="学院" width="190" />
+        <el-table-column prop="dataVolume" label="文件数量" width="120">
+          <template #default="{row}">
+            {{ row.dataVolume ? `${row.dataVolume} ${row.volumeUnit || ''}` : '未设置' }}
+            {{ row.computedCapacityGb ? row.computedCapacityGb.toFixed(6) : (row.estimatedCapacityGb != null ? row.estimatedCapacityGb.toFixed(6) : '0.000000') }}
+          </template>
+        </el-table-column>
+<!--        <el-table-column prop="computedCapacityGb" label="语料容量(GB)" width="120">-->
+<!--          <template #default="{ row }">-->
+<!--            {{ row.computedCapacityGb ? row.computedCapacityGb.toFixed(6) : (row.estimatedCapacityGb != null ? row.estimatedCapacityGb.toFixed(6) : '0.000000') }}-->
+<!--          </template>-->
+<!--        </el-table-column>-->
         <el-table-column prop="creatorNickname" label="所有者" width="90" />
+
         <!-- 标注完成状态 -->
-        <el-table-column label="是否完成标注" width="150">
+        <el-table-column label="标注文件数量" width="150">
           <template #default="{ row }">
             <el-tag :type="row.annotationStatus === 'COMPLETED' ? 'success' : (row.annotationStatus === 'PENDING' ? 'warning' : 'info')">
               {{
@@ -57,27 +69,19 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="问答对数量" width="110"></el-table-column>
         <!-- 标注人员 -->
-        <el-table-column prop="annotationUploaderName" label="标注人员" width="150">
+        <el-table-column prop="annotationUploaderName" label="标注人员" width="110">
           <template #default="{ row }">
-            {{ row.annotationUploaderName || '—' }}
+            {{ row.annotationUploaderName}}
           </template>
         </el-table-column>
-        <el-table-column prop="dataVolume" label="文件数量" width="120">
-          <template #default="scope">
-            {{ scope.row.dataVolume ? `${scope.row.dataVolume} ${scope.row.volumeUnit || ''}` : '未设置' }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="uploaderName" label="上传语料库文件的用户" width="180">
-          <template #default="{ row }">
-            {{ row.uploaderName || row.creatorNickname || '未知' }}
-          </template>
-        </el-table-column>
-        <el-table-column prop="computedCapacityGb" label="语料容量GB" width="110">
-            <template #default="{ row }">
-                {{ row.computedCapacityGb ? row.computedCapacityGb.toFixed(6) : (row.estimatedCapacityGb != null ? row.estimatedCapacityGb.toFixed(6) : '0.000000') }}
-            </template>
-        </el-table-column>
+<!--        <el-table-column prop="uploaderName" label="上传用户" width="180">-->
+<!--          <template #default="{ row }">-->
+<!--            {{ row.uploaderName || row.creatorNickname || '未知' }}-->
+<!--          </template>-->
+<!--        </el-table-column>-->
+
         <el-table-column label="创建时间" width="110">
           <template #default="scope">
             {{ formatDate(scope.row.createdAt) }}

@@ -68,6 +68,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
         // 最后添加管理员权限拦截器，只拦截管理员API路径
         registry.addInterceptor(adminAuthInterceptor)
-                .addPathPatterns("/admin/**");  // 修正拦截路径
+                .addPathPatterns("/admin/users/**");  // 修正拦截路径
     }
 } 
