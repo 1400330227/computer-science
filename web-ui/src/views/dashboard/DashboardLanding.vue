@@ -6,7 +6,7 @@
             </div>
             <div class="head">
                 <div class="weather"><span id="showTime">{{ showTime }}</span></div>
-                <h1>广西大学东盟语料收集与管理平台数据可视化</h1>
+                <h1>广西大学东盟语料库管理与标注平台</h1>
             </div>
             <div class="mainbox">
                 <ul class="clearfix">
@@ -45,7 +45,7 @@
                             </div>
                         </div>
                         <div class="boxall" style="height:350px">
-                            <div class="alltitle">贡献者语料容量分布</div>
+                            <div class="alltitle">语料库贡献者 TOP 15</div>
                             <div class="navboxall" id="echart4"></div>
                         </div>
                         <div class="boxall" style="height:340px">
@@ -208,7 +208,7 @@ async function loadContributorAnalysis() {
     try {
         const res = await getContributorAnalysis()
         const list = Array.isArray(res?.data) ? res.data : []
-        contributorNames.value = list.map(item => item.contributorName || '')
+        contributorNames.value = list.map(item => item.contributorName || '').slice(0, 15)
         contributorCorpusCounts.value = list.map(item => Number(item.corpusCount || 0))
         contributorTotalCapacityGbs.value = list.map(item => Number(item.totalCapacityGb || 0))
     } catch (e) {
@@ -486,13 +486,13 @@ function echarts_3() {
 
     // 使用真实的时间序列数据
     const dates = timeSeriesData.value.dates
-    const corpusData = timeSeriesData.value.dailyCorpusAdded
+    const corpusData = timeSeriesData.value.dailyCapacityAdded
     const filesData = timeSeriesData.value.dailyFilesAdded
 
     const option = {
         tooltip: { trigger: 'axis', axisPointer: { lineStyle: { color: '#57617B' } } },
         legend: {
-            data: ['每日新增语料数', '每日新增文件数'],
+            data: ['每日新增语料容量(GB)', '每日新增文件数(份)'],
             top: '0',
             textStyle: { color: '#fff' },
             itemGap: 20,
@@ -506,14 +506,14 @@ function echarts_3() {
             data: dates
         }, {}],
         yAxis: [{
-            name: '每日新增语料数',
+            name: '每日新增语料容量(GB)',
             nameTextStyle: { color: '#fff' },
             alignTicks: true,
             axisLabel: { show: true, color: '#fff' },
             axisLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } },
             splitLine: { lineStyle: { color: 'rgba(255,255,255,.6)' } }
         }, {
-            name: '每日新增文件数量',
+            name: '每日新增文件数(份)',
             nameTextStyle: { color: '#fff' },
             alignTicks: true,
             axisLabel: { show: true, textStyle: { color: '#fff' } },
@@ -522,7 +522,7 @@ function echarts_3() {
         }],
         series: [
             {
-                name: '每日新增语料数', type: 'line', smooth: true, symbol: 'circle', symbolSize: 8, yAxisIndex: 0,
+                name: '每日新增语料容量(GB)', type: 'line', smooth: true, symbol: 'circle', symbolSize: 8, yAxisIndex: 0,
                 lineStyle: { normal: { width: 2 } },
                 areaStyle: {
                     color: {
@@ -541,7 +541,7 @@ function echarts_3() {
                 data: corpusData
             },
             {
-                name: '每日新增文件数', type: 'line', smooth: true, symbolSize: 8, symbol: 'circle', yAxisIndex: 1,
+                name: '每日新增文件数(份)', type: 'line', smooth: true, symbolSize: 8, symbol: 'circle', yAxisIndex: 1,
                 lineStyle: { normal: { width: 2 } },
                 areaStyle: {
                     color: {

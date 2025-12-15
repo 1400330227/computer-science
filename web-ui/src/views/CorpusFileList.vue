@@ -21,8 +21,8 @@
             <el-option label="文莱" value="文莱" />
           </el-select>
         </el-form-item> -->
-        <!-- <el-form-item label="语种">
-          <el-select v-model="searchForm.language" placeholder="选择语种" clearable style="width: 200px">
+        <!-- <el-form-item label="语言">
+          <el-select v-model="searchForm.language" placeholder="选择语言" clearable style="width: 200px">
             <el-option label="中文" value="中文" />
             <el-option label="泰国" value="泰国" />
             <el-option label="老挝语言" value="老挝语言" />
@@ -55,8 +55,8 @@
             </template>
           </el-table-column>
           <el-table-column prop="domain" label="所属领域" />
-          <el-table-column prop="language" label="语种" />
-          <el-table-column prop="dataFormat" label="数据模态" />
+          <el-table-column prop="language" label="语言" />
+<!--          <el-table-column prop="dataFormat" label="数据模态" />-->
           <el-table-column prop="classification" label="数据分类" />
           <el-table-column prop="dataYear" label="数据年份" />
           <el-table-column prop="createdAt" label="上传时间" width="110">

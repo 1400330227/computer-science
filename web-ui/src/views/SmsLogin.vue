@@ -8,12 +8,12 @@
       <!-- 登录表单的标题 -->
       <template #header>
         <div class="card-header">
-          <h1>广西大学东盟语料收集与管理平台</h1>
+          <h1>广西大学东盟语料库管理与标注平台</h1>
           <p>请输入您的手机号信息登录</p>
         </div>
       </template>
 
-      <!-- Element Plus 表单组件 
+      <!-- Element Plus 表单组件
            :model="loginForm" 绑定表单数据
            :rules="formRules" 绑定验证规则
            ref="loginFormRef" 创建表单引用，用于调用表单方法
@@ -28,9 +28,9 @@
         <!-- 验证码输入框 -->
         <el-form-item prop="code">
           <div style="display: flex; gap: 10px;">
-            <el-input v-model="loginForm.code" placeholder="请输入验证码" prefix-icon="Message" clearable maxlength="6" 
+            <el-input v-model="loginForm.code" placeholder="请输入验证码" prefix-icon="Message" clearable maxlength="6"
               style="flex: 1;" @keyup.enter="handleLogin" />
-            <el-button type="primary" :disabled="codeButtonDisabled" @click="sendVerificationCode" 
+            <el-button type="primary" :disabled="codeButtonDisabled" @click="sendVerificationCode"
               style="min-width: 120px;">
               {{ codeButtonText }}
             </el-button>
@@ -131,28 +131,28 @@ const sendVerificationCode = async () => {
     ElMessage.error('请先输入手机号')
     return
   }
-  
+
   if (!/^1[3-9]\d{9}$/.test(loginForm.phone)) {
     ElMessage.error('请输入正确的手机号格式')
     return
   }
-  
+
   try {
     codeButtonDisabled.value = true
-    
+
     const response = await api.post('/users/send-verification-code', {
       phone: loginForm.phone
     })
-    
+
     if (response.data.success) {
       ElMessage.success('验证码已发送，请查收')
-      
+
       // 开始60秒倒计时
       countdown.value = 60
       const timer = setInterval(() => {
         countdown.value--
         codeButtonText.value = `${countdown.value}秒后重发`
-        
+
         if (countdown.value <= 0) {
           clearInterval(timer)
           codeButtonDisabled.value = false

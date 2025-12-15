@@ -30,7 +30,7 @@ public interface CorpusService extends IService<Corpus> {
      * 分页查询语料库列表
      * @param page 页码
      * @param size 每页大小
-     * @param language 语种（可选）
+     * @param language 语言（可选）
      * @param classification 数据分类（可选）
      * @return 分页语料库列表
      */
@@ -41,7 +41,7 @@ public interface CorpusService extends IService<Corpus> {
      * @param userId 用户ID
      * @param page 页码
      * @param size 每页大小
-     * @param language 语种（可选）
+     * @param language 语言（可选）
      * @param classification 数据分类（可选）
      * @param collectionName 语料集名称（可选）
      * @param country 国家（可选）

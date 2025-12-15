@@ -37,7 +37,7 @@ public class Corpus implements Serializable {
     private String domain;
 
     /**
-     * 语种
+     * 语言
      */
     private String language;
 

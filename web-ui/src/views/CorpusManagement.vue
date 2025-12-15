@@ -42,7 +42,7 @@
           </template>
         </el-table-column>
         <!-- <el-table-column prop="creatorAccount" label="所有者" /> -->
-        <el-table-column prop="language" label="语种" width="100" />
+        <el-table-column prop="language" label="语言" width="100" />
         <el-table-column prop="provider" label="学院" width="190" />
         <el-table-column prop="creatorNickname" label="所有者" width="90" />
         <!-- 标注完成状态 -->

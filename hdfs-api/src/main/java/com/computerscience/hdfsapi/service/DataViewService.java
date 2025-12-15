@@ -16,7 +16,7 @@ public interface DataViewService {
     List<Map<String, Object>> getCountryDistribution();
 
     /**
-     * 获取语种分布数据
+     * 获取语言分布数据
      */
     List<Map<String, Object>> getLanguageDistribution();
 
