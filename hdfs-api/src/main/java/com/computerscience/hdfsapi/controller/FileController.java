@@ -252,157 +252,16 @@ public class FileController {
      * 查询当前用户的所有文件
      */
     @GetMapping("/my-files")
-    public ResponseEntity<?> getMyFiles(
-            @RequestParam(value = "page", defaultValue = "1") Integer page,
-            @RequestParam(value = "size", defaultValue = "10") Integer size,
-            @RequestParam(value = "fileName", required = false) String fileName,
-            @RequestParam(value = "dataFormat", required = false) String dataFormat,
-            @RequestParam(value = "corpusName", required = false) String corpusName,
-            @RequestParam(value = "country", required = false) String country,
-            @RequestParam(value = "domain", required = false) String domain,
-            @RequestParam(value = "language", required = false) String language,
-            @RequestParam(value = "classification", required = false) String classification,
-            @RequestParam(value = "dataYear", required = false) String dataYear,
-            @RequestParam(value = "startDataYear", required = false) String startDataYear,
-            @RequestParam(value = "endDataYear", required = false) String endDataYear,
-            @RequestParam(value = "corpusId", required = false) Integer corpusId) {
-        try {
-            // 调试信息
-            System.out.println("=== 查询当前用户的所有文件（分页+筛选） ===");
-            System.out.println("页码: " + page + ", 每页大小: " + size);
-            System.out.println("文件名: " + fileName);
-            System.out.println("数据格式: " + dataFormat);
-            System.out.println("语料ID: " + corpusId);
-            System.out.println("语料名称: " + corpusName);
-            System.out.println("国家: " + country);
-            System.out.println("所属领域: " + domain);
-            System.out.println("语种: " + language);
-            System.out.println("数据分类: " + classification);
-            System.out.println("数据年份: " + dataYear);
-            System.out.println("起始年份: " + startDataYear);
-            System.out.println("终止年份: " + endDataYear);
-
-            // 获取当前登录用户
+    public ResponseEntity<IPage<FileEntity>> getMyFiles(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String annotationStatus) {
             User currentUser = UserContext.getCurrentUser();
-            System.out.println("当前用户: " + currentUser.getAccount() + " (ID: " + currentUser.getUserId() + ")");
-
-            // 先根据语料条件筛选出符合条件的语料ID
-            List<Integer> filteredCorpusIds = null;
-            boolean hasCorpusFilters = StringUtils.hasText(corpusName) || StringUtils.hasText(country) ||
-                    StringUtils.hasText(domain) || StringUtils.hasText(language) || StringUtils.hasText(classification) ||
-                    StringUtils.hasText(dataYear) || StringUtils.hasText(startDataYear) || StringUtils.hasText(endDataYear) || corpusId != null;
-
-            if (hasCorpusFilters) {
-                LambdaQueryWrapper<Corpus> corpusQueryWrapper = new LambdaQueryWrapper<>();
-
-                if (corpusId != null) {
-                    corpusQueryWrapper.eq(Corpus::getCorpusId, corpusId);
-                }
-                if (StringUtils.hasText(corpusName)) {
-                    corpusQueryWrapper.like(Corpus::getCollectionName, corpusName);
-                }
-                if (StringUtils.hasText(country)) {
-                    corpusQueryWrapper.like(Corpus::getCountry, country);
-                }
-                if (StringUtils.hasText(domain)) {
-                    corpusQueryWrapper.like(Corpus::getDomain, domain);
-                }
-                if (StringUtils.hasText(language)) {
-                    corpusQueryWrapper.like(Corpus::getLanguage, language);
-                }
-                if (StringUtils.hasText(classification)) {
-                    corpusQueryWrapper.like(Corpus::getClassification, classification);
-                }
-                if (StringUtils.hasText(dataYear)) {
-                    corpusQueryWrapper.like(Corpus::getDataYear, dataYear);
-                }
-                if (StringUtils.hasText(startDataYear)) {
-                    corpusQueryWrapper.ge(Corpus::getDataYear, startDataYear);
-                }
-                if (StringUtils.hasText(endDataYear)) {
-                    corpusQueryWrapper.le(Corpus::getDataYear, endDataYear);
-                }
-
-                List<Corpus> filteredCorpusList = corpusService.list(corpusQueryWrapper);
-                filteredCorpusIds = filteredCorpusList.stream()
-                        .map(Corpus::getCorpusId)
-                        .collect(Collectors.toList());
-
-                if (filteredCorpusIds.isEmpty()) {
-                    // 如果没有符合条件的语料，返回空结果
-                    DPage<Map<String, Object>> emptyResult = new DPage<>(new ArrayList<>(), 0L, page, size);
-                    return ResponseEntity.ok(emptyResult);
-                }
-            }
-
-            // 查询文件列表（分页+筛选）
-            IPage<FileEntity> pageResult = fileService.findFilePage(
-                    page, size, currentUser.getUserId(), null, corpusId, fileName, dataFormat, filteredCorpusIds);
-
-            System.out.println("总记录数: " + pageResult.getTotal());
-            System.out.println("总页数: " + pageResult.getPages());
-            System.out.println("当前页记录数: " + pageResult.getRecords().size());
-
-            // 获取所有相关语料信息
-            Set<Integer> corpusIdSet = new HashSet<>();
-            for (FileEntity file : pageResult.getRecords()) {
-                if (file.getCorpusId() != null) {
-                    corpusIdSet.add(file.getCorpusId());
-                }
-            }
-
-            Map<Integer, Corpus> corpusMap = new HashMap<>();
-            if (!corpusIdSet.isEmpty()) {
-                List<Integer> corpusIds = new ArrayList<>(corpusIdSet);
-                List<Corpus> corpusList = corpusService.listByIds(corpusIds);
-                for (Corpus corpus : corpusList) {
-                    corpusMap.put(corpus.getCorpusId(), corpus);
-                }
-            }
-
-            // 转换为包含语料信息的DTO
-            List<Map<String, Object>> fileWithInfoList = new ArrayList<>();
-            for (FileEntity file : pageResult.getRecords()) {
-                Map<String, Object> fileInfo = new HashMap<>();
-                fileInfo.put("fileId", file.getFileId());
-                fileInfo.put("fileName", file.getFileName());
-                fileInfo.put("fileType", file.getFileType());
-                fileInfo.put("filePath", file.getFilePath());
-                fileInfo.put("size", file.getSize());
-                fileInfo.put("creatorId", file.getCreatorId());
-                fileInfo.put("corpusId", file.getCorpusId());
-                fileInfo.put("createdAt", file.getCreatedAt());
-                fileInfo.put("updatedAt", file.getUpdatedAt());
-                fileInfo.put("dataFormat", file.getDataFormat());
-
-                // 添加语料信息
-                if (file.getCorpusId() != null) {
-                    Corpus corpus = corpusMap.get(file.getCorpusId());
-                    if (corpus != null) {
-                        fileInfo.put("corpusName", corpus.getCollectionName());
-                        fileInfo.put("corpusCountry", corpus.getCountry());
-                        fileInfo.put("corpusLanguage", corpus.getLanguage());
-                        fileInfo.put("corpusDomain", corpus.getDomain());
-                        fileInfo.put("corpusDataYear", corpus.getDataYear());
-                        fileInfo.put("corpusDataSource", corpus.getDataSource());
-                        fileInfo.put("corpusClassification", corpus.getClassification());
-                        fileInfo.put("corpusDataFormat", corpus.getDataFormat());
-                    }
-                }
-
-                fileWithInfoList.add(fileInfo);
-            }
-
-            DPage<Map<String, Object>> result = new DPage<>(fileWithInfoList, pageResult.getTotal(), page, size);
-            System.out.println("文件查询成功，返回 " + result.getList().size() + " 条记录");
-            System.out.println("===================");
-            return ResponseEntity.ok(result);
-
-        } catch (Exception e) {
-            System.err.println("查询用户文件列表失败: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("查询用户文件列表失败: " + e.getMessage());
+        if (currentUser == null) {
+            return ResponseEntity.status(401).build();
         }
+        IPage<FileEntity> filePage = fileService.findFilesByCreator(currentUser.getUserId(), page, size, annotationStatus);
+        return ResponseEntity.ok(filePage);
     }
 
     /**

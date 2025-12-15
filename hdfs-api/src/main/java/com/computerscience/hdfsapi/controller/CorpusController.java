@@ -396,6 +396,12 @@ public class CorpusController {
             @RequestParam("file") MultipartFile file,
             @RequestParam("corpusId") Integer corpusId) {
         try {
+            // 文件大小校验（示例：10GB 上限，可按需调整）
+            long maxBytes = 10L * 1024 * 1024 * 1024;
+            if (file.getSize() > maxBytes) {
+                return ResponseEntity.badRequest().body("文件大小超出10GB限制，未上传且未入库");
+            }
+
             // 获取当前登录用户
             User currentUser = UserContext.getCurrentUser();
             // 验证语料库是否存在且属于当前用户
@@ -445,7 +451,7 @@ public class CorpusController {
             // 设置文件大小，转换为GB并保留两位小数
 //            double sizeInGB = (double) file.getSize() / (1024 * 1024 * 1024);
 //            String formattedSize = String.format("%.2f", sizeInGB);
-            fileEntity.setSize(String.valueOf(file.getSize()));
+            fileEntity.setSize(file.getSize());
 
             // 保存文件记录到数据库
             if (fileService.save(fileEntity)) {

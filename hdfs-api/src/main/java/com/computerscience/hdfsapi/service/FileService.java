@@ -75,4 +75,23 @@ public interface FileService extends IService<FileEntity> {
      * @return 是否删除成功
      */
     boolean deleteFilesByCorpusId(Integer corpusId);
+
+    /**
+     * 分页查询所有文件（支持标注状态筛选）
+     * @param page 页码
+     * @param size 每页大小
+     * @param annotationStatus 标注状态（可选）
+     * @return 分页文件列表
+     */
+    IPage<FileEntity> findAllFiles(int page, int size, String annotationStatus);
+
+    /**
+     * 分页查询创建者文件（支持标注状态筛选）
+     * @param creatorId 创建者ID
+     * @param page 页码
+     * @param size 每页大小
+     * @param annotationStatus 标注状态（可选）
+     * @return 分页文件列表
+     */
+    IPage<FileEntity> findFilesByCreator(Integer creatorId, int page, int size, String annotationStatus);
 } 

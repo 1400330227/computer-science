@@ -141,8 +141,35 @@
                 </div>
                 <el-empty v-else description="暂无文件" />
 
-
-
+                <!-- 标注文件上传 -->
+                <div class="annotation-upload">
+                    <el-form :inline="true" label-width="120px">
+                        <el-form-item label="选择原始文件">
+                            <el-select v-model="selectedOriginalFileId" placeholder="请选择要标注的文件" style="min-width: 260px">
+                                <el-option v-for="file in fileList" :key="file.fileId" :label="file.fileName" :value="file.fileId" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="标注文件(.txt)">
+                            <el-upload
+                                class="upload-inline"
+                                :auto-upload="false"
+                                :limit="1"
+                                :on-change="handleAnnotationUploadChange"
+                                :file-list="annotationUploadList"
+                                accept=".txt"
+                            >
+                                <template #trigger>
+                                    <el-button>选择标注文件</el-button>
+                                </template>
+                                <el-button type="primary" :disabled="annotationUploadList.length === 0" :loading="annotationUploading"
+                                           @click.stop="submitAnnotationUpload" style="margin-left: 12px;">
+                                    上传标注
+                                </el-button>
+                            </el-upload>
+                            <div class="upload-tip">文件名必须与原始文件主名一致，扩展名为 .txt；内容每3行一组问答。</div>
+                        </el-form-item>
+                    </el-form>
+                </div>
             </div>
 
             <div class="section-actions">
@@ -290,6 +317,11 @@ const rules = {
 // 文件上传相关（详情页追加上传）
 const uploadFiles = ref([])
 const uploading = ref(false)
+
+// 标注上传
+const annotationUploadList = ref([])
+const annotationUploading = ref(false)
+const selectedOriginalFileId = ref(null)
 
 // 获取全局面包屑管理工具
 const breadcrumb = inject('breadcrumb')
@@ -554,6 +586,54 @@ async function uploadSelectedFiles() {
         ElMessage.error('文件上传失败，请稍后重试')
     } finally {
         uploading.value = false
+    }
+}
+
+// 标注文件上传：选择
+function handleAnnotationUploadChange(file, fileListParam) {
+    annotationUploadList.value = fileListParam
+    if (!file.name.toLowerCase().endsWith('.txt')) {
+        ElMessage.error('请上传 .txt 格式的标注文件')
+        annotationUploadList.value = []
+    }
+}
+
+// 执行标注上传
+async function submitAnnotationUpload() {
+    if (annotationUploading.value) return
+    if (!selectedOriginalFileId.value) {
+        ElMessage.error('请选择要标注的原始文件')
+        return
+    }
+    if (annotationUploadList.value.length === 0) {
+        ElMessage.error('请先选择标注文件（.txt）')
+        return
+    }
+
+    const f = annotationUploadList.value[0]
+    if (!f.raw) {
+        ElMessage.error('标注文件选择异常，请重新选择')
+        return
+    }
+
+    annotationUploading.value = true
+    try {
+        const form = new FormData()
+        form.append('file', f.raw)
+        form.append('originalFileId', selectedOriginalFileId.value)
+        const res = await api.post('/qa-annotations/upload', form, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        ElMessage.success(`标注上传成功，问答对数量：${res.data.qaPairCount ?? '未知'}`)
+        // 清理
+        annotationUploadList.value = []
+        selectedOriginalFileId.value = null
+    } catch (error) {
+        console.error('标注上传失败:', error)
+        const msg = error.response?.data || '标注上传失败，请稍后重试'
+        ElMessage.error(msg)
+    } finally {
+        annotationUploading.value = false
     }
 }
 
@@ -843,6 +923,16 @@ async function deleteCorpusAction() {
 
 .upload-inline {
     /* display: inline-block; */
+}
+
+.annotation-upload {
+    margin-top: 16px;
+}
+
+.upload-tip {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 6px;
 }
 
 .form-content {

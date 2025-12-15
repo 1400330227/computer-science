@@ -2,8 +2,10 @@ package com.computerscience.hdfsapi.dto;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.computerscience.hdfsapi.utils.DoubleDeserializer;
+import lombok.Data;
 import java.time.LocalDateTime;
 
+@Data
 public class CorpusWithUserInfo {
     private Integer corpusId;
     private String country;
@@ -29,6 +31,10 @@ public class CorpusWithUserInfo {
     private String creatorAccount;
     private String creatorNickname;
     private String creatorUserType;
+
+    // 标注相关
+    private String annotationStatus;
+    private String annotationUploaderName;
 
     // Getters and Setters
     public Integer getCorpusId() { return corpusId; }

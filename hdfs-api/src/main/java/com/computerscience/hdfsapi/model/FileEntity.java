@@ -42,7 +42,10 @@ public class FileEntity implements Serializable {
      * 文件大小，以GB为单位
      */
     @TableField("size")
-    private String size;
+    private Long size;
+
+    @TableField("annotation_status")
+    private String annotationStatus;
 
     /**
      * 文件创建者ID (外键关联users表)

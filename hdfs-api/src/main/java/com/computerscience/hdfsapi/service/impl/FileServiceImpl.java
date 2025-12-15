@@ -159,4 +159,31 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
         
         return remove(queryWrapper);
     }
+
+    @Override
+    public IPage<FileEntity> findAllFiles(int page, int size, String annotationStatus) {
+        Page<FileEntity> pageRequest = new Page<>(page, size);
+        LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
+        
+        if (StringUtils.hasText(annotationStatus)) {
+            queryWrapper.eq(FileEntity::getAnnotationStatus, annotationStatus);
+        }
+        
+        queryWrapper.orderByDesc(FileEntity::getCreatedAt);
+        return this.page(pageRequest, queryWrapper);
+    }
+
+    @Override
+    public IPage<FileEntity> findFilesByCreator(Integer creatorId, int page, int size, String annotationStatus) {
+        Page<FileEntity> pageRequest = new Page<>(page, size);
+        LambdaQueryWrapper<FileEntity> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(FileEntity::getCreatorId, creatorId);
+
+        if (StringUtils.hasText(annotationStatus)) {
+            queryWrapper.eq(FileEntity::getAnnotationStatus, annotationStatus);
+        }
+
+        queryWrapper.orderByDesc(FileEntity::getCreatedAt);
+        return this.page(pageRequest, queryWrapper);
+    }
 } 

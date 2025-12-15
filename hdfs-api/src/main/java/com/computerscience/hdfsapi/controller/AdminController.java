@@ -368,16 +368,22 @@ public class AdminController {
 
             // 获取所有相关用户信息
             Set<Integer> creatorIdSet = new HashSet<>();
+            Set<Integer> annotationUploaderIdSet = new HashSet<>();
             for (Corpus corpus : corpusPage.getRecords()) {
                 creatorIdSet.add(corpus.getCreatorId());
+                if (corpus.getAnnotationUploaderId() != null) {
+                    annotationUploaderIdSet.add(corpus.getAnnotationUploaderId());
+                }
             }
             List<Integer> creatorIds = new ArrayList<>(creatorIdSet);
             System.out.println("需要查询的用户ID: " + creatorIds);
 
             Map<Integer, User> userMap = new HashMap<>();
-            // 只有当creatorIds不为空时才查询用户信息
-            if (!creatorIds.isEmpty()) {
-                List<User> users = userService.listByIds(creatorIds);
+            Set<Integer> allUserIds = new HashSet<>();
+            allUserIds.addAll(creatorIds);
+            allUserIds.addAll(annotationUploaderIdSet);
+            if (!allUserIds.isEmpty()) {
+                List<User> users = userService.listByIds(allUserIds);
                 System.out.println("查询到的用户数量: " + users.size());
                 for (User user : users) {
                     userMap.put(user.getUserId(), user);
@@ -412,6 +418,14 @@ public class AdminController {
                     dto.setCreatorAccount(creator.getAccount());
                     dto.setCreatorNickname(creator.getNickname());
                     dto.setCreatorUserType(creator.getUserType());
+                }
+
+                dto.setAnnotationStatus(corpus.getAnnotationStatus());
+                if (corpus.getAnnotationUploaderId() != null) {
+                    User uploader = userMap.get(corpus.getAnnotationUploaderId());
+                    if (uploader != null) {
+                        dto.setAnnotationUploaderName(uploader.getNickname());
+                    }
                 }
 
                 corpusWithUserInfoList.add(dto);

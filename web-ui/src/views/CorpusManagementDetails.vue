@@ -130,6 +130,31 @@
                     </div>
                 </div>
                 <el-empty v-else description="暂无文件" />
+
+                <!-- 标注文件上传（以语料为单位，无需选择具体文件） -->
+                <div class="annotation-upload">
+                    <el-form :inline="true" label-width="120px">
+                        <el-form-item label="标注文件(.txt)">
+                            <el-upload
+                                class="upload-inline"
+                                :auto-upload="false"
+                                :limit="1"
+                                :on-change="handleAnnotationUploadChange"
+                                :file-list="annotationUploadList"
+                                accept=".txt"
+                            >
+                                <template #trigger>
+                                    <el-button>选择标注文件</el-button>
+                                </template>
+                                <el-button type="primary" :disabled="annotationUploadList.length === 0" :loading="annotationUploading"
+                                           @click.stop="submitAnnotationUpload" style="margin-left: 12px;">
+                                    上传标注
+                                </el-button>
+                            </el-upload>
+                            <div class="upload-tip">文件名需与原始文件主名一致，扩展名为 .txt；内容每3行一组问答。</div>
+                        </el-form-item>
+                    </el-form>
+                </div>
             </div>
 
             <div class="section-actions">
@@ -279,6 +304,10 @@ const rules = {
 // 文件上传相关（详情页追加上传）
 const uploadFiles = ref([])
 const uploading = ref(false)
+
+// 标注上传
+const annotationUploadList = ref([])
+const annotationUploading = ref(false)
 
 // 获取全局面包屑管理工具
 const breadcrumb = inject('breadcrumb')
@@ -430,6 +459,65 @@ function loadFileList() {
         ElMessage.error('获取文件列表失败，请稍后重试')
         filesLoading.value = false
     })
+}
+
+// 标注文件上传：选择
+function handleAnnotationUploadChange(file, fileListParam) {
+    annotationUploadList.value = fileListParam
+    if (!file.name.toLowerCase().endsWith('.txt')) {
+        ElMessage.error('请上传 .txt 格式的标注文件')
+        annotationUploadList.value = []
+    }
+}
+
+// 执行标注上传
+async function submitAnnotationUpload() {
+    if (annotationUploading.value) return
+    if (annotationUploadList.value.length === 0) {
+        ElMessage.error('请先选择标注文件（.txt）')
+        return
+    }
+
+    // 校验语料当前文件数与预期文件数是否一致
+    const expectedCount = corpusData.value?.dataVolume
+    if (expectedCount != null && expectedCount > 0 && Array.isArray(fileList.value)) {
+        if (fileList.value.length !== expectedCount) {
+            ElMessage.error(`当前语料包含文件数量为 ${fileList.value.length}，与预期的 ${expectedCount} 不一致，请先补全原始文件后再上传标注`)
+            return
+        }
+    }
+
+    // 自动取该语料的首个文件作为校验基准
+    const targetFile = Array.isArray(fileList.value) && fileList.value.length > 0 ? fileList.value[0] : null
+    if (!targetFile) {
+        ElMessage.error('当前语料暂无文件，无法上传标注')
+        return
+    }
+
+    const f = annotationUploadList.value[0]
+    if (!f.raw) {
+        ElMessage.error('标注文件选择异常，请重新选择')
+        return
+    }
+
+    annotationUploading.value = true
+    try {
+        const form = new FormData()
+        form.append('file', f.raw)
+        form.append('originalFileId', targetFile.fileId)
+        const res = await api.post('/qa-annotations/upload', form, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+        ElMessage.success(`标注上传成功，问答对数量：${res.data.qaPairCount ?? '未知'}`)
+        // 清理
+        annotationUploadList.value = []
+    } catch (error) {
+        console.error('标注上传失败:', error)
+        const msg = error.response?.data || '标注上传失败，请稍后重试'
+        ElMessage.error(msg)
+    } finally {
+        annotationUploading.value = false
+    }
 }
 
 
@@ -668,6 +756,16 @@ function getFileIconClass(fileName) {
 
 .upload-inline {
     /* display: inline-block; */
+}
+
+.annotation-upload {
+    margin-top: 16px;
+}
+
+.upload-tip {
+    font-size: 12px;
+    color: #909399;
+    margin-top: 6px;
 }
 
 .form-content {

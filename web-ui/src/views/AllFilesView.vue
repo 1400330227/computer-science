@@ -169,13 +169,50 @@
             </div>
         </div>
     </div>
+
+    <!-- 上传标注对话框 -->
+    <el-dialog v-model="uploadDialogVisible" title="上传问答对标注文件" width="500px" @close="resetUpload">
+      <div v-if="currentFile">
+        <p>正在为以下文件上传标注：</p>
+        <p><strong>{{ currentFile.fileName }}</strong></p>
+      </div>
+      <el-upload
+        ref="uploadRef"
+        class="upload-demo"
+        drag
+        :limit="1"
+        :auto-upload="false"
+        :on-change="handleFileChange"
+        :http-request="handleUpload"
+      >
+        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <div class="el-upload__text">
+          将文件拖到此处，或<em>点击上传</em>
+        </div>
+        <template #tip>
+          <div class="el-upload__tip">
+            请上传与原始文件主名相同的 .txt 文件。
+          </div>
+        </template>
+      </el-upload>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="uploadDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="submitUpload" :loading="isUploading">
+            确认上传
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
-import { Search, Refresh, Download, User, Close } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import { Search, Refresh, Download, User, Close, UploadFilled } from '@element-plus/icons-vue';
 import { getAllFiles, deleteFileById } from '@/services/admin';
+import { downloadFile } from '@/services/corpus';
+import { uploadQaAnnotationFile } from '@/services/annotation';
 import corpusData from '@/assets/corpus.json';
 
 // Reactive data
@@ -187,6 +224,12 @@ const currentPage = ref(1);
 const pageSize = ref(20);
 const selectedFiles = ref([]);
 const tableRef = ref();
+
+const uploadDialogVisible = ref(false);
+const isUploading = ref(false);
+const currentFile = ref(null);
+const fileToUpload = ref(null);
+const uploadRef = ref();
 
 const searchForm = reactive({
     fileName: '',
@@ -369,6 +412,47 @@ const formatFileSize = (sizeInBytes) => {
     return sizeInGB.toFixed(6);
 };
 
+const openUploadDialog = (file) => {
+  currentFile.value = file;
+  uploadDialogVisible.value = true;
+};
+
+const handleFileChange = (file) => {
+  fileToUpload.value = file;
+};
+
+const resetUpload = () => {
+  currentFile.value = null;
+  fileToUpload.value = null;
+  if (uploadRef.value) {
+    uploadRef.value.clearFiles();
+  }
+};
+
+const submitUpload = () => {
+  if (!fileToUpload.value) {
+    ElMessage.error('请先选择一个文件');
+    return;
+  }
+  uploadRef.value.submit();
+};
+
+const handleUpload = async () => {
+  if (!currentFile.value || !fileToUpload.value) return;
+
+  isUploading.value = true;
+  try {
+    const response = await uploadQaAnnotationFile(fileToUpload.value.raw, currentFile.value.fileId);
+    ElMessage.success(`文件上传成功！包含 ${response.data.qaPairCount} 个问答对。`);
+    uploadDialogVisible.value = false;
+  } catch (error) {
+    const errorMessage = error.response?.data || '上传失败，请稍后再试';
+    ElMessage.error(errorMessage);
+  } finally {
+    isUploading.value = false;
+  }
+};
+
 onMounted(fetchFiles);
 </script>
 
@@ -435,5 +519,9 @@ onMounted(fetchFiles);
     display: flex;
     justify-content: center;
     margin-top: 20px;
+}
+
+.upload-demo {
+  margin-top: 20px;
 }
 </style>

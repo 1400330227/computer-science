@@ -132,4 +132,38 @@ export const uploadFileToCorpusAsAdmin = (corpusId, formData) => {
   return handleApiResponse(api.post(`/admin/corpus/${corpusId}/upload`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }));
+};
+
+/**
+ * 通用文件下载函数
+ * @param {number} fileId - 文件ID
+ */
+export const downloadFile = async (fileId) => {
+  try {
+    const response = await api.get(`/files/download/${fileId}`, {
+      responseType: 'blob', // 关键：告诉axios期望接收二进制数据
+    });
+    // 从响应头中提取文件名
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = 'downloaded_file'; // 默认文件名
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
+      if (fileNameMatch && fileNameMatch.length > 1) {
+        fileName = decodeURIComponent(fileNameMatch[1]);
+      }
+    }
+    // 创建一个临时的URL来下载文件
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    // 清理
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    ElMessage.error('文件下载失败');
+    console.error('Download error:', error);
+  }
 }; 

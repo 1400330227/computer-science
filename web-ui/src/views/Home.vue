@@ -88,7 +88,7 @@ const handleLogout = async () => {
           <el-menu-item index="/file-upload">上传语料集</el-menu-item>
         </el-sub-menu>
         <el-menu-item index="/my-files" class="nav-item">我的文件</el-menu-item>
-
+        
         <!-- Admin Menu -->
         <template v-if="userStore.user?.userType === 'admin'">
           <el-menu-item class="nav-item" index="/all-files">所有文件</el-menu-item>

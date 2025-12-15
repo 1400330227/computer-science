@@ -117,4 +117,16 @@ public class Corpus implements Serializable {
     @TableField(value = "created_at", fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
 
+    /**
+     * 标注状态（UNANNOTATED/PENDING/COMPLETED/REJECTED）
+     */
+    @TableField("annotation_status")
+    private String annotationStatus;
+
+    /**
+     * 最近标注上传人ID
+     */
+    @TableField("annotation_uploader_id")
+    private Integer annotationUploaderId;
+
 }

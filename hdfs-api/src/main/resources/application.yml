@@ -25,6 +25,7 @@ hadoop:
     user: Administrator
     uri: hdfs://172.21.44.162:9000
     root-path: /user/
+    annotations-path: /annotations/
 
 logging:
   level:
