@@ -814,6 +814,58 @@ public class HdfsApi {
 
     }
 
+    public boolean move(final String src, final String dest, final boolean overwrite, final boolean useRename)
+            throws Exception {
+        return execute(new PrivilegedExceptionAction<Boolean>() {
+            public Boolean run() throws Exception {
+                Path sPath;
+                Path dPath;
+
+                if (StringUtils.isNotBlank(uri)) {
+                    sPath = new Path(uri + "/" + src);
+                    dPath = new Path(uri + "/" + dest);
+                } else {
+                    sPath = new Path(src);
+                    dPath = new Path(dest);
+                }
+
+                // 检查源文件是否存在
+                if (!fs.exists(sPath)) {
+                    throw new IOException("源文件不存在: " + src);
+                }
+
+                // 检查目标文件是否已存在
+                if (fs.exists(dPath)) {
+                    if (!overwrite) {
+                        throw new IOException("目标文件已存在: " + dest);
+                    } else {
+                        // 删除已存在的目标文件
+                        fs.delete(dPath, true);
+                    }
+                }
+
+                // 创建目标目录
+                Path parent = dPath.getParent();
+                if (parent != null && !fs.exists(parent)) {
+                    fs.mkdirs(parent);
+                }
+
+                // 根据参数选择移动方式
+                if (useRename) {
+                    try {
+                        return fs.rename(sPath, dPath);
+                    } catch (Exception e) {
+                        System.out.println("rename失败: " + e.getMessage() + "，改用copy方式");
+                    }
+                }
+
+                // 使用copy方式
+                return FileUtil.copy(fs, sPath, fs, dPath, true, conf);
+            }
+        });
+    }
+
+
     /**
      * 判断文件是否存在
      *

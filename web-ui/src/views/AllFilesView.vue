@@ -221,7 +221,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, Refresh, Download, User, Close, UploadFilled } from '@element-plus/icons-vue';
 import { getAllFiles, deleteFileById } from '@/services/admin';
 import { downloadFile } from '@/services/corpus';
-import { uploadQaAnnotationFile } from '@/services/annotation';
+import { uploadAnnotation } from '@/services/annotation';
 import corpusData from '@/assets/corpus.json';
 
 // Reactive data
@@ -451,7 +451,7 @@ const handleUpload = async () => {
 
   isUploading.value = true;
   try {
-    const response = await uploadQaAnnotationFile(fileToUpload.value.raw, currentFile.value.fileId);
+    const response = await uploadAnnotation(fileToUpload.value.raw, currentFile.value.fileId);
     ElMessage.success(`文件上传成功！包含 ${response.data.qaPairCount} 个问答对。`);
     uploadDialogVisible.value = false;
   } catch (error) {

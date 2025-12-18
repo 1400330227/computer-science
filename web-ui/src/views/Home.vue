@@ -90,7 +90,7 @@ const handleLogout = async () => {
         <el-menu-item index="/my-files" class="nav-item">我的文件</el-menu-item>
 
 
-        <el-menu-item class="nav-item" index="/all-files">标注文件</el-menu-item>
+        <el-menu-item class="nav-item" index="/all-files">所有文件</el-menu-item>
         <el-menu-item class="nav-item" index="/corpus-management">语料库管理</el-menu-item>
 
 

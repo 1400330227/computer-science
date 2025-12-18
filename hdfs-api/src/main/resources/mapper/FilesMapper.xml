@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.computerscience.hdfsapi.mapper.FileMapper">
+
+    <!-- 结果映射 -->
+    <resultMap id="CorpusFileVOMap" type="com.computerscience.hdfsapi.dto.CorpusFileVO">
+        <!-- Files 原有字段映射 -->
+        <id property="fileId" column="file_id"/>
+        <result property="corpusId" column="corpus_id"/>
+        <result property="fileName" column="file_name"/>
+        <result property="size" column="size"/>
+        <result property="creatorId" column="creator_id"/>
+        <result property="filePath" column="file_path"/>
+        <result property="fileType" column="file_type"/>
+        <!-- ... 其他 Files 字段 ... -->
+
+        <!-- 关联对象 annotationFiles -->
+        <collection property="annotationFiles" ofType="com.computerscience.hdfsapi.dto.AnnotationFileVO">
+            <id property="id" column="af_id"/>
+            <result property="title" column="af_title"/>
+            <result property="annotationFilePath" column="af_path"/>
+            <result property="status" column="af_status"/>
+            <result property="createdAt" column="af_created_at"/>
+            <result property="annotationFileDetailsId" column="af_details_id"/>
+            <!-- 核心：映射 QA 数量 -->
+            <result property="qaPairCount" column="qa_pair_count"/>
+        </collection>
+    </resultMap>
+
+    <!-- 查询语料下的文件列表（带最新标注信息） -->
+    <select id="selectFilesWithLatestAnnotation" resultMap="CorpusFileVOMap">
+        SELECT
+            f.file_id,
+            f.corpus_id,
+            f.file_name,
+            f.size,
+            f.creator_id,
+            f.file_path,
+            f.file_type,
+
+            af.id AS af_id,
+            af.title AS af_title,
+            af.annotation_file_path AS af_path,
+            af.status AS af_status,
+            af.created_at AS af_created_at,
+            af.annotation_file_details_id AS af_details_id,
+
+            afd.qa_pair_count
+
+        FROM files f
+                 LEFT JOIN annotation_files af ON f.file_id = af.file_id
+                 LEFT JOIN annotation_file_details afd ON af.annotation_file_details_id = afd.id
+        WHERE f.corpus_id = #{corpusId}
+        ORDER BY f.created_at DESC
+    </select>
+
+</mapper>

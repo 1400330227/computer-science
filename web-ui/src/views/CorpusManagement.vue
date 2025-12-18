@@ -43,7 +43,12 @@
         </el-table-column>
         <!-- <el-table-column prop="creatorAccount" label="所有者" /> -->
         <el-table-column prop="language" label="语言" width="100" />
-        <el-table-column prop="provider" label="学院" width="190" />
+        <el-table-column prop="provider" label="所有者" width="190">
+          <template #default="{row}">
+            <div>{{row.provider}}</div>
+            <div>{{row.creatorNickname}}</div>
+          </template>
+        </el-table-column>
         <el-table-column prop="dataVolume" label="文件数量" width="120">
           <template #default="{row}">
             {{ row.dataVolume ? `${row.dataVolume} ${row.volumeUnit || ''}` : '未设置' }}
@@ -55,21 +60,21 @@
 <!--            {{ row.computedCapacityGb ? row.computedCapacityGb.toFixed(6) : (row.estimatedCapacityGb != null ? row.estimatedCapacityGb.toFixed(6) : '0.000000') }}-->
 <!--          </template>-->
 <!--        </el-table-column>-->
-        <el-table-column prop="creatorNickname" label="所有者" width="90" />
+<!--        <el-table-column prop="creatorNickname" label="所有者" width="90" />-->
 
         <!-- 标注完成状态 -->
-        <el-table-column label="标注文件数量" width="150">
+        <el-table-column label="标注文件" width="150">
           <template #default="{ row }">
-            <el-tag :type="row.annotationStatus === 'COMPLETED' ? 'success' : (row.annotationStatus === 'PENDING' ? 'warning' : 'info')">
-              {{
-                row.annotationStatus === 'COMPLETED'
-                  ? '是'
-                  : (row.annotationStatus === 'PENDING' ? '进行中' : '未开始')
-              }}
-            </el-tag>
+<!--            <el-tag :type="row.annotationStatus === 'COMPLETED' ? 'success' : (row.annotationStatus === 'PENDING' ? 'warning' : 'info')">-->
+<!--              {{-->
+<!--                row.annotationStatus === 'COMPLETED'-->
+<!--                  ? '是'-->
+<!--                  : (row.annotationStatus === 'PENDING' ? '进行中' : '未开始')-->
+<!--              }}-->
+<!--            </el-tag>-->
           </template>
         </el-table-column>
-        <el-table-column label="问答对数量" width="110"></el-table-column>
+<!--        <el-table-column label="问答对数量" width="110"></el-table-column>-->
         <!-- 标注人员 -->
         <el-table-column prop="annotationUploaderName" label="标注人员" width="110">
           <template #default="{ row }">

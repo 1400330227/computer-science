@@ -142,34 +142,34 @@
                 <el-empty v-else description="暂无文件" />
 
                 <!-- 标注文件上传 -->
-                <div class="annotation-upload">
-                    <el-form :inline="true" label-width="120px">
-                        <el-form-item label="选择原始文件">
-                            <el-select v-model="selectedOriginalFileId" placeholder="请选择要标注的文件" style="min-width: 260px">
-                                <el-option v-for="file in fileList" :key="file.fileId" :label="file.fileName" :value="file.fileId" />
-                            </el-select>
-                        </el-form-item>
-                        <el-form-item label="标注文件(.txt)">
-                            <el-upload
-                                class="upload-inline"
-                                :auto-upload="false"
-                                :limit="1"
-                                :on-change="handleAnnotationUploadChange"
-                                :file-list="annotationUploadList"
-                                accept=".txt"
-                            >
-                                <template #trigger>
-                                    <el-button>选择标注文件</el-button>
-                                </template>
-                                <el-button type="primary" :disabled="annotationUploadList.length === 0" :loading="annotationUploading"
-                                           @click.stop="submitAnnotationUpload" style="margin-left: 12px;">
-                                    上传标注
-                                </el-button>
-                            </el-upload>
-                            <div class="upload-tip">文件名必须与原始文件主名一致，扩展名为 .txt；内容每3行一组问答。</div>
-                        </el-form-item>
-                    </el-form>
-                </div>
+<!--                <div class="annotation-upload">-->
+<!--                    <el-form :inline="true" label-width="120px">-->
+<!--                        <el-form-item label="选择原始文件">-->
+<!--                            <el-select v-model="selectedOriginalFileId" placeholder="请选择要标注的文件" style="min-width: 260px">-->
+<!--                                <el-option v-for="file in fileList" :key="file.fileId" :label="file.fileName" :value="file.fileId" />-->
+<!--                            </el-select>-->
+<!--                        </el-form-item>-->
+<!--                        <el-form-item label="标注文件(.txt)">-->
+<!--                            <el-upload-->
+<!--                                class="upload-inline"-->
+<!--                                :auto-upload="false"-->
+<!--                                :limit="1"-->
+<!--                                :on-change="handleAnnotationUploadChange"-->
+<!--                                :file-list="annotationUploadList"-->
+<!--                                accept=".txt"-->
+<!--                            >-->
+<!--                                <template #trigger>-->
+<!--                                    <el-button>选择标注文件</el-button>-->
+<!--                                </template>-->
+<!--                                <el-button type="primary" :disabled="annotationUploadList.length === 0" :loading="annotationUploading"-->
+<!--                                           @click.stop="submitAnnotationUpload" style="margin-left: 12px;">-->
+<!--                                    上传标注-->
+<!--                                </el-button>-->
+<!--                            </el-upload>-->
+<!--                            <div class="upload-tip">文件名必须与原始文件主名一致，扩展名为 .txt；内容每3行一组问答。</div>-->
+<!--                        </el-form-item>-->
+<!--                    </el-form>-->
+<!--                </div>-->
             </div>
 
             <div class="section-actions">

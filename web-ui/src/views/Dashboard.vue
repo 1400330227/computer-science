@@ -97,15 +97,15 @@ onMounted(() => {
 
 // 导航到指定路由
 function navigateTo(path) {
-  if (path === '/all-files') {
-    if (userStore.user?.userType === 'admin') {
-      router.push(path);
-    } else {
-      ElMessage.warning('目前没有权限查看其他人的文件');
-    }
-  } else {
-    router.push(path);
-  }
+  // if (path === '/all-files') {
+    // if (userStore.user?.userType === 'admin') {
+    //   router.push(path);
+    // } else {
+    //   ElMessage.warning('目前没有权限查看其他人的文件');
+    // }
+  // } else {
+  router.push(path);
+  // }
 }
 </script>
 

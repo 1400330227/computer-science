@@ -3,6 +3,7 @@ package com.computerscience.hdfsapi.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.computerscience.hdfsapi.dto.CorpusFileVO;
 import com.computerscience.hdfsapi.dto.CorpusTransferRequest;
 import com.computerscience.hdfsapi.dto.CorpusWithUserInfo;
 import com.computerscience.hdfsapi.dto.UpdateUserRoleRequest;
@@ -525,7 +526,7 @@ public class AdminController {
             }
 
             // 查询文件列表
-            List<FileEntity> files = fileService.findByCorpusId(corpusId);
+            List<CorpusFileVO> files = fileService.getCorpusFilesWithAnnotation(corpusId);
 
             response.put("success", true);
             response.put("data", files != null ? files : new ArrayList<>());

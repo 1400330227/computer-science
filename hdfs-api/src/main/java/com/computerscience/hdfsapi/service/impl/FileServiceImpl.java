@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.computerscience.hdfsapi.dto.CorpusFileVO;
 import com.computerscience.hdfsapi.model.FileEntity;
 import com.computerscience.hdfsapi.mapper.FileMapper;
 import com.computerscience.hdfsapi.service.FileService;
@@ -185,5 +186,10 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
 
         queryWrapper.orderByDesc(FileEntity::getCreatedAt);
         return this.page(pageRequest, queryWrapper);
+    }
+
+    @Override
+    public List<CorpusFileVO> getCorpusFilesWithAnnotation(Integer corpusId) {
+        return baseMapper.selectFilesWithLatestAnnotation(corpusId);
     }
 } 

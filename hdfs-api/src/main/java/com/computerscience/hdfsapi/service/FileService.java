@@ -2,6 +2,7 @@ package com.computerscience.hdfsapi.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.computerscience.hdfsapi.dto.CorpusFileVO;
 import com.computerscience.hdfsapi.model.FileEntity;
 
 import java.util.List;
@@ -94,4 +95,6 @@ public interface FileService extends IService<FileEntity> {
      * @return 分页文件列表
      */
     IPage<FileEntity> findFilesByCreator(Integer creatorId, int page, int size, String annotationStatus);
+
+    List<CorpusFileVO> getCorpusFilesWithAnnotation(Integer corpusId);
 } 
