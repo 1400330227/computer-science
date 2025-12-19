@@ -183,13 +183,13 @@ async function loadDomainAnalysis() {
         const list = Array.isArray(res?.data) ? res.data : []
 
         // 计算总数用于百分比计算
-        const totalCount = list.reduce((sum, item) => sum + (Number(item.corpusCount) || 0), 0)
+        const totalCount = list.reduce((sum, item) => sum + (Number(item.totalCapacityGb) || 0), 0)
 
         domainAnalysis.value = {
             domainNames: list.map(item => item.domain || '未知领域'),
-            domainValues: list.map(item => Number(item.corpusCount) || 0),
+            domainValues: list.map(item => Number(item.totalCapacityGb) || 0),
             domainPercentages: list.map(item => {
-                const count = Number(item.corpusCount) || 0
+                const count = Number(item.totalCapacityGb) || 0
                 return totalCount > 0 ? Math.round((count / totalCount) * 100) : 0
             })
         }
