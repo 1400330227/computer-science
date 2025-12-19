@@ -382,7 +382,7 @@ watch(
     }
   }
 )
-
+const invalidFiles = ref(new Set())
 const fileList = ref([])
 
 // 语料名称检查状态
@@ -395,14 +395,17 @@ const collectionNameStatus = reactive({
 
 
 // 文件上传前的验证
-const beforeUpload = (file) => {
+const validateSingleFile = (file) => {
+  const errors = []
   // 检查文件大小
   const isLt10G = file.size / 1024 / 1024 / 1024 < 10
   if (!isLt10G) {
-    ElMessage.error('文件大小超过10GB限制！')
-    return false
+    errors.push(`文件大小不能超过 10GB!`)
   }
-  return true
+  return {
+    isValid: errors.length === 0,
+    errors
+  }
 }
 
 // 计算并更新容量估算（GB）
@@ -416,19 +419,53 @@ const updateEstimatedCapacity = (files) => {
 }
 
 // 处理文件变更
-const handleFileChange = (file, uploadFileList) => {
+const handleFileChange = (uploadFile, uploadFiles) => {
+  const validation = validateSingleFile(uploadFile);
+  if (!validation.isValid) {
+    invalidFiles.value.add(uploadFile.uid)
+
+    validation.errors.forEach((error, index) => {
+      if (index === 0) {
+        ElMessage.error(`${uploadFile.name}: ${error}`)
+      }
+    })
+    // 移除无效文件，保持列表只包含有效文件
+    const validFiles = uploadFiles.filter(file => {
+      const fileValidation = validateSingleFile(file)
+      return fileValidation.isValid
+    })
+    debugger
+    // 更新文件列表，只保留文件信息，不进行上传
+    fileList.value = validFiles
+
+    // 更新容量估算
+    updateEstimatedCapacity(fileList.value)
+
+    // 根据上传文件数量，自动填充文件数量（默认0）
+    formData.dataVolume = fileList.value.length || 0
+    return false
+  }
+
+  // 文件有效
+  invalidFiles.value.delete(uploadFile.uid)
+
+  // 检查重复文件
+  const duplicateFiles = uploadFiles.filter(file =>
+    file.name === uploadFile.name && file.uid !== uploadFile.uid
+  )
+  if (duplicateFiles.length > 0) {
+    ElMessage.warning(`已存在同名文件: ${uploadFile.name}`)
+  }
+
   // 更新文件列表，只保留文件信息，不进行上传
-  fileList.value = uploadFileList.map(uploadFile => ({
-    name: uploadFile.name,
-    size: uploadFile.size,
-    raw: uploadFile.raw  // 保存原始文件对象，用于后续上传
-  }))
+  fileList.value = uploadFiles
 
   // 更新容量估算
   updateEstimatedCapacity(fileList.value)
 
   // 根据上传文件数量，自动填充文件数量（默认0）
   formData.dataVolume = fileList.value.length || 0
+  return true
 }
 
 // 移除文件

@@ -1,6 +1,7 @@
 package com.computerscience.hdfsapi.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.computerscience.hdfsapi.api.HdfsApi;
 import com.computerscience.hdfsapi.enums.AnnotationFileFormat;
@@ -12,10 +13,12 @@ import com.computerscience.hdfsapi.model.AnnotationFile;
 import com.computerscience.hdfsapi.model.AnnotationFileDetails;
 import com.computerscience.hdfsapi.model.FileEntity; // 假设存在
 import com.computerscience.hdfsapi.model.User;
+import com.computerscience.hdfsapi.service.AnnotationFileDetailsService;
 import com.computerscience.hdfsapi.service.AnnotationFileService;
 import com.computerscience.hdfsapi.utils.UserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +32,6 @@ import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files; // 避免类名冲突
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,6 +47,9 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
 
     @Autowired
     private AnnotationFileDetailsMapper detailsMapper;
+
+    @Autowired
+    private AnnotationFileDetailsService annotationFileDetailsService;
 
     @Autowired
     private FileMapper filesMapper; // 需要根据fileId查corpusId
@@ -67,14 +72,21 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
         if (file.isEmpty() || dataFormat == null) {
             throw new RuntimeException("文件为空或格式不正确（仅支持.txt）");
         }
-
         // 2. 获取原始文件信息以确定 corpusId
         FileEntity originalFile = filesMapper.selectById(originalFileId);
         if (originalFile == null) {
             throw new RuntimeException("原始文件不存在");
         }
+        QueryWrapper<AnnotationFile> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("file_id", originalFileId);
+        queryWrapper.eq("title", file.getOriginalFilename());
+        AnnotationFile existingFile = baseMapper.selectOne(queryWrapper);
+        if (existingFile != null) {
+            throw new RuntimeException("文件名 \"" + file.getOriginalFilename() + "\" 已存在");
+        }
         User currentUser = UserContext.getCurrentUser();
         try {
+
             // 3. 解析文件内容计算 QA 对数量 (简单逻辑：假设一行 Q 一行 A，或者根据特定标记)
             // 这里简单读取文件行数作为示例，实际需根据业务规则解析
             String content = new String(file.getBytes(), StandardCharsets.UTF_8);
@@ -82,18 +94,12 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
 
             // 4. 保存文件到磁盘/HDFS
             String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
-            String hdfsPath = uploadBasePath + currentUser.getAccount() + originalFile.getCorpusId() + "/" + originalFilename;;
+            String hdfsPath = uploadBasePath + currentUser.getAccount() + "/" + originalFile.getCorpusId() + "/" + originalFilename;
 
             HdfsApi hdfsApi = new HdfsApi(conf, user);
             InputStream inputStream = file.getInputStream();
             hdfsApi.upLoadFile(inputStream, hdfsPath);
             hdfsApi.close();
-
-
-            // 5. 保存详情表
-            AnnotationFileDetails details = new AnnotationFileDetails();
-            details.setQaPairCount(qaCount);
-            detailsMapper.insert(details);
 
             // 6. 保存主表
             // 注意：因为是 1对N，这里直接新增。如果业务要求每个原始文件只能有一个最新标注，需先查询并更新状态。
@@ -101,7 +107,6 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
             annotationFile.setFileId(originalFileId);
             annotationFile.setCorpusId(originalFile.getCorpusId());
             annotationFile.setCreatorId(userId);
-            annotationFile.setAnnotationFileDetailsId(details.getId());
             annotationFile.setTitle(originalFilename);
             annotationFile.setFileType("txt");
             annotationFile.setAnnotationFilePath(hdfsPath);
@@ -109,6 +114,12 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
             annotationFile.setCreatedAt(LocalDateTime.now());
 
             this.save(annotationFile);
+
+            // 5. 保存详情表
+            AnnotationFileDetails details = new AnnotationFileDetails();
+            details.setAnnotationFilesId(annotationFile.getId());
+            details.setQaPairCount(qaCount);
+            detailsMapper.insert(details);
 
             // 回填 details 供前端展示
             annotationFile.setDetails(details);
@@ -128,63 +139,133 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
             throw new RuntimeException("标注文件不存在");
         }
 
-        // 1. 删除物理文件 (可选，根据业务需求是否保留历史)
+        // 1. 删除HDFS物理文件 (可选，根据业务需求是否保留历史)
         try {
             Files.deleteIfExists(Paths.get(annotationFile.getAnnotationFilePath()));
         } catch (IOException e) {
             log.warn("物理文件删除失败: {}", annotationFile.getAnnotationFilePath());
         }
+        LambdaQueryWrapper<AnnotationFileDetails> detailsWrapper = new LambdaQueryWrapper<>();
+        detailsWrapper.eq(AnnotationFileDetails::getAnnotationFilesId, annotationId);
+        annotationFileDetailsService.remove(detailsWrapper);
 
         // 2. 删除数据库记录
         this.removeById(annotationId);
-        detailsMapper.deleteById(annotationFile.getAnnotationFileDetailsId());
     }
 
     @Override
     public void downloadAnnotation(Integer annotationId, HttpServletResponse response) {
         AnnotationFile annotationFile = this.getById(annotationId);
         if (annotationFile == null) throw new RuntimeException("文件不存在");
-
-        File file = new File(annotationFile.getAnnotationFilePath());
-        if (!file.exists()) throw new RuntimeException("物理文件丢失");
-
-        downloadFile(file, annotationFile.getTitle(), response);
+        downloadFile(annotationFile, response);
     }
 
     @Override
     public void downloadAllAnnotations(Integer corpusId, HttpServletResponse response) {
         // 1. 查询该语料下所有标注文件
-        List<AnnotationFile> list = this.list(new LambdaQueryWrapper<AnnotationFile>()
+        List<AnnotationFile> files = this.list(new LambdaQueryWrapper<AnnotationFile>()
                 .eq(AnnotationFile::getCorpusId, corpusId)
                 .eq(AnnotationFile::getStatus, "VALIDATED"));
 
-        if (list.isEmpty()) {
+        if (files.isEmpty()) {
             throw new RuntimeException("该语料下暂无标注文件");
         }
 
+        File tempZipFile = null;
+        ZipOutputStream zipOut = null;
         // 2. 设置响应头
         try {
-            String zipName = "corpus_" + corpusId + "_annotations.zip";
-            response.setContentType("application/zip");
-            response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(zipName, "UTF-8"));
+            HdfsApi hdfsApi = new HdfsApi(conf, user);
+            String zipFileName = "批量下载_" + System.currentTimeMillis() + ".zip";
+            // 创建临时文件
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            String random = String.valueOf(Thread.currentThread().getId());
+            tempZipFile = File.createTempFile("batch_download_" + timestamp + "_" + random + "_", ".zip");
 
-            // 3. 创建 ZIP 流
-            try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
-                for (AnnotationFile af : list) {
-                    File file = new File(af.getAnnotationFilePath());
-                    if (file.exists()) {
-                        // 防止重名文件覆盖，可以加 ID 前缀
-                        ZipEntry zipEntry = new ZipEntry(af.getId() + "_" + af.getTitle());
-                        zos.putNextEntry(zipEntry);
-                        Files.copy(file.toPath(), zos);
-                        zos.closeEntry();
+            // 创建ZIP输出流指向临时文件
+            zipOut = new ZipOutputStream(new FileOutputStream(tempZipFile));
+
+            int successCount = 0;
+            int failCount = 0;
+
+            for (AnnotationFile file : files) {
+                try {
+                    String hdfsPath = file.getAnnotationFilePath();
+                    String fileName = file.getTitle();
+
+                    System.out.println("添加文件到ZIP: " + fileName + " (HDFS: " + hdfsPath + ")");
+
+                    // 添加ZIP条目
+                    ZipEntry zipEntry = new ZipEntry(fileName);
+                    zipOut.putNextEntry(zipEntry);
+
+                    // 从HDFS读取文件并写入ZIP
+                    org.apache.hadoop.fs.Path sPath = new Path(hdfsPath);
+                    try (InputStream inputStream = hdfsApi.getFs().open(sPath)) {
+                        byte[] buffer = new byte[8192];
+                        int length;
+                        while ((length = inputStream.read(buffer)) > 0) {
+                            zipOut.write(buffer, 0, length);
+                        }
                     }
+
+                    zipOut.closeEntry();
+                    successCount++;
+
+                } catch (Exception e) {
+                    System.err.println("添加文件到ZIP失败: " + file.getTitle() + ", 错误: " + e.getMessage());
+                    failCount++;
+                    // 继续处理其他文件，不中断整个下载过程
                 }
-                zos.finish();
             }
+
+            // 如果有文件失败，在ZIP中添加一个说明文件
+            if (failCount > 0) {
+                try {
+                    ZipEntry infoEntry = new ZipEntry("下载说明.txt");
+                    zipOut.putNextEntry(infoEntry);
+                    String info = "注意: " + failCount + " 个文件未能包含在此下载包中，请联系管理员。";
+                    zipOut.write(info.getBytes(StandardCharsets.UTF_8));
+                    zipOut.closeEntry();
+                } catch (Exception e) {
+                    System.err.println("无法添加说明文件: " + e.getMessage());
+                }
+            }
+
+            // 关闭ZIP输出流
+            zipOut.close();
+            zipOut = null;
+
+            System.out.println("ZIP打包完成: 成功 " + successCount + " 个文件, 失败 " + failCount + " 个文件");
+            System.out.println("临时ZIP文件大小: " + tempZipFile.length() + " 字节");
+
+            // 设置HTTP响应头
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition",
+                    "attachment;filename=" + URLEncoder.encode(zipFileName, "UTF-8"));
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Expires", "0");
+            response.setHeader("X-Content-Type-Options", "nosniff");
+
+            // 设置准确的内容长度
+            response.setContentLengthLong(tempZipFile.length());
+
+            // 将临时文件内容写入响应输出流
+            try (InputStream fileInputStream = new FileInputStream(tempZipFile)) {
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                    response.getOutputStream().write(buffer, 0, bytesRead);
+                }
+            }
+
+            System.out.println("批量下载完成");
         } catch (IOException e) {
             log.error("批量下载失败", e);
             throw new RuntimeException("批量下载失败");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -214,9 +295,7 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
             String answer = matcher.group(2).trim();
 
             // 验证问题和答案不是空的占位符
-            if (!question.isEmpty() && !answer.isEmpty() &&
-                    !question.equals("在此处输入待标注的具体问题或文本片段") &&
-                    !answer.equals("在此处输入与问题相对应的标准答案或正确标注结果")) {
+            if (!question.isEmpty() && !answer.isEmpty()) {
                 count++;
             }
         }
@@ -302,21 +381,27 @@ public class AnnotationFileServiceImpl extends ServiceImpl<AnnotationFileMapper,
         return count;
     }
 
-    private void downloadFile(File file, String fileName, HttpServletResponse response) {
-        try (FileInputStream fis = new FileInputStream(file);
-             OutputStream os = response.getOutputStream()) {
-
-            response.setContentType("application/octet-stream");
-            response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(fileName, "UTF-8"));
-            response.setContentLengthLong(file.length());
-
-            byte[] buffer = new byte[4096];
-            int b;
-            while ((b = fis.read(buffer)) != -1) {
-                os.write(buffer, 0, b);
+    private void downloadFile(AnnotationFile file, HttpServletResponse response) {
+        try {
+            String hdfsPath = file.getAnnotationFilePath();
+            HdfsApi hdfsApi = new HdfsApi(conf, user);
+            long fileSize = hdfsApi.getFileSize(hdfsPath);
+            if (fileSize < 0) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND, "HDFS上的文件不存在: " + hdfsPath);
+                return;
             }
-        } catch (IOException e) {
-            log.error("下载文件出错", e);
+            String fileName = file.getTitle();
+            response.setContentType("application/octet-stream");
+            response.setHeader("Content-Disposition",
+                    "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setHeader("Expires", "0");
+            response.setContentLengthLong(fileSize);
+            hdfsApi.downLoadFile(hdfsPath, response, true);
+            hdfsApi.close();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("下载失败");
         }
     }
 }

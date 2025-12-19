@@ -62,8 +62,9 @@ api.interceptors.response.use(
           ElMessage.warning('请求的资源不存在')
           break
         case 500:
-          ElMessage.error('服务器内部错误')
-          break
+          { let message = error?.response?.data?.message || '服务器内部错误'
+          ElMessage.error(message)
+          break }
         default:
           ElMessage.error(`请求失败 (${error.response.status})`)
       }

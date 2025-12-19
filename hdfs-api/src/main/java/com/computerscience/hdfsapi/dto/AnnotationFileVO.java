@@ -7,5 +7,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class AnnotationFileVO extends AnnotationFile {
+    private String annotationFileDetailsId;
     private Integer qaPairCount;
 }

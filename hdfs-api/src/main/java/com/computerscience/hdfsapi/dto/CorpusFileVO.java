@@ -11,6 +11,6 @@ import java.util.List;
 public class CorpusFileVO extends FileEntity {
     private static final long serialVersionUID = 1L;
     private List<AnnotationFileVO> annotationFiles;
-    private Integer qaPairCount;
+    private Integer qaPairTotal;
 }
 

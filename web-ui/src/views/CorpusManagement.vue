@@ -39,6 +39,9 @@
             <router-link :to="`/corpus-management-details/${row.corpusId}`">
               {{ row.collectionName }}
             </router-link>
+            <a :href="getDownloadUrl(row.corpusId)" style="margin-left: 4px" title="下载语料" download>
+              下载
+            </a>
           </template>
         </el-table-column>
         <!-- <el-table-column prop="creatorAccount" label="所有者" /> -->
@@ -51,8 +54,8 @@
         </el-table-column>
         <el-table-column prop="dataVolume" label="文件数量" width="120">
           <template #default="{row}">
-            {{ row.dataVolume ? `${row.dataVolume} ${row.volumeUnit || ''}` : '未设置' }}
-            {{ row.computedCapacityGb ? row.computedCapacityGb.toFixed(6) : (row.estimatedCapacityGb != null ? row.estimatedCapacityGb.toFixed(6) : '0.000000') }}
+            <div>{{ row.dataVolume ? `${row.dataVolume} ${row.volumeUnit || ''}` : '未设置' }}</div>
+            <div>{{ formatFileSize(row.estimatedCapacityGb)}}</div>
           </template>
         </el-table-column>
 <!--        <el-table-column prop="computedCapacityGb" label="语料容量(GB)" width="120">-->
@@ -63,24 +66,19 @@
 <!--        <el-table-column prop="creatorNickname" label="所有者" width="90" />-->
 
         <!-- 标注完成状态 -->
-        <el-table-column label="标注文件" width="150">
+        <el-table-column label="标注文件数量" width="150">
           <template #default="{ row }">
-<!--            <el-tag :type="row.annotationStatus === 'COMPLETED' ? 'success' : (row.annotationStatus === 'PENDING' ? 'warning' : 'info')">-->
-<!--              {{-->
-<!--                row.annotationStatus === 'COMPLETED'-->
-<!--                  ? '是'-->
-<!--                  : (row.annotationStatus === 'PENDING' ? '进行中' : '未开始')-->
-<!--              }}-->
-<!--            </el-tag>-->
+            <div v-if="row.totalAnnotationFiles">{{`${row.totalAnnotationFiles} ${row.volumeUnit}`}}</div>
+            <div v-if="row.totalAnnotationFiles">{{`${row.totalQaPairs} `}}对问答</div>
           </template>
         </el-table-column>
 <!--        <el-table-column label="问答对数量" width="110"></el-table-column>-->
         <!-- 标注人员 -->
-        <el-table-column prop="annotationUploaderName" label="标注人员" width="110">
-          <template #default="{ row }">
-            {{ row.annotationUploaderName}}
-          </template>
-        </el-table-column>
+<!--        <el-table-column prop="annotationUploaderName" label="标注人" width="110">-->
+<!--          <template #default="{ row }">-->
+<!--            {{ row.annotationUploaderName}}-->
+<!--          </template>-->
+<!--        </el-table-column>-->
 <!--        <el-table-column prop="uploaderName" label="上传用户" width="180">-->
 <!--          <template #default="{ row }">-->
 <!--            {{ row.uploaderName || row.creatorNickname || '未知' }}-->
@@ -93,11 +91,14 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="120">
-          <template #default="scope">
+          <template #default="{row}">
+            <router-link :to="`/corpus-management-details/${row.corpusId}`" style="margin-left: 12px">
+              标注
+            </router-link>
             <!-- <el-button type="primary" @click="handleDownload(scope.row.corpusId)" link>下载</el-button> -->
-            <a :href="getDownloadUrl(scope.row.corpusId)" class="download-link" title="下载语料" download>
-              下载
-            </a>
+<!--            <a :href="getDownloadUrl(scope.row.corpusId)" class="download-link" title="下载语料" download>-->
+<!--              下载-->
+<!--            </a>-->
           </template>
         </el-table-column>
       </el-table>
@@ -271,6 +272,28 @@ export default {
       return `${year}-${month}-${day}`;
     };
 
+    const formatFileSize = (sizeInGB) => {
+      if (!sizeInGB && sizeInGB !== 0) return '0'
+
+      // 将GB转换为字节作为基准单位
+      const bytes = sizeInGB * 1024 * 1024 * 1024
+
+      const kb = 1024
+      const mb = kb * 1024
+      const gb = mb * 1024
+
+      if (Math.abs(bytes) < kb) {
+        return bytes.toFixed(2) + ' B'
+      } else if (Math.abs(bytes) < mb) {
+        return (bytes / kb).toFixed(2) + ' KB'
+      } else if (Math.abs(bytes) < gb) {
+        return (bytes / mb).toFixed(2) + ' MB'
+      } else {
+        return (bytes / gb).toFixed(2) + ' GB'
+      }
+    }
+
+
     // 监听路由查询参数
     watch(() => route.query.creatorId, (newCreatorId) => {
       if (newCreatorId) {
@@ -312,6 +335,7 @@ export default {
       handleTransfer,
       getDownloadUrl,
       formatDate,
+      formatFileSize,
     };
   },
 };

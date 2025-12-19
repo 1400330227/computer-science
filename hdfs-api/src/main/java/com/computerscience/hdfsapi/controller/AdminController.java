@@ -7,9 +7,9 @@ import com.computerscience.hdfsapi.dto.CorpusFileVO;
 import com.computerscience.hdfsapi.dto.CorpusTransferRequest;
 import com.computerscience.hdfsapi.dto.CorpusWithUserInfo;
 import com.computerscience.hdfsapi.dto.UpdateUserRoleRequest;
+import com.computerscience.hdfsapi.mapper.AnnotationFileMapper;
 import com.computerscience.hdfsapi.model.*;
-import com.computerscience.hdfsapi.service.CorpusService;
-import com.computerscience.hdfsapi.service.UserService;
+import com.computerscience.hdfsapi.service.*;
 import com.computerscience.hdfsapi.utils.DPage;
 import com.computerscience.hdfsapi.utils.UserContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.computerscience.hdfsapi.service.FileService;
 import com.computerscience.hdfsapi.api.HdfsApi;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -64,6 +63,15 @@ public class AdminController {
 
     @Value("${hadoop.hdfs.user}")
     private String hdfsUser;
+
+    @Autowired
+    private AnnotationFileService annotationFileService;
+
+    @Autowired
+    private AnnotationFileDetailsService annotationFileDetailsService;
+
+    @Autowired
+    private AnnotationFileMapper annotationFileMapper;
 
     // 测试端点 - 用于验证Controller是否正常工作
     @GetMapping("/test")
@@ -370,8 +378,11 @@ public class AdminController {
             // 获取所有相关用户信息
             Set<Integer> creatorIdSet = new HashSet<>();
             Set<Integer> annotationUploaderIdSet = new HashSet<>();
+            List<Integer> corpusIds = new ArrayList<>(); // 收集语料ID
+
             for (Corpus corpus : corpusPage.getRecords()) {
                 creatorIdSet.add(corpus.getCreatorId());
+                corpusIds.add(corpus.getCorpusId());
                 if (corpus.getAnnotationUploaderId() != null) {
                     annotationUploaderIdSet.add(corpus.getAnnotationUploaderId());
                 }
@@ -388,6 +399,15 @@ public class AdminController {
                 System.out.println("查询到的用户数量: " + users.size());
                 for (User user : users) {
                     userMap.put(user.getUserId(), user);
+                }
+            }
+
+            Map<Integer, Map<String, Object>> corpusAnnotationStats = new HashMap<>();
+            if (!corpusIds.isEmpty()) {
+                List<Map<String, Object>> statsList = annotationFileMapper.selectCorpusAnnotationStats(corpusIds);
+                for (Map<String, Object> stats : statsList) {
+                    Integer corpusId = (Integer) stats.get("corpus_id");
+                    corpusAnnotationStats.put(corpusId, stats);
                 }
             }
 
@@ -429,6 +449,16 @@ public class AdminController {
                     }
                 }
 
+                Map<String, Object> stats = corpusAnnotationStats.get(corpus.getCorpusId());
+                if (stats != null) {
+                    dto.setTotalAnnotationFiles(((Number) stats.getOrDefault("total_annotation_files", 0)).intValue());
+                    dto.setTotalQaPairs(((Number) stats.getOrDefault("total_qa_pairs", 0)).intValue());
+                    dto.setLatestAnnotationDate((LocalDateTime) stats.get("latest_annotation_date"));
+                } else {
+                    dto.setTotalAnnotationFiles(0);
+                    dto.setTotalQaPairs(0);
+                }
+
                 corpusWithUserInfoList.add(dto);
             }
 
@@ -445,7 +475,7 @@ public class AdminController {
             e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "获取语料列表失败: " + e.getMessage());
+            response.put("message", "获取语料列表失败");
             return ResponseEntity.status(500).body(response);
         }
     }
@@ -1012,6 +1042,7 @@ public class AdminController {
 
             List<Integer> creatorIds = new ArrayList<>(creatorIdSet);
             List<Integer> corpusIds = new ArrayList<>(corpusIdSet);
+            List<Integer> fileIdList = new ArrayList<>();
 
             Map<Integer, User> userMap = new HashMap<>();
             if (!creatorIds.isEmpty()) {
@@ -1029,6 +1060,93 @@ public class AdminController {
                 }
             }
 
+            for (FileEntity file : filePage.getRecords()) {
+                creatorIdSet.add(file.getCreatorId());
+                if (file.getCorpusId() != null) {
+                    corpusIdSet.add(file.getCorpusId());
+                }
+                fileIdList.add(file.getFileId());
+            }
+
+            Map<Integer, Map<String, Object>> fileAnnotationMap = new HashMap<>();
+            if (!fileIdList.isEmpty()) {
+                // 查询这些文件的所有已验证标注，按创建时间倒序
+                // 注意：这里简单查出所有相关的 valid 标注，然后在内存中分组取最新的
+                // 对于分页场景（每页10-20条），这种方式性能是可接受的
+                List<AnnotationFile> annotations = annotationFileService.list(new LambdaQueryWrapper<AnnotationFile>()
+                        .in(AnnotationFile::getFileId, fileIdList)
+                        .eq(AnnotationFile::getStatus, "VALIDATED")
+                        .orderByDesc(AnnotationFile::getCreatedAt));
+
+                // 收集需要查询详情的 IDs
+                Map<Integer, AnnotationFile> latestAnnotationMap = new HashMap<>();
+                Set<Integer> annotationFileIds = new HashSet<>();
+                Set<Integer> LabelerIds = new HashSet<>(); // 新增：收集标注人员的ID
+
+                // 筛选每个文件最新的标注
+                for (AnnotationFile af : annotations) {
+                    if (!latestAnnotationMap.containsKey(af.getFileId())) {
+                        latestAnnotationMap.put(af.getFileId(), af);
+                        annotationFileIds.add(af.getId()); // 这里改为收集 annotation_files 表的 ID
+                        LabelerIds.add(af.getCreatorId()); // 收集创建者ID
+                    }
+                }
+
+                // 批量查询标注人员信息（新增）
+                Map<Integer, User> LabelerMap = new HashMap<>();
+                if (!LabelerIds.isEmpty()) {
+                    // 假设有 UserService 和 User 实体类
+                    List<User> creators = userService.listByIds(new ArrayList<>(LabelerIds));
+                    for (User creator : creators) {
+                        LabelerMap.put(creator.getUserId(), creator);
+                    }
+                }
+
+
+                // 批量查询详情
+                Map<Integer, AnnotationFileDetails> detailsMap = new HashMap<>();
+                if (!annotationFileIds.isEmpty()) {
+                    // 根据 annotation_files_id 查询对应的 details
+                    List<AnnotationFileDetails> detailsList = annotationFileDetailsService.list(
+                            new LambdaQueryWrapper<AnnotationFileDetails>()
+                                    .in(AnnotationFileDetails::getAnnotationFilesId, annotationFileIds)
+                    );
+                    for (AnnotationFileDetails d : detailsList) {
+                        detailsMap.put(d.getAnnotationFilesId(), d); // key 改为 annotation_files_id
+                    }
+                }
+
+                for (Map.Entry<Integer, AnnotationFile> entry : latestAnnotationMap.entrySet()) {
+                    Integer fId = entry.getKey();
+                    AnnotationFile af = entry.getValue();
+                    AnnotationFileDetails afd = detailsMap.get(af.getId());
+                    User labeler = LabelerMap.get(af.getCreatorId());
+
+                    // 构建 Map 供前端使用
+                    Map<String, Object> afInfo = new HashMap<>();
+                    afInfo.put("id", af.getId());
+                    afInfo.put("title", af.getTitle());
+                    afInfo.put("annotationFilePath", af.getAnnotationFilePath());
+                    afInfo.put("status", af.getStatus());
+                    afInfo.put("createdAt", af.getCreatedAt());
+                    afInfo.put("annotationId", labeler.getUserId());
+                    afInfo.put("annotationNickname", labeler.getNickname());
+                    afInfo.put("annotationAccount", labeler.getAccount());
+
+                    // 将 qaPairCount 扁平化放入 annotationFile 对象中，满足 row.annotationFile.qaPairCount
+                    if (afd != null) {
+                        afInfo.put("qaPairCount", afd.getQaPairCount());
+                    } else {
+                        afInfo.put("qaPairCount", 0);
+                    }
+
+                    fileAnnotationMap.put(fId, afInfo);
+                }
+            }
+
+
+
+
             // 转换为包含用户信息和语料信息的DTO
             List<Map<String, Object>> fileWithInfoList = new ArrayList<>();
             for (FileEntity file : filePage.getRecords()) {
@@ -1043,6 +1161,13 @@ public class AdminController {
                 fileInfo.put("createdAt", file.getCreatedAt());
                 fileInfo.put("updatedAt", file.getUpdatedAt());
                 fileInfo.put("dataFormat", file.getDataFormat());
+
+                // 放入标注信息
+                if (fileAnnotationMap.containsKey(file.getFileId())) {
+                    fileInfo.put("annotationFile", fileAnnotationMap.get(file.getFileId()));
+                } else {
+                    fileInfo.put("annotationFile", null);
+                }
 
                 // 添加创建者信息
                 User creator = userMap.get(file.getCreatorId());
@@ -1084,7 +1209,7 @@ public class AdminController {
             e.printStackTrace();
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "获取文件列表失败: " + e.getMessage());
+            response.put("message", "获取文件列表失败");
             return ResponseEntity.status(500).body(response);
         }
     }

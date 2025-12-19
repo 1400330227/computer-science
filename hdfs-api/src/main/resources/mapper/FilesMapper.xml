@@ -12,6 +12,7 @@
         <result property="creatorId" column="creator_id"/>
         <result property="filePath" column="file_path"/>
         <result property="fileType" column="file_type"/>
+        <result property="qaPairTotal" column="qa_pair_total"/>
         <!-- ... 其他 Files 字段 ... -->
 
         <!-- 关联对象 annotationFiles -->
@@ -21,7 +22,7 @@
             <result property="annotationFilePath" column="af_path"/>
             <result property="status" column="af_status"/>
             <result property="createdAt" column="af_created_at"/>
-            <result property="annotationFileDetailsId" column="af_details_id"/>
+            <result property="annotationFileDetailsId" column="afd_details_id"/>
             <!-- 核心：映射 QA 数量 -->
             <result property="qaPairCount" column="qa_pair_count"/>
         </collection>
@@ -37,20 +38,24 @@
             f.creator_id,
             f.file_path,
             f.file_type,
-
+            f.created_at,
             af.id AS af_id,
             af.title AS af_title,
             af.annotation_file_path AS af_path,
             af.status AS af_status,
             af.created_at AS af_created_at,
-            af.annotation_file_details_id AS af_details_id,
-
-            afd.qa_pair_count
+            afd.id AS afd_details_id,
+            (SELECT COALESCE(SUM(sub_afd.qa_pair_count), 0)
+             FROM annotation_files sub_af
+                      JOIN annotation_file_details sub_afd ON sub_afd.annotation_files_id = sub_af.id
+             WHERE sub_af.file_id = f.file_id) AS qa_pair_total
 
         FROM files f
                  LEFT JOIN annotation_files af ON f.file_id = af.file_id
-                 LEFT JOIN annotation_file_details afd ON af.annotation_file_details_id = afd.id
+                 LEFT JOIN annotation_file_details afd ON afd.annotation_files_id = af.id
         WHERE f.corpus_id = #{corpusId}
+        group by f.file_id, f.corpus_id, f.file_name, f.size, f.creator_id, f.file_path, f.file_type, af.id, af.title,
+            af.annotation_file_path, af.status, af.created_at, afd.id, afd.qa_pair_count
         ORDER BY f.created_at DESC
     </select>
 

@@ -5,7 +5,6 @@ import { Search, Refresh, Download } from '@element-plus/icons-vue';
 import { getUserFiles, deleteUserFile, batchDownloadFiles } from '@/services/files';
 import { useBreadcrumbStore } from '@/stores/breadcrumb';
 import corpusData from '@/assets/corpus.json';
-import { UploadFilled } from '@element-plus/icons-vue';
 
 // 面包屑配置
 const breadcrumbStore = useBreadcrumbStore();
@@ -198,54 +197,6 @@ const formatFileSize = (sizeInBytes) => {
     return sizeInGB.toFixed(6);
 };
 
-// 上传标注对话框相关
-const uploadDialogVisible = ref(false);
-const isUploading = ref(false);
-const currentFile = ref(null);
-const fileToUpload = ref(null);
-const uploadRef = ref();
-
-const openUploadDialog = (file) => {
-  currentFile.value = file;
-  uploadDialogVisible.value = true;
-};
-
-const handleFileChange = (file) => {
-  fileToUpload.value = file;
-};
-
-const resetUpload = () => {
-  currentFile.value = null;
-  fileToUpload.value = null;
-  if (uploadRef.value) {
-    uploadRef.value.clearFiles();
-  }
-};
-
-const submitUpload = () => {
-  if (!fileToUpload.value) {
-    ElMessage.error('请先选择一个文件');
-    return;
-  }
-  uploadRef.value.submit();
-};
-
-const handleUpload = async () => {
-  if (!currentFile.value || !fileToUpload.value) return;
-
-  isUploading.value = true;
-  try {
-    const response = await uploadQaAnnotationFile(fileToUpload.value.raw, currentFile.value.fileId);
-    ElMessage.success(`文件上传成功！包含 ${response.data.qaPairCount} 个问答对。`);
-    uploadDialogVisible.value = false;
-  } catch (error) {
-    const errorMessage = error.response?.data || '上传失败，请稍后再试';
-    ElMessage.error(errorMessage);
-  } finally {
-    isUploading.value = false;
-  }
-};
-
 // 组件挂载时获取文件列表
 onMounted(() => {
     fetchUserFiles();
@@ -369,11 +320,11 @@ onMounted(() => {
                 <el-table-column prop="corpusClassification" label="数据分类"></el-table-column>
                 <el-table-column prop="corpusDataYear" label="数据年份" width="100"></el-table-column>
 <!--                <el-table-column prop="corpusLanguage" label="语言" width="100" />-->
-                <el-table-column label="操作" width="220">
-                    <template #default="{ row }">
-                        <el-button size="small" type="primary" @click="handleDownload(row)">下载</el-button>
-                        <el-button size="small" type="success" @click="openUploadDialog(row)">上传标注</el-button>
-                        <el-button size="small" type="danger" @click="handleDeleteFile(row.fileId)">删除</el-button>
+                <el-table-column label="操作" width="90">
+                    <template #default="scope">
+                        <a :href="getFileDownloadUrl(scope.row)" class="download-link" title="下载文件" download>
+                            下载
+                        </a>
                     </template>
                 </el-table-column>
             </el-table>
@@ -385,41 +336,6 @@ onMounted(() => {
                     @current-change="handlePageChange" />
             </div>
         </div>
-
-        <!-- 上传标注对话框 -->
-        <el-dialog v-model="uploadDialogVisible" title="上传问答对标注文件" width="500px" @close="resetUpload">
-            <div v-if="currentFile">
-                <p>正在为以下文件上传标注：</p>
-                <p><strong>{{ currentFile.fileName }}</strong></p>
-            </div>
-            <el-upload
-                ref="uploadRef"
-                class="upload-demo"
-                drag
-                :limit="1"
-                :auto-upload="false"
-                :on-change="handleFileChange"
-                :http-request="handleUpload"
-            >
-                <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-                <div class="el-upload__text">
-                    将文件拖到此处，或<em>点击上传</em>
-                </div>
-                <template #tip>
-                    <div class="el-upload__tip">
-                        请上传与原始文件主名相同的 .txt 文件。
-                    </div>
-                </template>
-            </el-upload>
-            <template #footer>
-                <span class="dialog-footer">
-                    <el-button @click="uploadDialogVisible = false">取消</el-button>
-                    <el-button type="primary" @click="submitUpload" :loading="isUploading">
-                        确认上传
-                    </el-button>
-                </span>
-            </template>
-        </el-dialog>
     </div>
 </template>
 
@@ -475,8 +391,8 @@ onMounted(() => {
     display: inline-block;
     padding: 0;
     margin-right: 15px;
-    color: #4169e1;
-    text-decoration: none;
+    //color: #4169e1;
+    //text-decoration: none;
     font-size: 16px;
     cursor: pointer;
     transition: color 0.3s ease;
@@ -485,10 +401,6 @@ onMounted(() => {
 }
 
 .download-link:hover {
-    color: #66b1ff;
-}
-
-.upload-demo {
-    margin-top: 20px;
+    //color: #66b1ff;
 }
 </style>

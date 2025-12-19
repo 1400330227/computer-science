@@ -5,10 +5,8 @@ import api from './api'
  */
 
 // 上传标注文件
-export function uploadAnnotation(formData) {
-  return api.post('/annotation-files/upload', formData, {
-    headers: {'Content-Type': 'multipart/form-data'}
-  })
+export function uploadAnnotation(formData, config) {
+  return api.post('/annotation-files/upload', formData, config)
 }
 
 // 删除标注文件

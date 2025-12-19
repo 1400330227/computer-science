@@ -66,7 +66,7 @@ class HdfsApiApplicationTests {
                     Integer corpusId = fileEntity.getCorpusId();
 
                     // 构建路径，确保格式正确
-                    String oldPath = rootPath + "/" + user.getAccount() + corpusId + "/" + fileName;
+                    String oldPath = rootPath + user.getAccount() + corpusId + "/" + fileName;
                     String newPath = rootPath + user.getAccount() + "/" + corpusId + "/" + fileName;
                     String newDir = rootPath + user.getAccount() + "/" + corpusId;
 

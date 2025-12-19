@@ -1,0 +1,7 @@
+package com.computerscience.hdfsapi.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.computerscience.hdfsapi.model.AnnotationFileDetails;
+
+public interface AnnotationFileDetailsService extends IService<AnnotationFileDetails> {
+}

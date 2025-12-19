@@ -342,7 +342,7 @@ public class CorpusController {
                     }
                     
                     // 尝试删除语料库目录
-                    String corpusDir = rootPath + currentUser.getAccount() + id;
+                    String corpusDir = rootPath + currentUser.getAccount() + "/" + id;
                     if (hdfsApi.exists(corpusDir)) {
                         boolean dirDeleted = hdfsApi.rmdir(corpusDir, true, true);
                         if (dirDeleted) {
@@ -418,7 +418,7 @@ public class CorpusController {
 
             // 生成HDFS存储路径
             String fileName = file.getOriginalFilename();
-            String hdfsPath = rootPath + currentUser.getAccount() + corpusId + "/" + fileName;
+            String hdfsPath = rootPath + currentUser.getAccount() + "/" + corpusId + "/" + fileName;
 
             System.out.println("=== 文件上传开始 ===");
             System.out.println("文件名: " + fileName);

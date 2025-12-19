@@ -132,37 +132,46 @@
                 <!-- 多选列 -->
                 <el-table-column type="selection" width="55" />
 
-                <el-table-column prop="fileName" label="文件" min-width="290">
+                <el-table-column prop="fileName" label="文件" min-width="200">
                     <template #default="{row}">
                       <div>
                         <router-link :to="`/corpus-management-details/${row.corpusId}`">
                         {{ row.fileName }}
                         </router-link>
+                        <a :href="getDownloadUrl(row)" style="margin-left: 4px" title="下载语料" download>
+                          下载
+                        </a>
                       </div>
                         <div style="color:#999999">{{ row.dataFormat }} | {{ formatFileSize(row.size)}}GB</div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="corpusName" label="语料名称" width="200">
+                <el-table-column prop="corpusName" label="语料" width="160">
                   <template #default="{row}">
                     {{row.corpusName}}
                     <div style="color:#999999">
                       {{ row.corpusCountry }} | {{ row.corpusDomain }}领域</div>
                   </template>
                 </el-table-column>
-                <el-table-column prop="creatorCollege" label="学院" width="200"></el-table-column>
-                <el-table-column prop="creatorNickname" label="所有者" width="100" />
-                <el-table-column prop="corpusClassification" label="数据分类" width="110" />
-                <el-table-column prop="corpusDataYear" label="标注文件" width="110">
+                <el-table-column prop="creatorCollege" label="所有者" width="190">
                   <template #default="{row}">
-                    这里显示文件名称和问答对
+                    <div>{{row.creatorCollege}}</div>
+                    <div>{{row.creatorNickname}}</div>
                   </template>
                 </el-table-column>
 
-                <el-table-column label="操作" width="110">
+                <el-table-column prop="corpusClassification" label="数据分类" width="110" />
+                <el-table-column prop="corpusDataYear" label="标注文件" min-width="200">
+                  <template #default="{row}">
+                    {{row?.annotationFile?.title}}
+                    <a v-if="row.annotationFile" :href="getDownloadUrl(row)" style="margin-left: 4px" class="download-link" title="下载语料" download>
+                      下载
+                    </a>
+                    <div style="color:#999999" v-if="row.annotationFile">{{ row.annotationFile?.qaPairCount}}对问答</div>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="annotationFile.annotationNickname" label="标注人" width="100" />
+                <el-table-column label="操作" width="100">
                     <template #default="{row}">
-                        <a :href="getDownloadUrl(row)" class="download-link" title="下载语料" download>
-                            下载
-                        </a>
                       <router-link :to="`/corpus-management-details/${row.corpusId}`" style="margin-left: 12px">
                         标注
                       </router-link>
@@ -217,17 +226,15 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { Search, Refresh, Download, User, Close, UploadFilled } from '@element-plus/icons-vue';
-import { getAllFiles, deleteFileById } from '@/services/admin';
-import { downloadFile } from '@/services/corpus';
+import { getAllFiles } from '@/services/admin';
 import { uploadAnnotation } from '@/services/annotation';
 import corpusData from '@/assets/corpus.json';
 
 // Reactive data
 const files = ref([]);
 const loading = ref(false);
-const deleting = ref(null);
 const total = ref(0);
 const currentPage = ref(1);
 const pageSize = ref(20);
@@ -256,7 +263,6 @@ const searchForm = reactive({
 });
 
 // 学院选项数据
-const collegeOptions = ref(corpusData.collegeGroups);
 
 // 中国和东盟十国选项
 const aseanCountries = ref([
@@ -388,32 +394,7 @@ const getDownloadUrl = (file) => {
     return `/api/admin/download/${file.fileId}`;
 };
 
-const deleteFile = async (file) => {
-    deleting.value = file.fileId;
-    try {
-        const response = await deleteFileById(file.fileId);
-        if (response.success) {
-            ElMessage.success('文件删除成功');
-            fetchFiles(); // 重新加载列表
-        } else {
-            ElMessage.error(response.message || '文件删除失败');
-        }
-    } catch (error) {
-        console.error('删除文件失败:', error);
-        ElMessage.error('删除文件失败');
-    } finally {
-        deleting.value = null;
-    }
-};
 
-const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-};
 
 const formatFileSize = (sizeInBytes) => {
     if (!sizeInBytes || sizeInBytes === 0) return '0.000000 GB';
@@ -421,10 +402,6 @@ const formatFileSize = (sizeInBytes) => {
     return sizeInGB.toFixed(6);
 };
 
-const openUploadDialog = (file) => {
-  currentFile.value = file;
-  uploadDialogVisible.value = true;
-};
 
 const handleFileChange = (file) => {
   fileToUpload.value = file;

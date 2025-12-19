@@ -22,9 +22,6 @@ public class AnnotationFile implements Serializable {
     @TableField("creator_id")
     private Integer creatorId;
 
-    @TableField("annotation_file_details_id")
-    private Integer annotationFileDetailsId;
-
     private String title;
 
     @TableField("file_type")

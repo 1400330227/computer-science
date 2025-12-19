@@ -918,3 +918,9 @@ onBeforeUnmount(() => {
     stopRecentAutoScroll()
 })
 </script>
+
+<style scoped lang="scss">
+.dashboard-landing {
+  background: #000d4a url(@/images/bg.jpg);background-position: center top;background-repeat: no-repeat;background-size: cover;
+}
+</style>

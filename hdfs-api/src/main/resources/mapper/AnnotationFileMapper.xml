@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.computerscience.hdfsapi.mapper.AnnotationFileMapper">
+    <select id="selectCorpusAnnotationStats" resultType="java.util.Map">
+        SELECT
+        af.corpus_id,
+        COUNT(DISTINCT af.id) AS total_annotation_files,
+        SUM(COALESCE(afd.qa_pair_count, 0)) AS total_qa_pairs,
+        MAX(af.created_at) AS latest_annotation_date
+        FROM annotation_files af
+        LEFT JOIN annotation_file_details afd ON afd.annotation_files_id = af.id
+        WHERE af.corpus_id IN
+        <foreach collection="corpusIds" item="corpusId" open="(" separator="," close=")">
+            #{corpusId}
+        </foreach>
+        AND af.status = 'VALIDATED'
+        GROUP BY af.corpus_id
+    </select>
+</mapper>

@@ -115,7 +115,7 @@
       <!-- 文件详情信息 -->
       <div v-loading="filesLoading" class="section-container">
         <div class="section-title">
-          <h3>文件详情信息</h3>
+          <h3>文件详情信息（标注文件内容要和模板相似，可在下方下载模板）</h3>
           <div style="float: right; margin-top: -38px">
             <el-button @click="downloadAllOriginalFiles">打包原始文件</el-button>
             <el-button @click="handleDownloadAllAnnotations">打包标注文件</el-button>
@@ -149,7 +149,7 @@
                       <span class="text-truncate" :title="annotationFile.title">
                         {{ annotationFile.title }}
                       </span>
-                <a :href="getAnnotationDownloadUrl(annotationFile.id)"
+                <a :href="getAnnotationDownloadUrl(annotationFile.id)" style="margin-left: 4px"
                    @click="showAnnotationFileDownloadMessage(annotationFile)" title="下载文件"
                    download>
                   下载
@@ -159,12 +159,7 @@
           </el-table-column>
 
           <!-- QA对数量 (从后端返回的数据中获取) -->
-          <el-table-column prop="qaPairCount" label="问答对数量" width="110">
-            <template #default="{ row }">
-              <span v-if="row.annotationFile">{{ row.annotationFile.qaPairCount }}</span>
-              <span v-else></span>
-            </template>
-          </el-table-column>
+          <el-table-column prop="qaPairTotal" label="问答对" width="110"></el-table-column>
 
           <!-- 操作列 -->
           <el-table-column label="操作" width="180">
@@ -207,10 +202,10 @@
           </el-icon>
           <div class="el-upload__text">
             <div>仅限 .txt 格式文件, 文件最大值10G，标注文件名和原文件名一致，支持多选，如：</div>
-            <div style="font-weight: bold; color: #606266;">
-              {{ currentUploadRow?.fileName }}、{{
-                currentUploadRow?.fileName
-              }}(1)、{{ currentUploadRow?.fileName }}(...)
+            <div>
+              《{{ getBaseName(currentUploadRow?.fileName) }}》、
+              《{{ getBaseName(currentUploadRow?.fileName) }}(1)》、
+              《{{ getBaseName(currentUploadRow?.fileName) }}(...)》
             </div>
           </div>
           <template #tip>
@@ -219,10 +214,89 @@
             </div>
           </template>
         </el-upload>
+        <div v-if="isUploading" class="upload-progress-section">
+<!--          <div class="upload-status">-->
+<!--            <el-icon class="uploading-icon" :class="{ 'success': uploadStatus === 'success', 'error': uploadStatus === 'error' }">-->
+<!--              <component-->
+<!--                :is="uploadStatus === 'success' ? 'CircleCheckFilled' :-->
+<!--                      uploadStatus === 'error' ? 'CircleCloseFilled' : 'Loading'"-->
+<!--              />-->
+<!--            </el-icon>-->
+<!--            <span class="status-text">-->
+<!--              {{ getStatusText() }}-->
+<!--            </span>-->
+<!--          </div>-->
+
+          <!-- 整体进度条 -->
+          <div class="overall-progress">
+            <div class="progress-header">
+              <span>整体进度</span>
+              <span>{{ uploadedFilesCount }}/{{ fileListToUpload.length }} 文件</span>
+            </div>
+            <el-progress
+              :percentage="overallPercentage"
+              :status="getProgressStatus()"
+              :stroke-width="8"
+              :show-text="false"
+            />
+            <div class="progress-info">
+              <span>已上传：{{ formatFileSize(uploadedSize) }}/{{ formatFileSize(totalSelectedSize) }}</span>
+              <span>{{ overallPercentage }}%</span>
+            </div>
+          </div>
+
+          <!-- 当前文件上传详情 -->
+          <div v-if="currentUploadFile" class="current-file-progress">
+            <div class="current-file-header">
+              <span>正在上传：{{ currentUploadFile.name }}</span>
+              <span>{{ currentFilePercentage }}%</span>
+            </div>
+            <el-progress
+              :percentage="currentFilePercentage"
+              :stroke-width="6"
+              :color="getProgressColor(currentFilePercentage)"
+            />
+            <div class="file-progress-info">
+              <span>大小：{{ formatFileSize(currentUploadFile.size) }}</span>
+              <span v-if="uploadSpeed > 0">速度：{{ formatFileSize(uploadSpeed) }}/s</span>
+              <span v-if="timeRemaining > 0">剩余：{{ formatTime(timeRemaining) }}</span>
+            </div>
+          </div>
+
+          <!-- 上传文件列表 -->
+          <div v-if="uploadedFiles.length > 0" class="uploaded-files-list">
+            <div class="files-list-header">
+              <span>已上传文件</span>
+              <el-button
+                type="text"
+                size="small"
+                @click="showAllFiles = !showAllFiles"
+              >
+                {{ showAllFiles ? '收起' : '展开' }}
+              </el-button>
+            </div>
+            <el-collapse-transition>
+              <div v-show="showAllFiles" class="files-list-content">
+                <div
+                  v-for="file in uploadedFiles"
+                  :key="file.name"
+                  class="file-item"
+                  :class="{ 'success': file.status === 'success', 'error': file.status === 'error' }"
+                >
+                  <el-icon class="file-status-icon">
+                    <component :is="file.status === 'success' ? 'Check' : 'Close'"/>
+                  </el-icon>
+                  <span class="file-name" :title="file.name">{{ file.name }}</span>
+                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                </div>
+              </div>
+            </el-collapse-transition>
+          </div>
+        </div>
       </div>
       <template #footer>
                 <span class="dialog-footer">
-                    <el-button @click="uploadDialogVisible = false">取消</el-button>
+                    <el-button @click="cancelUpload">取消</el-button>
                     <el-button type="primary" :loading="annotationUploading"
                                @click="submitBatchUpload" :disabled="fileListToUpload.length === 0">
                         开始上传 ({{ fileListToUpload.length }})
@@ -238,10 +312,8 @@ import {ref, onMounted, inject, computed, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {ElMessage} from 'element-plus'
 import {getCorpusByIdAsAdmin, getCorpusFilesAsAdmin} from '../services/corpus'
-import {useUserStore} from '../stores/user'
 import corpus from '../assets/corpus.json'
 import {getAllAnnotationsDownloadUrl, uploadAnnotation} from '../services/annotation'
-
 const route = useRoute()
 const router = useRouter()
 const corpusId = ref(route.params.id)
@@ -260,6 +332,19 @@ const currentUploadRow = ref(null)
 const uploadDialogVisible = ref(false) // 控制弹窗
 const fileListToUpload = ref([])       // 待上传文件列表
 const annotationUploading = ref(false)
+
+const isUploading = ref(false)
+const uploadStatus = ref('') // 'uploading', 'success', 'error'
+const overallPercentage = ref(0)
+const uploadedFilesCount = ref(0)
+const uploadedSize = ref(0)
+const currentUploadFile = ref(null)
+const currentFilePercentage = ref(0)
+const uploadSpeed = ref(0)
+const timeRemaining = ref(0)
+const uploadedFiles = ref([])
+const showAllFiles = ref(false)
+
 const totalSelectedSize = computed(() => {
   return fileListToUpload.value.reduce((total, file) => {
     return total + (file.size || 0)
@@ -398,6 +483,26 @@ onMounted(() => {
   loadCorpusDetails()
 })
 
+
+const getStatusText = () => {
+  switch(uploadStatus.value) {
+    case 'success': return '上传完成'
+    case 'error': return '上传失败'
+    default: return '正在上传...'
+  }
+}
+const getProgressStatus = () => {
+  switch(uploadStatus.value) {
+    case 'success': return 'success'
+    case 'error': return 'exception'
+    default: return ''
+  }
+}
+const getProgressColor = (percentage) => {
+  if (percentage < 30) return '#e6a23c'
+  if (percentage < 70) return '#409eff'
+  return '#67c23a'
+}
 const openUploadDialog = (row) => {
   currentUploadRow.value = row
   fileListToUpload.value = [] // 清空之前的列表
@@ -427,6 +532,27 @@ const clearUploadData = () => {
   fileListToUpload.value = []
   annotationUploading.value = false
   // currentUploadRow.value = null // 这里的清理看情况，通常可以保留或在 open 时覆盖
+  isUploading.value = false
+  uploadStatus.value = ''
+  overallPercentage.value = 0
+  uploadedFilesCount.value = 0
+  uploadedSize.value = 0
+  currentUploadFile.value = null
+  currentFilePercentage.value = 0
+  uploadSpeed.value = 0
+  timeRemaining.value = 0
+  uploadedFiles.value = []
+  showAllFiles.value = false
+}
+
+const cancelUpload = () => {
+  if (isUploading.value) {
+    isUploading.value = false
+    ElMessage.info('上传已取消')
+    clearUploadData()
+  } else {
+    uploadDialogVisible.value = false
+  }
 }
 
 // 6. 提交批量上传
@@ -440,47 +566,150 @@ const submitBatchUpload = async () => {
   }
 
   annotationUploading.value = true
+  isUploading.value = true
+  uploadStatus.value = 'uploading'
 
   try {
-    // --- 核心修改点 ---
-    // 遍历 el-upload 的文件列表，构造上传请求
-    const uploadPromises = fileListToUpload.value.map(fileItem => {
-      const formData = new FormData()
-      // 注意：Element Plus 的 fileItem 是包装过的对象，
-      // 真正的原生 File 对象存储在 fileItem.raw 中
-      formData.append('file', fileItem.raw)
-      formData.append('originalFileId', currentUploadRow.value.fileId)
+    // 初始化进度数据
+    uploadedFilesCount.value = 0
+    uploadedSize.value = 0
+    overallPercentage.value = 0
+    uploadedFiles.value = []
 
-      return uploadAnnotation(formData)
-    })
+    const totalSize = totalSelectedSize.value
+    const totalFiles = fileListToUpload.value.length
+    const startTime = Date.now()
 
-    // 并发执行所有上传
-    const results = await Promise.allSettled(uploadPromises)
+    // 遍历每个文件上传
+    for (let i = 0; i < totalFiles; i++) {
+      const fileItem = fileListToUpload.value[i]
+      const fileSize = fileItem.size
 
-    // 统计结果
-    const successCount = results.filter(r => r.status === 'fulfilled').length
-    const failCount = results.filter(r => r.status === 'rejected').length
+      currentUploadFile.value = fileItem
+      currentFilePercentage.value = 0
 
-    if (failCount === 0) {
-      ElMessage.success(`成功上传 ${successCount} 个文件`)
-      uploadDialogVisible.value = false // 全部成功关闭弹窗
-    } else {
-      ElMessage.warning(`上传完成：${successCount} 个成功，${failCount} 个失败`)
-      // 这里的策略是：保留弹窗，让用户看到哪些还在（可选：你需要手动移除成功的）
-      // 或者直接关闭弹窗让用户去列表看
-      uploadDialogVisible.value = false
+      try {
+        const formData = new FormData()
+        formData.append('file', fileItem.raw || fileItem)
+        formData.append('originalFileId', currentUploadRow.value.fileId)
+
+        // 创建上传请求
+        await uploadAnnotation(formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.lengthComputable) {
+              // 更新当前文件进度
+              const currentPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100)
+              currentFilePercentage.value = currentPercent
+
+              // 计算总进度
+              const completedFiles = i // 已完成文件数（当前文件之前的）
+              const currentFileProgress = currentPercent / 100 // 当前文件完成比例
+              const overallPercent = Math.round(((completedFiles + currentFileProgress) / totalFiles) * 100)
+              overallPercentage.value = overallPercent
+
+              // 更新已上传大小（估算）
+              const currentUploadedSize = Math.round(progressEvent.loaded / 1024 / 1024) // 转换为MB
+              const totalUploadedSize = uploadedSize.value + currentUploadedSize
+
+              // 计算上传速度
+              const elapsedTime = (Date.now() - startTime) / 1000
+              if (elapsedTime > 0) {
+                uploadSpeed.value = totalUploadedSize / elapsedTime
+                if (uploadSpeed.value > 0) {
+                  timeRemaining.value = ((totalSize / 1024 / 1024) - totalUploadedSize) / uploadSpeed.value
+                }
+              }
+            }
+          }
+        })
+
+        // 单个文件上传完成
+        uploadedSize.value += Math.round(fileSize / 1024 / 1024) // 转换为MB
+        uploadedFilesCount.value++
+        currentFilePercentage.value = 100
+        overallPercentage.value = Math.round(((i + 1) / totalFiles) * 100)
+
+        // 添加到已上传列表
+        uploadedFiles.value.push({
+          name: fileItem.name,
+          size: fileSize,
+          status: 'success'
+        })
+
+        // 短暂延迟，让用户看到完成状态
+        await new Promise(resolve => setTimeout(resolve, 300))
+
+      } catch (error) {
+        console.error(`文件 ${fileItem.name} 上传失败:`, error)
+        uploadedFiles.value.push({
+          name: fileItem.name,
+          size: fileSize,
+          status: 'error',
+          message: error.message || '上传失败'
+        })
+
+        // 如果用户取消了上传，中断后续上传
+        if (!isUploading.value) {
+          break
+        }
+      }
     }
 
-    // 刷新外部列表
-    loadFileList()
+    // 所有文件上传完成后统计结果
+    const successCount = uploadedFiles.value.filter(f => f.status === 'success').length
+    const failCount = uploadedFiles.value.filter(f => f.status === 'error').length
+
+    if (failCount === 0 && successCount > 0) {
+      uploadStatus.value = 'success'
+      overallPercentage.value = 100
+      ElMessage.success(`成功上传 ${successCount} 个文件`)
+
+      // 3秒后关闭弹窗并刷新文件列表
+      setTimeout(() => {
+        uploadDialogVisible.value = false
+        loadFileList()
+      }, 3000)
+    } else if (successCount > 0) {
+      uploadStatus.value = 'error'
+      ElMessage.warning(`上传完成：${successCount} 个成功，${failCount} 个失败`)
+    } else {
+      uploadStatus.value = 'error'
+      ElMessage.error('所有文件上传失败')
+    }
 
   } catch (error) {
-    console.error(error)
-    ElMessage.error('上传过程发生异常')
+    console.error('上传过程发生异常:', error)
+    uploadStatus.value = 'error'
+    ElMessage.error('上传过程发生异常: ' + error.message)
   } finally {
     annotationUploading.value = false
+    // 注意：这里不设置 isUploading.value = false，让用户能看到最终状态
   }
 }
+
+
+
+  // const uploadPromises = fileListToUpload.value.map(fileItem => {
+  //   const formData = new FormData()
+  //   formData.append('file', fileItem.raw)
+  //   formData.append('originalFileId', currentUploadRow.value.fileId)
+  //   return uploadAnnotation(formData)
+  // })
+  // const results = await Promise.allSettled(uploadPromises)
+  // const successCount = results.filter(r => r.status === 'fulfilled').length
+  // const failCount = results.filter(r => r.status === 'rejected').length
+  // if (failCount === 0) {
+  //   ElMessage.success(`成功上传 ${successCount} 个文件`)
+  //   uploadDialogVisible.value = false // 全部成功关闭弹窗
+  // } else {
+  //   ElMessage.warning(`上传完成：${successCount} 个成功，${failCount} 个失败`)
+  //   uploadDialogVisible.value = false
+  // }
+  // loadFileList()
+
 
 const downloadAllOriginalFiles = () => {
   const corpusId = route.params.id || route.query.id;
@@ -596,7 +825,6 @@ const handleUploadChange = (uploadFile, uploadFiles) => {
 
   // 更新文件列表
   fileListToUpload.value = uploadFiles
-  console.log('当前有效文件:', fileListToUpload.value.map(f => f.name))
   return true
 }
 
@@ -618,6 +846,13 @@ function formatFileSize(size) {
   } else {
     return (size / gb).toFixed(2) + ' GB'
   }
+}
+
+const formatTime = (seconds) => {
+  if (seconds < 60) return `${Math.ceil(seconds)}秒`
+  const minutes = Math.floor(seconds / 60)
+  const secs = Math.floor(seconds % 60)
+  return `${minutes}分${secs}秒`
 }
 
 // 将 dataFormat 从字符串转换为数组供多选控件使用
