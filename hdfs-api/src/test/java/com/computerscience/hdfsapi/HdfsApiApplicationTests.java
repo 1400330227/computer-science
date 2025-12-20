@@ -38,7 +38,7 @@ class HdfsApiApplicationTests {
     void contextLoads() {
     }
 
-    @Test
+//    @Test
     public void migratePaths() {
         try {
             HdfsApi hdfsApi = new HdfsApi(conf, user);

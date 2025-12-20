@@ -106,12 +106,6 @@ const router = createRouter({
           name: 'time-series-analysis',
           component: () => import('../views/dashboard/TimeSeriesAnalysisView.vue'),
           meta: { requiresAuth: true, title: '趋势分析' }
-        },
-        {
-          path: '/annotation-management',
-          name: 'annotation-management',
-          component: () => import('../views/AnnotationManagement.vue'),
-          meta: { requiresAuth: true, title: '标注管理' }
         }
       ]
     },

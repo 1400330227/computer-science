@@ -31,8 +31,8 @@
       <div class="card" @click="navigateTo('/all-files')">
         <div class="card-icon">👥</div>
         <div class="card-content">
-          <h2>所有文件</h2>
-          <p>查看所有文件</p>
+          <h2>标注文件</h2>
+          <p>标注所有文件</p>
         </div>
       </div>
     </div>

@@ -16,7 +16,7 @@ ol,ul,p,h1,h2,h3,h4,h5,h6{ padding:0; margin:0}
 a:hover{ color:#06c; text-decoration: none!important}
 /*background: #000d4a url(@/images/bg.jpg);background-position: center top;background-repeat: no-repeat;background-size: cover;*/
 .dashboard-landing{overflow: auto;height: 100%;width: 100%;}
-.dashboard-landing{min-width: 2032px;}
+.dashboard-landing{/*width: 100vw;*/ height: 100vh;}
 .fullscreen {height: 100%;width: 100%;}
 
 .clearfix:after, .clearfix:before {

@@ -638,10 +638,7 @@ const saveForm = async () => {
     }
 
   } catch (error) {
-    uploadProgress.show = false
     console.error('上传失败:', error)
-
-
     if (error.name === 'AbortError') {
       ElMessage.info('上传已取消')
     } else if (error.response == null) {
@@ -668,7 +665,7 @@ const saveForm = async () => {
       ElMessage({
         message: errorMessage,
         type: 'error',
-        duration: 5000, // 延长显示时间到5秒
+        duration: 0, // 延长显示时间到5秒
         showClose: true // 允许手动关闭
       })
     }

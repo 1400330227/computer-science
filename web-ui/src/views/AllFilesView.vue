@@ -142,7 +142,7 @@
                           下载
                         </a>
                       </div>
-                        <div style="color:#999999">{{ row.dataFormat }} | {{ formatFileSize(row.size)}}GB</div>
+                        <div style="color:#999999">{{ row.dataFormat }} | {{ formatFileSize(row.size)}}</div>
                     </template>
                 </el-table-column>
                 <el-table-column prop="corpusName" label="语料" width="160">
@@ -397,9 +397,20 @@ const getDownloadUrl = (file) => {
 
 
 const formatFileSize = (sizeInBytes) => {
-    if (!sizeInBytes || sizeInBytes === 0) return '0.000000 GB';
-    const sizeInGB = sizeInBytes / (1024 * 1024 * 1024);
-    return sizeInGB.toFixed(6);
+    if (!sizeInBytes || sizeInBytes === 0) return '0.00B';
+    const kb = 1024
+    const mb = kb * 1024
+    const gb = mb * 1024
+
+    if (Math.abs(sizeInBytes) < kb) {
+      return sizeInBytes.toFixed(2) + ' B'
+    } else if (Math.abs(sizeInBytes) < mb) {
+      return (sizeInBytes / kb).toFixed(2) + ' KB'
+    } else if (Math.abs(sizeInBytes) < gb) {
+      return (sizeInBytes / mb).toFixed(2) + ' MB'
+    } else {
+      return (sizeInBytes / gb).toFixed(2) + ' GB'
+    }
 };
 
 

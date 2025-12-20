@@ -650,7 +650,7 @@ function echarts_5() {
                     const domainName = domainNames[dataIndex]
                     const percentage = domainPercentages[dataIndex]
                     const count = domainValues[dataIndex]
-                    return `${domainName}<br/>语料数量: ${count}份<br/>占比: ${percentage}%`
+                    return `${domainName}<br/>语料容量: ${count}GB<br/>占比: ${percentage}%`
                 }
                 return ''
             }
